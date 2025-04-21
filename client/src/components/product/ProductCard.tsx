@@ -1,0 +1,59 @@
+import { Link } from "wouter";
+import translations from "@/lib/i18n";
+import { Product, statusMap } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+
+interface ProductCardProps {
+  product: Product;
+}
+
+const ProductCard = ({ product }: ProductCardProps) => {
+  // Map status to UI components
+  const statusColors = {
+    available: "bg-green-100 text-secondary",
+    limited: "bg-amber-100 text-[#F59E0B]",
+    soldout: "bg-red-100 text-red-600",
+  };
+  
+  const isSoldOut = product.status === "soldout";
+
+  return (
+    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+      <img 
+        src={product.imageUrl} 
+        alt={product.titleAr} 
+        className="w-full h-56 object-cover" 
+      />
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold font-tajawal">{product.titleAr}</h3>
+          <span className={`${statusColors[product.status]} text-xs font-bold py-1 px-2 rounded`}>
+            {statusMap[product.status]}
+          </span>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">{product.descriptionAr}</p>
+        <div className="flex justify-between items-center">
+          <span className={`text-lg font-bold ${isSoldOut ? 'text-gray-400' : 'text-primary'}`}>
+            {product.price} ريال
+          </span>
+          <Button 
+            asChild={!isSoldOut}
+            variant={isSoldOut ? "ghost" : "default"}
+            className={isSoldOut ? "bg-gray-300 text-gray-600 cursor-not-allowed" : ""}
+            disabled={isSoldOut}
+          >
+            {isSoldOut ? (
+              <span>نفذت</span>
+            ) : (
+              <Link href={`/products/${product.id}`}>
+                {translations.shop.detailsButton}
+              </Link>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductCard;
