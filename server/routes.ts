@@ -426,9 +426,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.setMainProductImage(id, productImage.id);
       }
       
-      // For backward compatibility, always ensure the product's imageUrl is updated if this is the first image
+      // For backward compatibility, always update the product's imageUrl when a new image is added
+      // If this is the main image or this is the first image for the product
       const existingImages = await storage.getProductImages(id);
-      if (existingImages.length === 1) {
+      if (isMain || existingImages.length === 1) {
         await storage.updateProduct(id, { imageUrl: fileUrl });
       }
       

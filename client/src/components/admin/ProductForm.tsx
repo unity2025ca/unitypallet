@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 // Extend the product schema with validation rules
 const productFormSchema = insertProductSchema.extend({
@@ -196,8 +197,9 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           description: "The image has been added to this product's gallery"
         });
         
-        // Refresh product images
-        window.location.reload();
+        // Refresh product images using React Query
+        // Instead of full page reload which loses state
+        queryClient.invalidateQueries([`/api/products/${productId}/images`]);
       } else {
         throw new Error(result.message || 'Failed to upload additional image');
       }
@@ -233,8 +235,10 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           description: "The selected image is now the main product image"
         });
         
-        // Refresh product images
-        window.location.reload();
+        // Refresh product images using React Query
+        queryClient.invalidateQueries([`/api/products/${productId}/images`]);
+        // Also refresh the product details to update the main image
+        queryClient.invalidateQueries([`/api/products/${productId}`]);
       } else {
         throw new Error(result.message || 'Failed to update main image');
       }
