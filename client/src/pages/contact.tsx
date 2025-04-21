@@ -223,14 +223,18 @@ const ContactPage = () => {
                 </div>
               </div>
               
-              {/* Map Placeholder */}
-              <div className="h-64 bg-gray-200 border-t border-gray-100 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                  <span className="text-center">
-                    <i className="fas fa-map text-4xl mb-2"></i>
-                    <p>Location Map</p>
-                  </span>
-                </div>
+              {/* Google Maps */}
+              <div className="h-[400px] border-t border-gray-100 relative">
+                <iframe 
+                  src={getSettingValue('location_map')}
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen 
+                  loading="lazy"
+                  title="Location Map"
+                  className="w-full h-full"
+                ></iframe>
               </div>
             </div>
           </div>
