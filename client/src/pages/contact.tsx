@@ -61,9 +61,9 @@ const ContactPage = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="md:flex md:space-x-8 md:space-x-reverse">
+        <div className="md:flex md:space-x-8">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            <h2 className="text-3xl font-bold text-neutral-dark font-tajawal mb-6">
+            <h2 className="text-3xl font-bold text-neutral-dark font-primary mb-6">
               {translations.contact.title}
             </h2>
             <p className="text-gray-600 mb-8">
@@ -136,7 +136,7 @@ const ContactPage = () => {
                   {submitContact.isPending ? (
                     <span className="flex items-center gap-2">
                       <i className="fas fa-spinner fa-spin"></i>
-                      جارٍ الإرسال...
+                      Sending...
                     </span>
                   ) : (
                     translations.contact.form.submit
@@ -149,12 +149,12 @@ const ContactPage = () => {
           <div className="md:w-1/2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden h-full">
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-neutral-dark font-tajawal mb-6">
+                <h3 className="text-xl font-semibold text-neutral-dark font-primary mb-6">
                   {translations.contact.info.title}
                 </h3>
                 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-start space-x-4 space-x-reverse">
+                  <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
                       <i className="fas fa-map-marker-alt"></i>
                     </div>
@@ -164,40 +164,40 @@ const ContactPage = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-start space-x-4 space-x-reverse">
+                  <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
                       <i className="fas fa-phone-alt"></i>
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.phone.label}</p>
-                      <p className="text-gray-600" dir="ltr">{translations.contact.info.phone.value}</p>
+                      <p className="text-gray-600">{translations.contact.info.phone.value}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start space-x-4 space-x-reverse">
+                  <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
                       <i className="fas fa-envelope"></i>
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.email.label}</p>
-                      <p className="text-gray-600" dir="ltr">{translations.contact.info.email.value}</p>
+                      <p className="text-gray-600">{translations.contact.info.email.value}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start space-x-4 space-x-reverse">
+                  <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-600">
                       <i className="fab fa-whatsapp"></i>
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.whatsapp.label}</p>
-                      <p className="text-gray-600" dir="ltr">{translations.contact.info.whatsapp.value}</p>
+                      <p className="text-gray-600">{translations.contact.info.whatsapp.value}</p>
                     </div>
                   </div>
                 </div>
                 
                 <div>
                   <h4 className="font-medium text-neutral-dark mb-3">{translations.contact.info.social.label}</h4>
-                  <div className="flex space-x-4 space-x-reverse">
+                  <div className="flex space-x-4">
                     <a href="#" className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
                       <i className="fab fa-facebook-f"></i>
                     </a>
@@ -219,7 +219,7 @@ const ContactPage = () => {
                 <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                   <span className="text-center">
                     <i className="fas fa-map text-4xl mb-2"></i>
-                    <p>خريطة الموقع</p>
+                    <p>Location Map</p>
                   </span>
                 </div>
               </div>

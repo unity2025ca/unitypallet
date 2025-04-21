@@ -8,7 +8,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            <h1 className="text-4xl md:text-5xl font-bold font-tajawal mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4">
               {translations.hero.title}
             </h1>
             <p className="text-xl mb-8 text-blue-100">
