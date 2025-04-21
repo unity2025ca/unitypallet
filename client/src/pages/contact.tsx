@@ -225,16 +225,27 @@ const ContactPage = () => {
               
               {/* Google Maps */}
               <div className="h-[400px] border-t border-gray-100 relative">
-                <iframe 
-                  src={getSettingValue('location_map')}
-                  width="100%" 
-                  height="100%" 
-                  style={{ border: 0 }} 
-                  allowFullScreen 
-                  loading="lazy"
-                  title="Location Map"
-                  className="w-full h-full"
-                ></iframe>
+                {getSettingValue('location_map') && (
+                  getSettingValue('location_map').includes('<iframe') ? (
+                    <div dangerouslySetInnerHTML={{ 
+                      __html: getSettingValue('location_map')
+                        .replace('width="600"', 'width="100%"')
+                        .replace('height="450"', 'height="100%"')
+                    }} className="w-full h-full" />
+                  ) : (
+                    <iframe 
+                      src={getSettingValue('location_map')}
+                      width="100%" 
+                      height="100%" 
+                      style={{ border: 0 }} 
+                      allowFullScreen 
+                      loading="lazy"
+                      title="Location Map"
+                      className="w-full h-full"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    ></iframe>
+                  )
+                )}
               </div>
             </div>
           </div>
