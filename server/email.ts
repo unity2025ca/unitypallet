@@ -28,14 +28,56 @@ export async function sendEmail(
       hasHtml: !!params.html
     });
 
+    // Create more effective email structure to avoid spam filters
     const msg = {
       to: params.to,
-      from: params.from,
+      from: {
+        email: params.from,
+        name: "Unity Pallets" // Using store name improves deliverability
+      },
       subject: params.subject,
+      // Setting these spam prevention headers
+      headers: {
+        "List-Unsubscribe": "<https://unitypallets.com/unsubscribe>",
+        "Precedence": "Bulk"
+      },
+      // Categories help with tracking in SendGrid
+      categories: ["newsletter"],
+      // Using SendGrid tracking features
+      trackingSettings: {
+        clickTracking: { enable: true },
+        openTracking: { enable: true },
+        subscriptionTracking: { enable: false }
+      }
     } as any;
 
     if (params.text) msg.text = params.text;
-    if (params.html) msg.html = params.html;
+    if (params.html) {
+      // Add proper HTML structure if missing
+      let htmlContent = params.html;
+      
+      if (!htmlContent.includes("<!DOCTYPE html>")) {
+        htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${params.subject}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${htmlContent}
+  <br><br>
+  <p style="font-size: 12px; color: #777;">
+    You received this email because you subscribed to updates from Unity Pallets.
+    <br>
+    If you no longer wish to receive these emails, you can <a href="https://unitypallets.com/unsubscribe" style="color: #777;">unsubscribe here</a>.
+  </p>
+</body>
+</html>`;
+      }
+      
+      msg.html = htmlContent;
+    }
 
     console.log('Sending email via SendGrid...');
     const result = await mailService.send(msg);

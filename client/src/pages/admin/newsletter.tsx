@@ -319,6 +319,34 @@ export default function AdminNewsletter() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Anti-Spam Tips Card */}
+        <Card className="mt-6 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Avoiding Spam Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm space-y-3">
+              <p>To prevent your emails from being marked as spam:</p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><strong>Use a consistent sender</strong> - Always use the same verified email address</li>
+                <li><strong>Avoid spam triggers</strong> - Words like "free", "buy now", excessive capitalization</li>
+                <li><strong>Balance text and images</strong> - Don't send emails that are just one large image</li>
+                <li><strong>Personalize when possible</strong> - Use the recipient's name if available</li>
+                <li><strong>Include unsubscribe option</strong> - We automatically add this to HTML emails</li>
+              </ul>
+              <div className="bg-green-50 p-3 mt-2 rounded-md text-green-800 text-xs">
+                <p className="font-semibold">Good news!</p>
+                <p>We've updated the email sending system to automatically implement many best practices to improve deliverability and reduce spam scores.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tips card */}
         <Card className="mt-6">
