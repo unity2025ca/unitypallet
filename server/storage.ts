@@ -92,6 +92,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Set the default roleType based on isAdmin field for backwards compatibility
+    if (insertUser.isAdmin && !insertUser.roleType) {
+      insertUser.roleType = "admin";
+    } else if (!insertUser.roleType) {
+      insertUser.roleType = "user";
+    }
+    
     const result = await db.insert(users).values(insertUser).returning();
     return result[0];
   }

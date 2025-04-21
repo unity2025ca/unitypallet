@@ -8,13 +8,15 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false),
-  // Note: role field will be added later via migration
+  roleType: text("role_type").default("user"),
+  // Note: role enum field will be added later via migration
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   isAdmin: true,
+  roleType: true,
 });
 
 // Category enum for product categories

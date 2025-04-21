@@ -64,34 +64,38 @@ const setupAuth = (app: Express) => {
   
   // Check if user is admin (full access)
   const requireAdmin = (req: Request, res: Response, next: any) => {
-    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+    const user = req.user as any;
+    if (!req.isAuthenticated() || !(user?.isAdmin || user?.roleType === 'admin')) {
       return res.status(401).json({ message: "Unauthorized - Admin access required" });
     }
     next();
   };
   
   // Check if user is a publisher (can manage products and view contacts)
-  // For now, only admins can have publisher permissions (until role field is added)
   const requirePublisher = (req: Request, res: Response, next: any) => {
-    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+    const user = req.user as any;
+    if (!req.isAuthenticated() || 
+        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
       return res.status(401).json({ message: "Unauthorized - Publisher access required" });
     }
     next();
   };
   
   // Check if user can manage products (admin or publisher)
-  // For now, only admins can manage products (until role field is added)
   const canManageProducts = (req: Request, res: Response, next: any) => {
-    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+    const user = req.user as any;
+    if (!req.isAuthenticated() || 
+        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
       return res.status(401).json({ message: "Unauthorized - Cannot manage products" });
     }
     next();
   };
   
   // Check if user can view contacts (admin or publisher)
-  // For now, only admins can view contacts (until role field is added)
   const canViewContacts = (req: Request, res: Response, next: any) => {
-    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+    const user = req.user as any;
+    if (!req.isAuthenticated() || 
+        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
       return res.status(401).json({ message: "Unauthorized - Cannot view contacts" });
     }
     next();
