@@ -162,7 +162,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.address.label}</p>
-                      <p className="text-gray-600">{translations.contact.info.address.value}</p>
+                      <p className="text-gray-600">{getSettingValue('contact_address', translations.contact.info.address.value)}</p>
                     </div>
                   </div>
                   

@@ -104,7 +104,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li className="flex items-start space-x-2">
                 <i className="fas fa-map-marker-alt mt-1 text-gray-400"></i>
-                <span className="text-gray-400">{translations.contact.info.address.value}</span>
+                <span className="text-gray-400">{getSettingValue('contact_address', translations.contact.info.address.value)}</span>
               </li>
               <li className="flex items-start space-x-2">
                 <i className="fas fa-phone-alt mt-1 text-gray-400"></i>
