@@ -1,22 +1,49 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import translations from "@/lib/i18n";
-import { Product, categoryMap, statusMap } from "@shared/schema";
+import { Product, ProductImage, categoryMap, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
 
 const ProductDetailsPage = () => {
   // Get product ID from URL
   const [match, params] = useRoute("/products/:id");
   const id = params?.id;
   
+  // State for selected image
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
   // Fetch product details
-  const { data: product, isLoading, error } = useQuery<Product>({
+  const { data: product, isLoading: isLoadingProduct, error } = useQuery<Product>({
     queryKey: [`/api/products/${id}`],
     enabled: !!id,
   });
+  
+  // Fetch product images
+  const { data: productImages, isLoading: isLoadingImages } = useQuery<ProductImage[]>({
+    queryKey: [`/api/products/${id}/images`],
+    enabled: !!id,
+  });
+  
+  // Set the main image when product or productImages change
+  useEffect(() => {
+    if (product) {
+      setSelectedImage(product.imageUrl);
+    }
+    
+    if (productImages && productImages.length > 0) {
+      // Find main image or use first image
+      const mainImage = productImages.find(img => img.isMain);
+      if (mainImage) {
+        setSelectedImage(mainImage.imageUrl);
+      } else if (productImages[0]) {
+        setSelectedImage(productImages[0].imageUrl);
+      }
+    }
+  }, [product, productImages]);
   
   // Status colors
   const statusColors: Record<string, string> = {
@@ -24,6 +51,9 @@ const ProductDetailsPage = () => {
     limited: "bg-amber-100 text-amber-800 border-amber-200",
     soldout: "bg-red-100 text-red-800 border-red-200",
   };
+  
+  // Loading state if either product or images are loading
+  const isLoading = isLoadingProduct || isLoadingImages;
   
   // If no product ID or error
   if (!id || (error && !isLoading)) {

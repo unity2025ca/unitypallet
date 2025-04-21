@@ -382,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Product image upload route - combining upload with product update
+  // Product image upload route - supporting multiple images
   app.post('/api/admin/products/:id/image', requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -403,17 +403,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create image URL
       const fileUrl = `/uploads/${req.file.filename}`;
       
-      // Update product with new image URL
-      const updatedProduct = await storage.updateProduct(id, { imageUrl: fileUrl });
+      // Set whether this should be the main image
+      const isMain = req.body.isMain === 'true';
+      
+      // Get the display order
+      let displayOrder = 0;
+      if (req.body.displayOrder) {
+        displayOrder = parseInt(req.body.displayOrder);
+        if (isNaN(displayOrder)) displayOrder = 0;
+      }
+      
+      // Add the image to product_images table
+      const productImage = await storage.addProductImage({
+        productId: id,
+        imageUrl: fileUrl,
+        isMain,
+        displayOrder
+      });
+      
+      // If this is set as the main image, update the main product image reference
+      if (isMain) {
+        await storage.setMainProductImage(id, productImage.id);
+      }
+      
+      // For backward compatibility, always ensure the product's imageUrl is updated if this is the first image
+      const existingImages = await storage.getProductImages(id);
+      if (existingImages.length === 1) {
+        await storage.updateProduct(id, { imageUrl: fileUrl });
+      }
       
       return res.status(200).json({ 
         success: true, 
-        message: 'Product image updated successfully', 
-        product: updatedProduct
+        message: 'Product image added successfully',
+        image: productImage
       });
     } catch (error) {
       console.error('Product image upload error:', error);
-      return res.status(500).json({ success: false, message: 'Failed to update product image' });
+      return res.status(500).json({ success: false, message: 'Failed to add product image' });
+    }
+  });
+  
+  // Get all product images
+  app.get('/api/products/:id/images', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+      }
+      
+      const images = await storage.getProductImages(id);
+      return res.status(200).json(images);
+    } catch (error) {
+      console.error('Error getting product images:', error);
+      return res.status(500).json({ message: "Error retrieving product images" });
+    }
+  });
+  
+  // Set main product image
+  app.patch('/api/admin/products/:productId/images/:imageId/main', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const productId = parseInt(req.params.productId);
+      const imageId = parseInt(req.params.imageId);
+      
+      if (isNaN(productId) || isNaN(imageId)) {
+        return res.status(400).json({ message: "Invalid product or image ID" });
+      }
+      
+      const success = await storage.setMainProductImage(productId, imageId);
+      
+      if (success) {
+        return res.status(200).json({ success: true, message: 'Main product image updated' });
+      } else {
+        return res.status(404).json({ success: false, message: 'Product image not found' });
+      }
+    } catch (error) {
+      console.error('Error setting main product image:', error);
+      return res.status(500).json({ message: "Error updating main product image" });
+    }
+  });
+  
+  // Delete product image
+  app.delete('/api/admin/products/images/:imageId', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const imageId = parseInt(req.params.imageId);
+      
+      if (isNaN(imageId)) {
+        return res.status(400).json({ message: "Invalid image ID" });
+      }
+      
+      const success = await storage.deleteProductImage(imageId);
+      
+      if (success) {
+        return res.status(200).json({ success: true, message: 'Product image deleted' });
+      } else {
+        return res.status(404).json({ success: false, message: 'Product image not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting product image:', error);
+      return res.status(500).json({ message: "Error deleting product image" });
     }
   });
 
