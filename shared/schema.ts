@@ -114,6 +114,7 @@ export const settings = pgTable("settings", {
   value: text("value").notNull(),
   category: text("category").notNull(), // e.g., "appearance", "content", "contact"
   label: text("label").notNull(), // Human-readable label for UI
+  description: text("description"), // Optional description for UI
   type: text("type").notNull(), // e.g., "text", "color", "image", "boolean"
   updatedAt: timestamp("updated_at").defaultNow(),
 });

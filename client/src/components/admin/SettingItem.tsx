@@ -1,188 +1,167 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { 
-  Card, 
-  CardContent, 
-  CardFooter 
-} from "@/components/ui/card";
-import { 
-  Button 
-} from "@/components/ui/button";
-import { 
-  Input 
-} from "@/components/ui/input";
-import { 
-  Textarea 
-} from "@/components/ui/textarea";
-import { 
-  Label 
-} from "@/components/ui/label";
-import { 
-  Check, 
-  X, 
-  Loader2,
-  Edit 
-} from "lucide-react";
 import { Setting } from "@shared/schema";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { CheckIcon, XIcon } from "lucide-react";
 
 interface SettingItemProps {
   setting: Setting;
 }
 
 export default function SettingItem({ setting }: SettingItemProps) {
-  const { toast } = useToast();
-  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(setting.value);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChanged, setIsChanged] = useState(false);
+  const { toast } = useToast();
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const res = await apiRequest("PUT", `/api/admin/settings/${key}`, { value });
-      return res.json();
-    },
-    onSuccess: () => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    setIsChanged(e.target.value !== setting.value);
+  };
+
+  const handleSubmit = async () => {
+    if (!isChanged) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiRequest("PATCH", `/api/settings/${setting.key}`, { value });
+      
+      // Invalidate settings cache
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/settings/${setting.key}`] });
+      
       toast({
-        title: "تم التحديث",
-        description: `تم تحديث "${setting.label}" بنجاح`,
+        title: "تم التحديث بنجاح",
+        description: `تم تحديث "${setting.label}" بنجاح.`,
       });
-      setEditing(false);
-    },
-    onError: (error) => {
+      
+      setIsChanged(false);
+    } catch (error) {
+      console.error(error);
       toast({
         title: "خطأ في التحديث",
-        description: error.message,
+        description: "حدث خطأ أثناء محاولة تحديث الإعداد.",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSave = () => {
-    updateMutation.mutate({ key: setting.key, value });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleCancel = () => {
+  const handleReset = () => {
     setValue(setting.value);
-    setEditing(false);
+    setIsChanged(false);
   };
 
+  // Render different inputs based on setting type
   const renderInput = () => {
-    if (!editing) {
-      if (setting.type === "image") {
-        return (
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <img 
-              src={setting.value} 
-              alt={setting.label} 
-              className="w-16 h-16 object-contain"
-            />
-            <div className="text-slate-600 rtl-dir">{setting.value}</div>
-          </div>
-        );
-      }
-      
-      if (setting.type === "color") {
-        return (
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <div 
-              className="w-6 h-6 rounded-full border" 
-              style={{ backgroundColor: setting.value }}
-            />
-            <div className="text-slate-600 rtl-dir">{setting.value}</div>
-          </div>
-        );
-      }
-      
-      if (setting.type === "textarea") {
-        return <div className="text-slate-600 rtl-dir whitespace-pre-wrap">{setting.value}</div>;
-      }
-      
-      return <div className="text-slate-600 rtl-dir">{setting.value}</div>;
+    // Default input is text
+    let inputElement = (
+      <Input 
+        id={setting.key} 
+        value={value} 
+        onChange={handleInputChange}
+        className="rtl-dir"
+      />
+    );
+
+    // Handle different types
+    if (setting.type === "color") {
+      inputElement = (
+        <div className="flex space-x-2 space-x-reverse">
+          <Input 
+            type="color"
+            id={setting.key} 
+            value={value} 
+            onChange={handleInputChange}
+            className="w-16 h-10 p-1"
+          />
+          <Input 
+            type="text"
+            value={value} 
+            onChange={handleInputChange}
+            className="rtl-dir flex-1"
+          />
+        </div>
+      );
+    } else if (setting.type === "url" && setting.key === "site_logo") {
+      inputElement = (
+        <div className="space-y-3">
+          <Input 
+            type="url"
+            id={setting.key} 
+            value={value} 
+            onChange={handleInputChange}
+            className="rtl-dir"
+            placeholder="https://example.com/logo.png"
+          />
+          {value && (
+            <div className="flex justify-center p-2 bg-gray-50 rounded-md">
+              <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+            </div>
+          )}
+        </div>
+      );
+    } else if (setting.type === "textarea") {
+      inputElement = (
+        <textarea
+          id={setting.key}
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setIsChanged(e.target.value !== setting.value);
+          }}
+          className="rtl-dir min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2"
+        />
+      );
     }
 
-    switch (setting.type) {
-      case "textarea":
-        return (
-          <Textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={`أدخل ${setting.label}`}
-            className="rtl-dir"
-            rows={4}
-          />
-        );
-      case "color":
-        return (
-          <div className="flex space-x-4 space-x-reverse">
-            <Input
-              type="color"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-16 h-10"
-            />
-            <Input
-              type="text"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder={`أدخل ${setting.label}`}
-              className="rtl-dir"
-            />
-          </div>
-        );
-      case "image":
-      case "text":
-      case "email":
-      case "tel":
-      default:
-        return (
-          <Input
-            type={setting.type === "email" ? "email" : setting.type === "tel" ? "tel" : "text"}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={`أدخل ${setting.label}`}
-            className="rtl-dir"
-          />
-        );
-    }
+    return inputElement;
   };
 
   return (
-    <Card className="mb-4">
-      <CardContent className="pt-6">
-        <div className="flex justify-between mb-4">
-          <Label className="font-bold text-lg rtl-dir">{setting.label}</Label>
-          {!editing && (
-            <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-              <Edit className="h-4 w-4 ml-2" />
-              تعديل
-            </Button>
+    <Card className="overflow-hidden">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-start">
+            <Label htmlFor={setting.key} className="text-lg font-medium block mb-1 rtl-dir">
+              {setting.label}
+            </Label>
+            {setting.category && (
+              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                {setting.category}
+              </span>
+            )}
+          </div>
+          
+          {setting.description && (
+            <p className="text-sm text-gray-500 mb-4 rtl-dir">{setting.description}</p>
           )}
+          
+          {renderInput()}
         </div>
-        {renderInput()}
       </CardContent>
-      {editing && (
-        <CardFooter className="flex justify-end space-x-2 space-x-reverse border-t pt-4">
-          <Button 
-            onClick={handleCancel} 
-            variant="outline" 
+      
+      {isChanged && (
+        <CardFooter className="px-6 py-4 bg-gray-50 flex justify-end space-x-2 space-x-reverse">
+          <Button
+            variant="outline"
             size="sm"
-            disabled={updateMutation.isPending}
+            onClick={handleReset}
+            disabled={isSubmitting}
           >
-            <X className="h-4 w-4 ml-2" />
+            <XIcon className="ml-1 h-4 w-4" />
             إلغاء
           </Button>
-          <Button 
-            onClick={handleSave} 
+          <Button
             size="sm"
-            disabled={updateMutation.isPending}
+            onClick={handleSubmit}
+            disabled={isSubmitting}
           >
-            {updateMutation.isPending ? (
-              <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-            ) : (
-              <Check className="h-4 w-4 ml-2" />
-            )}
+            <CheckIcon className="ml-1 h-4 w-4" />
             حفظ
           </Button>
         </CardFooter>

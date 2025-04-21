@@ -241,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/admin/settings/:key", requireAdmin, async (req, res) => {
+  app.patch("/api/settings/:key", requireAdmin, async (req, res) => {
     try {
       const key = req.params.key;
       const { value } = req.body;
