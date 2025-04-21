@@ -100,7 +100,7 @@ const ProductDetailsPage = () => {
                 <p className="text-gray-600 mb-6">{product.description}</p>
                 
                 <div className="text-2xl font-bold text-primary mb-6">
-                  ${product.price}
+                  C${product.price}
                 </div>
                 
                 <div className="space-y-4">

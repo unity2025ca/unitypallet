@@ -34,7 +34,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <p className="text-sm text-gray-600 mb-4">{product.description}</p>
         <div className="flex justify-between items-center">
           <span className={`text-lg font-bold ${isSoldOut ? 'text-gray-400' : 'text-primary'}`}>
-            ${product.price}
+            C${product.price}
           </span>
           <Button 
             asChild={!isSoldOut}
