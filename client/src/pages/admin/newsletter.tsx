@@ -108,9 +108,10 @@ export default function AdminNewsletter() {
       form.reset();
     },
     onError: (error: Error) => {
+      console.error("Newsletter error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to send newsletter",
+        title: "Error sending newsletter",
+        description: error.message || "Failed to send newsletter. Verify that your SendGrid account is properly configured and the sender email is verified in your SendGrid account.",
         variant: "destructive",
       });
     },
@@ -210,8 +211,8 @@ export default function AdminNewsletter() {
                         <FormControl>
                           <Input placeholder="your@email.com" {...field} />
                         </FormControl>
-                        <FormDescription>
-                          This must be a verified sender in your SendGrid account
+                        <FormDescription className="text-amber-600 font-medium">
+                          ⚠️ This must be a verified sender email in your SendGrid account
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -294,7 +295,32 @@ export default function AdminNewsletter() {
           </Card>
         </div>
         
-        {/* Help card */}
+        {/* SendGrid Info Card */}
+        <Card className="mt-6 border-amber-400">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Important SendGrid Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm space-y-3">
+              <p>For the newsletter to work properly, you need to:</p>
+              <ol className="list-decimal pl-5 space-y-2">
+                <li><strong>Verify your sender email in SendGrid</strong> - You can only send from verified email addresses</li>
+                <li><strong>Complete domain authentication in SendGrid</strong> - To ensure better deliverability</li>
+                <li><strong>Check your SendGrid API key permissions</strong> - Make sure it has "Mail Send" permissions</li>
+              </ol>
+              <p className="text-sm pt-2">
+                If emails are not being delivered, check the server console logs for detailed error messages from SendGrid.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tips card */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="text-lg">Tips for Effective Newsletters</CardTitle>

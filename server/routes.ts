@@ -216,18 +216,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email newsletter to subscribers
   app.post("/api/admin/subscribers/email", requireAdmin, async (req, res) => {
     try {
+      console.log('Newsletter request received:', {
+        hasSubject: !!req.body.subject,
+        hasContent: !!req.body.content,
+        isHtml: !!req.body.isHtml,
+        fromEmail: req.body.fromEmail
+      });
+      
       const { subject, content, isHtml = false, fromEmail } = req.body;
       
       // Validate required fields
       if (!subject || !content || !fromEmail) {
+        const missingFields = [];
+        if (!subject) missingFields.push('subject');
+        if (!content) missingFields.push('content');
+        if (!fromEmail) missingFields.push('fromEmail');
+        
+        console.warn('Missing required newsletter fields:', missingFields);
+        
         return res.status(400).json({ 
           success: false, 
-          message: "Missing required fields: subject, content, and fromEmail are required" 
+          message: `Missing required fields: ${missingFields.join(', ')} ${missingFields.length > 1 ? 'are' : 'is'} required` 
         });
       }
       
       // Get all subscribers
       const subscribers = await storage.getAllSubscribers();
+      console.log(`Found ${subscribers.length} subscribers`);
       
       if (subscribers.length === 0) {
         return res.status(404).json({ 
@@ -238,8 +253,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Extract emails from subscribers
       const emails = subscribers.map(subscriber => subscriber.email);
+      console.log(`Processing ${emails.length} subscriber emails`);
       
       // Send email to all subscribers
+      console.log('Calling sendBulkEmails function...');
       const result = await sendBulkEmails(
         emails,
         fromEmail,
@@ -248,15 +265,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isHtml
       );
       
+      console.log('sendBulkEmails result:', result);
+      
       if (result.success) {
         res.status(200).json(result);
       } else {
-        res.status(500).json(result);
+        // Additional diagnostic info if it fails
+        res.status(500).json({
+          ...result,
+          diagnosticInfo: {
+            senderEmail: fromEmail,
+            receiverCount: emails.length,
+            contentType: isHtml ? 'HTML' : 'Plain Text',
+            apiKeyConfigured: !!process.env.SENDGRID_API_KEY
+          }
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Newsletter route error:', error);
       res.status(500).json({ 
         success: false, 
-        message: `Failed to send newsletter: ${(error as Error).message}` 
+        message: `Failed to send newsletter: ${error.message || 'Unknown error'}`,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });

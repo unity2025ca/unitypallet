@@ -20,6 +20,14 @@ export async function sendEmail(
   params: EmailParams
 ): Promise<boolean> {
   try {
+    console.log('Preparing to send email with params:', {
+      to: Array.isArray(params.to) ? `${params.to.length} recipients` : params.to,
+      from: params.from,
+      subject: params.subject,
+      hasText: !!params.text,
+      hasHtml: !!params.html
+    });
+
     const msg = {
       to: params.to,
       from: params.from,
@@ -29,10 +37,18 @@ export async function sendEmail(
     if (params.text) msg.text = params.text;
     if (params.html) msg.html = params.html;
 
-    await mailService.send(msg);
+    console.log('Sending email via SendGrid...');
+    const result = await mailService.send(msg);
+    console.log('SendGrid response:', result);
     return true;
-  } catch (error) {
-    console.error('SendGrid email error:', error);
+  } catch (error: any) {
+    console.error('SendGrid email error details:', error);
+    if (error.response) {
+      console.error('SendGrid API response error:', {
+        body: error.response.body,
+        statusCode: error.response.statusCode
+      });
+    }
     return false;
   }
 }
@@ -48,8 +64,20 @@ export async function sendBulkEmails(
     return { success: false, message: 'No recipient emails provided' };
   }
 
+  console.log(`Starting bulk email send to ${emails.length} recipients`);
+  console.log(`From: ${from}, Subject: ${subject}, Content type: ${isHtml ? 'HTML' : 'Text'}`);
+  
   try {
-    // Split emails into chunks of 1000 (SendGrid limit)
+    // Verify that sender address is a valid email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)) {
+      console.error('Invalid sender email format:', from);
+      return { 
+        success: false, 
+        message: `Invalid sender email format: ${from}` 
+      };
+    }
+    
+    // Split emails into chunks of 900 (under SendGrid's 1000 limit)
     const chunkSize = 900;
     const emailChunks = [];
     
@@ -57,25 +85,54 @@ export async function sendBulkEmails(
       emailChunks.push(emails.slice(i, i + chunkSize));
     }
     
+    console.log(`Split recipients into ${emailChunks.length} chunks`);
+    
     // Send emails to each chunk
-    for (const chunk of emailChunks) {
-      await sendEmail({
+    let successCount = 0;
+    let failureCount = 0;
+    
+    for (let i = 0; i < emailChunks.length; i++) {
+      const chunk = emailChunks[i];
+      console.log(`Sending chunk ${i + 1}/${emailChunks.length} with ${chunk.length} recipients`);
+      
+      const emailParams = {
         to: chunk,
         from,
         subject,
         ...(isHtml ? { html: content } : { text: content })
-      });
+      };
+      
+      const success = await sendEmail(emailParams);
+      
+      if (success) {
+        successCount += chunk.length;
+        console.log(`Successfully sent to chunk ${i + 1}/${emailChunks.length}`);
+      } else {
+        failureCount += chunk.length;
+        console.error(`Failed to send to chunk ${i + 1}/${emailChunks.length}`);
+      }
     }
     
+    if (failureCount > 0) {
+      const message = `Partial success: sent to ${successCount} of ${emails.length} subscribers (${failureCount} failed)`;
+      console.warn(message);
+      return { 
+        success: successCount > 0, 
+        message
+      };
+    }
+    
+    const message = `Email sent successfully to ${emails.length} subscribers`;
+    console.log(message);
     return { 
       success: true, 
-      message: `Email sent successfully to ${emails.length} subscribers` 
+      message
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Bulk email error:', error);
     return { 
       success: false, 
-      message: `Failed to send emails: ${(error as Error).message}` 
+      message: `Failed to send emails: ${error.message || 'Unknown error'}` 
     };
   }
 }
