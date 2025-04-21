@@ -15,16 +15,12 @@ import { z } from "zod";
 
 // Setup authentication
 const setupAuth = (app: Express) => {
-  const SessionStore = MemoryStore(session);
-  
   app.use(session({
     secret: process.env.SESSION_SECRET || 'unity-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 }, // 1 day
-    store: new SessionStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    })
+    store: storage.sessionStore
   }));
   
   app.use(passport.initialize());

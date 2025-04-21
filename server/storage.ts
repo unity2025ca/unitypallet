@@ -6,8 +6,17 @@ import {
   type Contact,
   type InsertContact,
   type Subscriber,
-  type InsertSubscriber
+  type InsertSubscriber,
+  users,
+  products,
+  contacts,
+  subscribers
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, asc } from "drizzle-orm";
+import connectPg from "connect-pg-simple";
+import session from "express-session";
+import { pool } from "./db";
 
 // Define the storage interface with CRUD methods
 export interface IStorage {
@@ -31,136 +40,133 @@ export interface IStorage {
   // Subscriber methods
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   getAllSubscribers(): Promise<Subscriber[]>;
+  
+  // Session store
+  sessionStore: any; // Simplify type for session store
 }
 
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private products: Map<number, Product>;
-  private contacts: Map<number, Contact>;
-  private subscribers: Map<number, Subscriber>;
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  sessionStore: any;
   
-  private currentUserId: number;
-  private currentProductId: number;
-  private currentContactId: number;
-  private currentSubscriberId: number;
-
   constructor() {
-    this.users = new Map();
-    this.products = new Map();
-    this.contacts = new Map();
-    this.subscribers = new Map();
-    
-    this.currentUserId = 1;
-    this.currentProductId = 1;
-    this.currentContactId = 1;
-    this.currentSubscriberId = 1;
-    
-    // Create admin user by default
-    this.createUser({
-      username: "admin",
-      password: "admin123", // In a real app, this would be hashed
-      isAdmin: true,
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
     
-    // Add some sample products
-    this.seedProducts();
+    // Initialize the database with sample data if needed
+    this.initializeDatabase();
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
   
   // Product methods
   async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
+    return db.select().from(products).orderBy(asc(products.id));
   }
   
   async getProductById(id: number): Promise<Product | undefined> {
-    return this.products.get(id);
+    const result = await db.select().from(products).where(eq(products.id, id));
+    return result[0];
   }
   
   async getProductsByCategory(category: string): Promise<Product[]> {
-    return Array.from(this.products.values()).filter(
-      (product) => product.category === category
-    );
+    // Handle category filtering using a safer approach with runtime type checking
+    const result = await db.select().from(products);
+    return result.filter(p => p.category === category);
   }
   
   async createProduct(product: InsertProduct): Promise<Product> {
-    const id = this.currentProductId++;
-    const timestamp = new Date();
-    const newProduct: Product = { ...product, id, createdAt: timestamp };
-    this.products.set(id, newProduct);
-    return newProduct;
+    const result = await db.insert(products).values(product).returning();
+    return result[0];
   }
   
-  async updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined> {
-    const existingProduct = this.products.get(id);
+  async updateProduct(id: number, productData: Partial<InsertProduct>): Promise<Product | undefined> {
+    const result = await db
+      .update(products)
+      .set(productData)
+      .where(eq(products.id, id))
+      .returning();
     
-    if (!existingProduct) {
-      return undefined;
-    }
-    
-    const updatedProduct: Product = { ...existingProduct, ...product };
-    this.products.set(id, updatedProduct);
-    return updatedProduct;
+    return result[0];
   }
   
   async deleteProduct(id: number): Promise<boolean> {
-    return this.products.delete(id);
+    const result = await db
+      .delete(products)
+      .where(eq(products.id, id))
+      .returning({ id: products.id });
+    
+    return result.length > 0;
   }
   
   // Contact methods
   async createContact(contact: InsertContact): Promise<Contact> {
-    const id = this.currentContactId++;
-    const timestamp = new Date();
-    const newContact: Contact = { ...contact, id, createdAt: timestamp };
-    this.contacts.set(id, newContact);
-    return newContact;
+    const result = await db.insert(contacts).values(contact).returning();
+    return result[0];
   }
   
   async getAllContacts(): Promise<Contact[]> {
-    return Array.from(this.contacts.values());
+    return db.select().from(contacts).orderBy(asc(contacts.id));
   }
   
   // Subscriber methods
   async createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber> {
-    // Check if email already exists
-    const existingSubscriber = Array.from(this.subscribers.values()).find(
-      (sub) => sub.email === subscriber.email
-    );
-    
-    if (existingSubscriber) {
-      return existingSubscriber;
+    try {
+      const result = await db.insert(subscribers).values(subscriber).returning();
+      return result[0];
+    } catch (error) {
+      // If insert fails due to unique constraint, return the existing subscriber
+      const existingSubscriber = await db
+        .select()
+        .from(subscribers)
+        .where(eq(subscribers.email, subscriber.email));
+        
+      return existingSubscriber[0];
     }
-    
-    const id = this.currentSubscriberId++;
-    const timestamp = new Date();
-    const newSubscriber: Subscriber = { ...subscriber, id, createdAt: timestamp };
-    this.subscribers.set(id, newSubscriber);
-    return newSubscriber;
   }
   
   async getAllSubscribers(): Promise<Subscriber[]> {
-    return Array.from(this.subscribers.values());
+    return db.select().from(subscribers).orderBy(asc(subscribers.id));
   }
   
-  // Seed some initial products
-  private seedProducts() {
+  // Initialize the database with sample data if it's empty
+  private async initializeDatabase() {
+    // Check if admin user exists, if not create one
+    const adminExists = await this.getUserByUsername("admin");
+    if (!adminExists) {
+      await this.createUser({
+        username: "admin",
+        password: "admin123", // In a real app, this would be hashed
+        isAdmin: true,
+      });
+    }
+    
+    // Check if products exist, if not create sample products
+    const productsExist = await this.getAllProducts();
+    if (productsExist.length === 0) {
+      await this.seedProducts();
+    }
+  }
+  
+  // Seed sample products
+  private async seedProducts() {
     const sampleProducts: InsertProduct[] = [
       {
         title: "Electronics Pallet",
@@ -204,10 +210,10 @@ export class MemStorage implements IStorage {
       }
     ];
     
-    sampleProducts.forEach(product => {
-      this.createProduct(product);
-    });
+    for (const product of sampleProducts) {
+      await this.createProduct(product);
+    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
