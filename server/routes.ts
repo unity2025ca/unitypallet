@@ -12,6 +12,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 import { z } from "zod";
+import { sendBulkEmails } from "./email";
 
 // Setup authentication
 const setupAuth = (app: Express) => {
@@ -209,6 +210,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(subscribers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch subscribers" });
+    }
+  });
+
+  // Email newsletter to subscribers
+  app.post("/api/admin/subscribers/email", requireAdmin, async (req, res) => {
+    try {
+      const { subject, content, isHtml = false, fromEmail } = req.body;
+      
+      // Validate required fields
+      if (!subject || !content || !fromEmail) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required fields: subject, content, and fromEmail are required" 
+        });
+      }
+      
+      // Get all subscribers
+      const subscribers = await storage.getAllSubscribers();
+      
+      if (subscribers.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No subscribers found to send email to" 
+        });
+      }
+      
+      // Extract emails from subscribers
+      const emails = subscribers.map(subscriber => subscriber.email);
+      
+      // Send email to all subscribers
+      const result = await sendBulkEmails(
+        emails,
+        fromEmail,
+        subject,
+        content,
+        isHtml
+      );
+      
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to send newsletter: ${(error as Error).message}` 
+      });
     }
   });
   
