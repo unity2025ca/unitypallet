@@ -17,15 +17,15 @@ const CTA = () => {
     },
     onSuccess: () => {
       toast({
-        title: "تم الاشتراك بنجاح",
-        description: "سنبقيك على اطلاع بأحدث العروض والبالات",
+        title: "Subscribed Successfully",
+        description: "We'll keep you updated with the latest offers and pallets",
       });
       setEmail("");
     },
     onError: () => {
       toast({
-        title: "فشل الاشتراك",
-        description: "يرجى التحقق من بريدك الإلكتروني والمحاولة مرة أخرى",
+        title: "Subscription Failed",
+        description: "Please check your email and try again",
         variant: "destructive",
       });
     },
@@ -41,7 +41,7 @@ const CTA = () => {
   return (
     <section className="py-12 bg-gradient-to-r from-primary to-blue-700 text-white">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold font-tajawal mb-6">
+        <h2 className="text-3xl font-bold font-primary mb-6">
           {translations.cta.title}
         </h2>
         <p className="text-xl mb-8 max-w-2xl mx-auto">
@@ -60,7 +60,7 @@ const CTA = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full md:flex-1 px-4 py-3 rounded-r-lg md:rounded-r-none rounded-l-lg mb-2 md:mb-0 border-0 focus:ring-2 focus:ring-amber-300"
-              dir="rtl"
+
             />
             <Button
               type="submit"
@@ -70,7 +70,7 @@ const CTA = () => {
               {subscribe.isPending ? (
                 <span className="flex items-center gap-2">
                   <i className="fas fa-spinner fa-spin"></i>
-                  جارٍ...
+                  Subscribing...
                 </span>
               ) : (
                 translations.cta.button

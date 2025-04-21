@@ -19,7 +19,7 @@ const Features = () => {
     <section className="py-12 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-neutral-dark font-tajawal">
+          <h2 className="text-3xl font-bold text-neutral-dark font-primary">
             {translations.features.title}
           </h2>
           <p className="mt-4 text-neutral-medium max-w-2xl mx-auto">
@@ -36,7 +36,7 @@ const Features = () => {
               <div className={`w-16 h-16 flex items-center justify-center rounded-full ${featureColors[index]} mb-4`}>
                 <i className={`${featureIcons[index]} text-2xl`}></i>
               </div>
-              <h3 className="text-xl font-semibold mb-2 font-tajawal">{feature.title}</h3>
+              <h3 className="text-xl font-semibold mb-2 font-primary">{feature.title}</h3>
               <p className="text-gray-600">{feature.description}</p>
             </div>
           ))}
