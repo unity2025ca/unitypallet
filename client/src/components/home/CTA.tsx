@@ -39,7 +39,7 @@ const CTA = () => {
   };
 
   return (
-    <section className="py-12 bg-gradient-to-r from-primary to-blue-700 text-white">
+    <section className="py-12 bg-gradient-to-r from-primary to-black text-white">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl font-bold font-primary mb-6">
           {translations.cta.title}
@@ -64,7 +64,7 @@ const CTA = () => {
             />
             <Button
               type="submit"
-              className="bg-[#F59E0B] hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-l-lg md:rounded-l-none rounded-r-lg md:rounded-r-none"
+              className="bg-primary hover:bg-[#650000] text-white font-bold py-3 px-6 rounded-l-lg md:rounded-l-none rounded-r-lg md:rounded-r-none"
               disabled={subscribe.isPending}
             >
               {subscribe.isPending ? (
