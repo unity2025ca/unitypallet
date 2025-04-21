@@ -8,7 +8,8 @@ export const translations = {
     about: "من نحن",
     howItWorks: "كيف نعمل",
     faq: "الأسئلة الشائعة",
-    contact: "تواصل معنا"
+    contact: "تواصل معنا",
+    admin: "لوحة التحكم"
   },
   hero: {
     title: "احصل على أفضل صفقات مرتجعات أمازون!",
