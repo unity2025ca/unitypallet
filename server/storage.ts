@@ -322,6 +322,16 @@ export class DatabaseStorage implements IStorage {
       });
     }
     
+    // Check if publisher user exists, if not create one
+    const publisherExists = await this.getUserByUsername("publisher");
+    if (!publisherExists) {
+      await this.createUser({
+        username: "publisher",
+        password: "publisher123", // In a real app, this would be hashed
+        isAdmin: true, // For now, publisher needs admin rights until we implement proper role-based access
+      });
+    }
+    
     // Check if products exist, if not create sample products
     const productsExist = await this.getAllProducts();
     if (productsExist.length === 0) {

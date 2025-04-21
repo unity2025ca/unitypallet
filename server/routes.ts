@@ -60,20 +60,49 @@ const setupAuth = (app: Express) => {
     }
   });
   
-  // Auth middleware for admin routes
+  // Auth middleware for role-based permissions
+  
+  // Check if user is admin (full access)
   const requireAdmin = (req: Request, res: Response, next: any) => {
     if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized - Admin access required" });
     }
     next();
   };
   
-  return requireAdmin;
+  // Check if user is a publisher (can manage products and view contacts)
+  // For now, only admins can have publisher permissions (until role field is added)
+  const requirePublisher = (req: Request, res: Response, next: any) => {
+    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+      return res.status(401).json({ message: "Unauthorized - Publisher access required" });
+    }
+    next();
+  };
+  
+  // Check if user can manage products (admin or publisher)
+  // For now, only admins can manage products (until role field is added)
+  const canManageProducts = (req: Request, res: Response, next: any) => {
+    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+      return res.status(401).json({ message: "Unauthorized - Cannot manage products" });
+    }
+    next();
+  };
+  
+  // Check if user can view contacts (admin or publisher)
+  // For now, only admins can view contacts (until role field is added)
+  const canViewContacts = (req: Request, res: Response, next: any) => {
+    if (!req.isAuthenticated() || !(req.user as any)?.isAdmin) {
+      return res.status(401).json({ message: "Unauthorized - Cannot view contacts" });
+    }
+    next();
+  };
+  
+  return { requireAdmin, requirePublisher, canManageProducts, canViewContacts };
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
-  const requireAdmin = setupAuth(app);
+  // Setup authentication and get permission checkers
+  const { requireAdmin, requirePublisher, canManageProducts, canViewContacts } = setupAuth(app);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {
@@ -113,8 +142,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Admin product routes (protected)
-  app.post("/api/admin/products", requireAdmin, async (req, res) => {
+  // Product management routes (protected for admin and publisher)
+  // Publishers can create products
+  app.post("/api/admin/products", canManageProducts, async (req, res) => {
     try {
       const validatedData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(validatedData);
@@ -127,7 +157,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/admin/products/:id", requireAdmin, async (req, res) => {
+  // Publishers can update products
+  app.put("/api/admin/products/:id", canManageProducts, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -151,6 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Only admin can delete products (publishers can't delete)
   app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -183,7 +215,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/admin/contacts", requireAdmin, async (_req, res) => {
+  // Publishers can view contacts but not modify them
+  app.get("/api/admin/contacts", canViewContacts, async (_req, res) => {
     try {
       const contacts = await storage.getAllContacts();
       res.json(contacts);
@@ -367,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
   
-  // File upload routes
+  // File upload routes - only admin can upload general files
   app.post('/api/upload', requireAdmin, upload.single('image'), handleUploadError, (req: Request, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
@@ -382,8 +415,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Product image upload route - supporting multiple images
-  app.post('/api/admin/products/:id/image', requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
+  // Product image upload route - publishers can upload product images
+  app.post('/api/admin/products/:id/image', canManageProducts, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -460,8 +493,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Set main product image
-  app.patch('/api/admin/products/:productId/images/:imageId/main', requireAdmin, async (req: Request, res: Response) => {
+  // Set main product image - publishers can change main image
+  app.patch('/api/admin/products/:productId/images/:imageId/main', canManageProducts, async (req: Request, res: Response) => {
     try {
       const productId = parseInt(req.params.productId);
       const imageId = parseInt(req.params.imageId);
@@ -483,8 +516,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Delete product image
-  app.delete('/api/admin/products/images/:imageId', requireAdmin, async (req: Request, res: Response) => {
+  // Delete product image - publishers can delete images
+  app.delete('/api/admin/products/images/:imageId', canManageProducts, async (req: Request, res: Response) => {
     try {
       const imageId = parseInt(req.params.imageId);
       
