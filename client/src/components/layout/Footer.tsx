@@ -8,9 +8,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* About Section */}
           <div>
-            <h3 className="text-xl font-bold mb-4 font-tajawal">Unity</h3>
+            <h3 className="text-xl font-bold mb-4 font-primary">Unity</h3>
             <p className="text-gray-400 mb-4">{translations.footer.description}</p>
-            <div className="flex space-x-4 space-x-reverse">
+            <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition">
                 <i className="fab fa-facebook-f"></i>
               </a>
@@ -28,7 +28,7 @@ const Footer = () => {
           
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-bold mb-4 font-tajawal">{translations.footer.quickLinks}</h4>
+            <h4 className="text-lg font-bold mb-4 font-primary">{translations.footer.quickLinks}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-gray-400 hover:text-white transition">
@@ -65,7 +65,7 @@ const Footer = () => {
           
           {/* Categories */}
           <div>
-            <h4 className="text-lg font-bold mb-4 font-tajawal">{translations.footer.categories}</h4>
+            <h4 className="text-lg font-bold mb-4 font-primary">{translations.footer.categories}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/products?category=electronics" className="text-gray-400 hover:text-white transition">
@@ -97,19 +97,19 @@ const Footer = () => {
           
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-bold mb-4 font-tajawal">{translations.footer.contact}</h4>
+            <h4 className="text-lg font-bold mb-4 font-primary">{translations.footer.contact}</h4>
             <ul className="space-y-2">
-              <li className="flex items-start space-x-2 space-x-reverse">
+              <li className="flex items-start space-x-2">
                 <i className="fas fa-map-marker-alt mt-1 text-gray-400"></i>
                 <span className="text-gray-400">{translations.contact.info.address.value}</span>
               </li>
-              <li className="flex items-start space-x-2 space-x-reverse">
+              <li className="flex items-start space-x-2">
                 <i className="fas fa-phone-alt mt-1 text-gray-400"></i>
-                <span className="text-gray-400" dir="ltr">{translations.contact.info.phone.value}</span>
+                <span className="text-gray-400">{translations.contact.info.phone.value}</span>
               </li>
-              <li className="flex items-start space-x-2 space-x-reverse">
+              <li className="flex items-start space-x-2">
                 <i className="fas fa-envelope mt-1 text-gray-400"></i>
-                <span className="text-gray-400" dir="ltr">{translations.contact.info.email.value}</span>
+                <span className="text-gray-400">{translations.contact.info.email.value}</span>
               </li>
             </ul>
           </div>
