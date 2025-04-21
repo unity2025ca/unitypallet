@@ -263,7 +263,7 @@ const AdminProducts = () => {
                             }}
                           />
                         </TableCell>
-                        <TableCell>${product.price}</TableCell>
+                        <TableCell>C${product.price}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <Badge variant="outline">
                             {categoryMap[product.category as keyof typeof categoryMap]}

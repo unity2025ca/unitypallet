@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState, useRef } from "react";
 import translations from "@/lib/i18n";
 import { categoryMap, insertProductSchema, statusMap, type Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import { Upload, Image, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -34,6 +38,9 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   // Initialize form with default values
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
@@ -48,6 +55,88 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       imageUrl: "",
     },
   });
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a valid image file (JPEG, PNG, GIF, or WEBP)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      // If we're editing an existing product and it has an ID, use the product-specific endpoint
+      const productId = defaultValues?.id;
+      const uploadUrl = productId 
+        ? `/api/admin/products/${productId}/image` 
+        : '/api/upload';
+        
+      // Upload the image
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update the form with the image URL
+        form.setValue('imageUrl', result.fileUrl, { 
+          shouldValidate: true, 
+          shouldDirty: true 
+        });
+        
+        toast({
+          title: "Image uploaded successfully",
+          description: "The image has been uploaded and linked to the product",
+        });
+      } else {
+        throw new Error(result.message || 'Failed to upload image');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "An error occurred while uploading the image",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   // Handle form submission
   const handleSubmit = (data: z.infer<typeof productFormSchema>) => {
@@ -168,16 +257,42 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
             )}
           />
           
-          {/* Image URL */}
+          {/* Image URL with Upload */}
           <FormField
             control={form.control}
             name="imageUrl"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-2 md:col-span-1">
                 <FormLabel>{translations.admin.products.form.imageUrl}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={triggerFileUpload}
+                    disabled={isUploading}
+                    className="shrink-0 w-[100px]"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {isUploading ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
+                <FormDescription>
+                  Enter a URL or upload an image (JPEG, PNG, GIF, WEBP, max 5MB)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

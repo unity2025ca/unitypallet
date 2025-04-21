@@ -23,6 +23,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
         src={product.imageUrl} 
         alt={product.title} 
         className="w-full h-56 object-cover" 
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
+        }}
       />
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">

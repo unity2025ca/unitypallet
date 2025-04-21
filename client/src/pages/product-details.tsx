@@ -81,6 +81,9 @@ const ProductDetailsPage = () => {
                   src={product.imageUrl} 
                   alt={product.title}
                   className="w-full h-auto rounded-lg shadow-md object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
+                  }}
                 />
               </div>
               
