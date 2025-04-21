@@ -38,7 +38,7 @@ const Hero = () => {
           </div>
           <div className="md:w-1/2">
             <img 
-              src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" 
+              src="https://www.liquidationpallet.com/wp-content/uploads/2022/03/amazon-return-pallets.jpg" 
               alt="Amazon Return Pallets" 
               className="rounded-lg shadow-2xl object-cover h-80 md:h-96 w-full" 
             />
