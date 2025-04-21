@@ -46,6 +46,11 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       icon: "fas fa-envelope" 
     },
     { 
+      name: "Newsletter", 
+      href: "/admin/newsletter", 
+      icon: "fas fa-paper-plane" 
+    },
+    { 
       name: "Website Settings", 
       href: "/admin/settings", 
       icon: "fas fa-cog" 

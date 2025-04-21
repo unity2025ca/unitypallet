@@ -22,6 +22,7 @@ import AdminProducts from "@/pages/admin/products";
 import AdminOrders from "@/pages/admin/orders";
 import AdminSettings from "@/pages/admin/settings";
 import AdminLogin from "@/pages/admin/login";
+import AdminNewsletter from "@/pages/admin/newsletter";
 import { useLocation } from "wouter";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/products" component={AdminProducts} />
         <Route path="/admin/orders" component={AdminOrders} />
+        <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route path="/admin/settings" component={AdminSettings} />
         
         {/* Fallback to 404 */}
