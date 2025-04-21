@@ -10,9 +10,9 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   // Map status to UI components
   const statusColors: Record<string, string> = {
-    available: "bg-green-100 text-secondary",
-    limited: "bg-amber-100 text-[#F59E0B]",
-    soldout: "bg-red-100 text-red-600",
+    available: "bg-red-100 text-primary",
+    limited: "bg-gray-100 text-black",
+    soldout: "bg-black text-white",
   };
   
   const isSoldOut = product.status === "soldout";

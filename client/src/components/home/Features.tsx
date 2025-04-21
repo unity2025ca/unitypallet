@@ -10,9 +10,9 @@ const Features = () => {
   ];
   
   const featureColors = [
-    "bg-blue-100 text-primary",
-    "bg-green-100 text-secondary",
-    "bg-amber-100 text-[#F59E0B]"
+    "bg-red-100 text-primary",
+    "bg-gray-100 text-black",
+    "bg-black text-white"
   ];
 
   return (
