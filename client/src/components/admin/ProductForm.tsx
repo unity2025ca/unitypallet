@@ -39,9 +39,9 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     resolver: zodResolver(productFormSchema),
     defaultValues: defaultValues || {
       title: "",
-      titleAr: "",
+      titleAr: "", // Keep for database compatibility but hide from UI
       description: "",
-      descriptionAr: "",
+      descriptionAr: "", // Keep for database compatibility but hide from UI
       category: "electronics",
       status: "available",
       price: 0,
@@ -51,6 +51,9 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
 
   // Handle form submission
   const handleSubmit = (data: z.infer<typeof productFormSchema>) => {
+    // Copy English content to Arabic fields for database compatibility
+    data.titleAr = data.title;
+    data.descriptionAr = data.description;
     onSubmit(data);
   };
 
@@ -58,13 +61,13 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* English Title */}
+          {/* Title */}
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>{translations.admin.products.form.title}</FormLabel>
+              <FormItem className="col-span-2">
+                <FormLabel>Title</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -72,29 +75,14 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               </FormItem>
             )}
           />
-          
-          {/* Arabic Title */}
-          <FormField
-            control={form.control}
-            name="titleAr"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{translations.admin.products.form.titleAr}</FormLabel>
-                <FormControl>
-                  <Input {...field} dir="rtl" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* English Description */}
+
+          {/* Description */}
           <FormField
             control={form.control}
             name="description"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>{translations.admin.products.form.description}</FormLabel>
+              <FormItem className="col-span-2">
+                <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea {...field} rows={4} />
                 </FormControl>
@@ -103,20 +91,9 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
             )}
           />
           
-          {/* Arabic Description */}
-          <FormField
-            control={form.control}
-            name="descriptionAr"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{translations.admin.products.form.descriptionAr}</FormLabel>
-                <FormControl>
-                  <Textarea {...field} rows={4} dir="rtl" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Hidden fields for Arabic compatibility */}
+          <input type="hidden" {...form.register("titleAr")} />
+          <input type="hidden" {...form.register("descriptionAr")} />
           
           {/* Category */}
           <FormField
