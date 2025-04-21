@@ -5,7 +5,7 @@ export default function DynamicStyles() {
   
   const primaryColor = getSettingValue("primary_color", "#16a34a");
   const secondaryColor = getSettingValue("secondary_color", "#0f766e");
-  const fontFamily = getSettingValue("font_family", "Tajawal, sans-serif");
+  const fontFamily = getSettingValue("font_family", "Inter, sans-serif");
   
   const cssStyles = `
     :root {
@@ -44,11 +44,6 @@ export default function DynamicStyles() {
     
     .border-secondary {
       border-color: var(--secondary);
-    }
-    
-    .rtl-dir {
-      direction: rtl;
-      text-align: right;
     }
   `;
 

@@ -64,7 +64,6 @@ export default function SettingItem({ setting }: SettingItemProps) {
         id={setting.key} 
         value={value} 
         onChange={handleInputChange}
-        className="rtl-dir"
       />
     );
 
@@ -83,7 +82,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
             type="text"
             value={value} 
             onChange={handleInputChange}
-            className="rtl-dir flex-1"
+            className="flex-1"
           />
         </div>
       );
@@ -95,7 +94,6 @@ export default function SettingItem({ setting }: SettingItemProps) {
             id={setting.key} 
             value={value} 
             onChange={handleInputChange}
-            className="rtl-dir"
             placeholder="https://example.com/logo.png"
           />
           {value && (
@@ -114,7 +112,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
             setValue(e.target.value);
             setIsChanged(e.target.value !== setting.value);
           }}
-          className="rtl-dir min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2"
+          className="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2"
         />
       );
     }
@@ -127,7 +125,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
       <CardContent className="p-6">
         <div className="space-y-4">
           <div className="flex justify-between items-start">
-            <Label htmlFor={setting.key} className="text-lg font-medium block mb-1 rtl-dir">
+            <Label htmlFor={setting.key} className="text-lg font-medium block mb-1">
               {setting.label}
             </Label>
             {setting.category && (
@@ -138,7 +136,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
           </div>
           
           {setting.description && (
-            <p className="text-sm text-gray-500 mb-4 rtl-dir">{setting.description}</p>
+            <p className="text-sm text-gray-500 mb-4">{setting.description}</p>
           )}
           
           {renderInput()}
@@ -146,23 +144,23 @@ export default function SettingItem({ setting }: SettingItemProps) {
       </CardContent>
       
       {isChanged && (
-        <CardFooter className="px-6 py-4 bg-gray-50 flex justify-end space-x-2 space-x-reverse">
+        <CardFooter className="px-6 py-4 bg-gray-50 flex justify-end space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handleReset}
             disabled={isSubmitting}
           >
-            <XIcon className="ml-1 h-4 w-4" />
-            إلغاء
+            <XIcon className="mr-1 h-4 w-4" />
+            Cancel
           </Button>
           <Button
             size="sm"
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
-            <CheckIcon className="ml-1 h-4 w-4" />
-            حفظ
+            <CheckIcon className="mr-1 h-4 w-4" />
+            Save
           </Button>
         </CardFooter>
       )}

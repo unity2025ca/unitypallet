@@ -3,226 +3,226 @@
 
 export const translations = {
   navItems: {
-    home: "الرئيسية",
-    shop: "تسوق",
-    about: "من نحن",
-    howItWorks: "كيف نعمل",
-    faq: "الأسئلة الشائعة",
-    contact: "تواصل معنا",
-    admin: "لوحة التحكم"
+    home: "Home",
+    shop: "Shop",
+    about: "About Us",
+    howItWorks: "How It Works",
+    faq: "FAQ",
+    contact: "Contact Us",
+    admin: "Admin Panel"
   },
   hero: {
-    title: "احصل على أفضل صفقات مرتجعات أمازون!",
-    subtitle: "فرصتك للحصول على منتجات أصلية بأسعار مخفضة بشكل كبير. بالات متنوعة بجودة مضمونة.",
-    browseButton: "تصفح البالات",
-    howItWorksButton: "كيف يعمل الأمر؟"
+    title: "Get the Best Deals on Amazon Return Pallets!",
+    subtitle: "Your opportunity to get authentic products at heavily discounted prices. Various pallets with guaranteed quality.",
+    browseButton: "Browse Pallets",
+    howItWorksButton: "How Does It Work?"
   },
   features: {
-    title: "لماذا تشتري من Unity؟",
-    subtitle: "نقدم لك أفضل بالات مرتجعات أمازون بأسعار تنافسية وجودة مضمونة",
+    title: "Why Buy from Unity?",
+    subtitle: "We offer the best Amazon return pallets at competitive prices and guaranteed quality",
     items: [
       {
-        title: "منتجات أصلية",
-        description: "جميع المنتجات أصلية 100% كونها مرتجعات من منصة أمازون العالمية."
+        title: "Authentic Products",
+        description: "All products are 100% authentic as they are returns from the global Amazon platform."
       },
       {
-        title: "أسعار تنافسية",
-        description: "أسعار مخفضة بشكل كبير مقارنة بالأسعار الأصلية في السوق."
+        title: "Competitive Prices",
+        description: "Significantly reduced prices compared to original market prices."
       },
       {
-        title: "شفافية تامة",
-        description: "نوضح محتويات كل بالة وحالة المنتجات بكل شفافية."
+        title: "Complete Transparency",
+        description: "We clearly explain the contents of each pallet and the condition of the products with full transparency."
       }
     ]
   },
   shop: {
-    title: "تسوق البالات المتاحة",
-    subtitle: "اختر من مجموعتنا المتنوعة من بالات مرتجعات أمازون",
+    title: "Shop Available Pallets",
+    subtitle: "Choose from our diverse collection of Amazon return pallets",
     categories: {
-      all: "الكل",
-      electronics: "إلكترونيات",
-      home: "منزلية",
-      toys: "ألعاب",
-      mixed: "متنوعة",
-      other: "أخرى"
+      all: "All",
+      electronics: "Electronics",
+      home: "Home",
+      toys: "Toys",
+      mixed: "Mixed",
+      other: "Other"
     },
     status: {
-      available: "متوفر",
-      limited: "محدود",
-      soldout: "نفذت الكمية"
+      available: "Available",
+      limited: "Limited",
+      soldout: "Sold Out"
     },
-    detailsButton: "تفاصيل",
-    loadMore: "عرض المزيد من البالات"
+    detailsButton: "Details",
+    loadMore: "Load More Pallets"
   },
   about: {
-    title: "من نحن",
-    description: "في Unity، نسعى لتوفير منتجات أصلية بأسعار مخفضة من خلال توفير بالات مرتجعات أمازون للعملاء في المملكة العربية السعودية. نحن نؤمن بتقديم القيمة والجودة في آن واحد.",
+    title: "About Us",
+    description: "At Unity, we strive to provide authentic products at discounted prices through Amazon return pallets to customers in Saudi Arabia. We believe in delivering value and quality simultaneously.",
     vision: {
-      title: "رؤيتنا",
-      description: "أن نكون الوجهة الأولى للمستهلكين الباحثين عن صفقات مميزة وفرص استثمارية في مجال مرتجعات التجارة الإلكترونية."
+      title: "Our Vision",
+      description: "To be the primary destination for consumers seeking great deals and investment opportunities in e-commerce returns."
     },
     stats: {
-      pallets: "بالة تم بيعها",
-      customers: "عميل راضٍ"
+      pallets: "Pallets Sold",
+      customers: "Satisfied Customers"
     },
-    partner: "شريك موثوق لمرتجعات أمازون"
+    partner: "Trusted Amazon Returns Partner"
   },
   howItWorks: {
-    title: "كيف يعمل الأمر؟",
-    subtitle: "خطوات بسيطة للحصول على بالات مرتجعات أمازون",
+    title: "How It Works?",
+    subtitle: "Simple steps to get Amazon return pallets",
     steps: [
       {
-        title: "اختر البالة",
-        description: "تصفح البالات المتاحة واختر ما يناسب احتياجاتك واهتماماتك."
+        title: "Choose a Pallet",
+        description: "Browse available pallets and choose what suits your needs and interests."
       },
       {
-        title: "تواصل معنا",
-        description: "عبر الواتساب أو نموذج التواصل للاستفسار وتأكيد الطلب."
+        title: "Contact Us",
+        description: "Via WhatsApp or contact form to inquire and confirm your order."
       },
       {
-        title: "الدفع",
-        description: "اختر طريقة الدفع المناسبة لك - تحويل بنكي أو دفع عند الاستلام."
+        title: "Payment",
+        description: "Choose your preferred payment method - bank transfer or cash on delivery."
       },
       {
-        title: "الاستلام",
-        description: "استلم بالتك في موقعك أو من أحد فروعنا حسب الاتفاق."
+        title: "Delivery",
+        description: "Receive your pallet at your location or from one of our branches as agreed."
       }
     ],
     explanation: {
-      title: "ما هي بالات مرتجعات أمازون؟",
-      description: "بالات مرتجعات أمازون هي منتجات تم إرجاعها من قبل المشترين لأسباب مختلفة إلى منصة أمازون، ويتم تجميعها وبيعها بأسعار مخفضة. قد تكون هذه المنتجات:",
+      title: "What are Amazon Return Pallets?",
+      description: "Amazon return pallets are products that have been returned by buyers for various reasons to the Amazon platform, and are collected and sold at discounted prices. These products may be:",
       types: [
         {
-          title: "منتجات جديدة",
-          description: "لم يتم استخدامها، لكن تم إرجاعها لأسباب مختلفة."
+          title: "New Products",
+          description: "Not used, but returned for various reasons."
         },
         {
-          title: "منتجات مستعملة قليلاً",
-          description: "تم استخدامها لفترة قصيرة ثم إرجاعها."
+          title: "Slightly Used Products",
+          description: "Used for a short period then returned."
         },
         {
-          title: "منتجات بعيوب طفيفة",
-          description: "قد تحتوي على عيوب بسيطة في التغليف أو شكلية لا تؤثر على الأداء."
+          title: "Products with Minor Defects",
+          description: "May contain minor defects in packaging or cosmetic issues that don't affect performance."
         }
       ]
     }
   },
   faq: {
-    title: "الأسئلة الشائعة",
-    subtitle: "إجابات لأكثر الأسئلة شيوعاً حول بالات مرتجعات أمازون",
+    title: "Frequently Asked Questions",
+    subtitle: "Answers to the most common questions about Amazon return pallets",
     questions: [
       {
-        question: "هل يمكنني معرفة محتويات البالة قبل الشراء؟",
-        answer: "نعم، نقوم بتوفير قائمة عامة بمحتويات البالة وصور توضيحية للمحتويات. ومع ذلك، لا يمكننا تقديم قائمة تفصيلية دقيقة بكل محتوى، حيث أن جزء من المتعة في هذه التجربة هو عنصر المفاجأة. نضمن لك قيمة المنتجات وجودتها بما يتناسب مع السعر المدفوع."
+        question: "Can I know the contents of the pallet before purchase?",
+        answer: "Yes, we provide a general list of pallet contents and illustrative images of the contents. However, we cannot provide a detailed accurate list of every content, as part of the fun in this experience is the element of surprise. We guarantee the value and quality of the products in proportion to the price paid."
       },
       {
-        question: "هل جميع المنتجات تعمل بشكل جيد؟",
-        answer: "نعمل على فحص المنتجات قبل عرضها للبيع. معظم المنتجات تكون جديدة أو مستعملة بشكل طفيف، وتعمل بشكل جيد. في حال وجود أي منتج لا يعمل بشكل صحيح، نوضح ذلك في وصف البالة. نحن نلتزم بالشفافية التامة فيما يتعلق بحالة المنتجات."
+        question: "Do all products work well?",
+        answer: "We examine products before offering them for sale. Most products are new or slightly used, and work well. If there are any products that don't work properly, we clarify this in the pallet description. We are committed to complete transparency regarding the condition of products."
       },
       {
-        question: "هل يمكنني استبدال أو إرجاع البالة بعد الشراء؟",
-        answer: "نظراً لطبيعة البالات والمنتجات المرتجعة، لا نقبل الاستبدال أو الإرجاع بعد البيع. لذلك ننصح بالتأكد من الرغبة في الشراء قبل إتمام العملية. في حالات استثنائية مثل وجود اختلاف جوهري بين وصف البالة والمحتوى الفعلي، يمكن مناقشة الأمر مع فريق خدمة العملاء."
+        question: "Can I exchange or return the pallet after purchase?",
+        answer: "Due to the nature of pallets and returned products, we don't accept exchanges or returns after sale. Therefore, we advise making sure of the desire to purchase before completing the process. In exceptional cases such as a substantial difference between the pallet description and actual content, the matter can be discussed with our customer service team."
       },
       {
-        question: "هل توفرون خدمة التوصيل؟",
-        answer: "نعم، نوفر خدمة التوصيل في مختلف مناطق المملكة العربية السعودية. تكلفة التوصيل تعتمد على وزن البالة والمسافة. يمكننا أيضاً تنسيق الاستلام المباشر من مستودعنا إذا كنت تفضل ذلك."
+        question: "Do you provide delivery service?",
+        answer: "Yes, we provide delivery service across various regions of Saudi Arabia. The cost of delivery depends on the pallet weight and distance. We can also coordinate direct pickup from our warehouse if you prefer."
       },
       {
-        question: "كم تستغرق عملية التوصيل؟",
-        answer: "تستغرق عملية التوصيل عادةً من 3-7 أيام عمل، اعتماداً على موقعك. نحرص على إبقائك على اطلاع بحالة طلبك خلال عملية الشحن."
+        question: "How long does the delivery process take?",
+        answer: "The delivery process usually takes 3-7 business days, depending on your location. We ensure to keep you informed about the status of your order during the shipping process."
       }
     ]
   },
   contact: {
-    title: "تواصل معنا",
-    subtitle: "لديك سؤال أو استفسار؟ نحن هنا للمساعدة. يمكنك التواصل معنا عبر النموذج أو من خلال وسائل التواصل الأخرى.",
+    title: "Contact Us",
+    subtitle: "Do you have a question or inquiry? We are here to help. You can contact us through the form or through other means of communication.",
     form: {
-      name: "الاسم الكامل",
-      email: "البريد الإلكتروني",
-      phone: "رقم الجوال",
-      message: "الرسالة",
-      submit: "إرسال الرسالة"
+      name: "Full Name",
+      email: "Email",
+      phone: "Mobile Number",
+      message: "Message",
+      submit: "Send Message"
     },
     info: {
-      title: "معلومات التواصل",
+      title: "Contact Information",
       address: {
-        label: "العنوان",
-        value: "الرياض، المملكة العربية السعودية"
+        label: "Address",
+        value: "Riyadh, Saudi Arabia"
       },
       phone: {
-        label: "الهاتف",
+        label: "Phone",
         value: "+966 50 123 4567"
       },
       email: {
-        label: "البريد الإلكتروني",
+        label: "Email",
         value: "info@unity-pallets.com"
       },
       whatsapp: {
-        label: "واتساب",
+        label: "WhatsApp",
         value: "+966 50 123 4567"
       },
       social: {
-        label: "تابعنا على"
+        label: "Follow Us On"
       }
     }
   },
   cta: {
-    title: "جاهز للحصول على صفقات مميزة؟",
-    subtitle: "انضم إلى قائمة العملاء المميزين واحصل على إشعارات بأحدث البالات وعروض خاصة!",
-    placeholder: "أدخل بريدك الإلكتروني",
-    button: "اشترك الآن"
+    title: "Ready for Special Deals?",
+    subtitle: "Join the list of distinguished customers and get notifications about the latest pallets and special offers!",
+    placeholder: "Enter your email",
+    button: "Subscribe Now"
   },
   footer: {
-    description: "الوجهة الأولى للحصول على بالات مرتجعات أمازون بأسعار تنافسية وجودة مضمونة.",
-    quickLinks: "روابط سريعة",
-    categories: "فئات المنتجات",
-    contact: "تواصل معنا",
-    copyright: "© 2023 Unity. جميع الحقوق محفوظة."
+    description: "The primary destination for getting Amazon return pallets at competitive prices and guaranteed quality.",
+    quickLinks: "Quick Links",
+    categories: "Product Categories",
+    contact: "Contact Us",
+    copyright: "© 2023 Unity. All rights reserved."
   },
   admin: {
     login: {
-      title: "تسجيل الدخول للوحة التحكم",
-      username: "اسم المستخدم",
-      password: "كلمة المرور",
-      submit: "تسجيل الدخول",
-      error: "خطأ في اسم المستخدم أو كلمة المرور"
+      title: "Login to Admin Panel",
+      username: "Username",
+      password: "Password",
+      submit: "Login",
+      error: "Error in username or password"
     },
     dashboard: {
-      title: "لوحة التحكم",
-      welcome: "مرحبًا بك في لوحة تحكم Unity",
+      title: "Dashboard",
+      welcome: "Welcome to Unity Control Panel",
       stats: {
-        products: "المنتجات",
-        contacts: "الرسائل",
-        subscribers: "المشتركين"
+        products: "Products",
+        contacts: "Messages",
+        subscribers: "Subscribers"
       }
     },
     products: {
-      title: "إدارة المنتجات",
-      add: "إضافة منتج جديد",
-      edit: "تعديل المنتج",
-      delete: "حذف المنتج",
-      confirmDelete: "هل أنت متأكد من رغبتك في حذف هذا المنتج؟",
+      title: "Manage Products",
+      add: "Add New Product",
+      edit: "Edit Product",
+      delete: "Delete Product",
+      confirmDelete: "Are you sure you want to delete this product?",
       form: {
-        title: "العنوان (الإنجليزية)",
-        titleAr: "العنوان (العربية)",
-        description: "الوصف (الإنجليزية)",
-        descriptionAr: "الوصف (العربية)",
-        category: "الفئة",
-        status: "الحالة",
-        price: "السعر (ريال)",
-        imageUrl: "رابط الصورة",
-        submit: "حفظ المنتج"
+        title: "Title (English)",
+        titleAr: "Title (Arabic)",
+        description: "Description (English)",
+        descriptionAr: "Description (Arabic)",
+        category: "Category",
+        status: "Status",
+        price: "Price (SAR)",
+        imageUrl: "Image URL",
+        submit: "Save Product"
       }
     },
     orders: {
-      title: "طلبات التواصل",
-      noOrders: "لا توجد طلبات تواصل حالياً"
+      title: "Contact Requests",
+      noOrders: "No contact requests currently"
     },
     sidebar: {
-      dashboard: "لوحة التحكم",
-      products: "المنتجات",
-      orders: "الطلبات",
-      logout: "تسجيل الخروج"
+      dashboard: "Dashboard",
+      products: "Products",
+      orders: "Orders",
+      logout: "Logout"
     }
   }
 };

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import translations from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
+import { Menu } from "lucide-react";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,10 +35,10 @@ const Header = () => {
                 <img 
                   src={getSettingValue("site_logo")} 
                   alt={getSettingValue("site_name", "Unity")} 
-                  className="h-10 ml-2" 
+                  className="h-10 mr-2" 
                 />
               ) : (
-                <span className="text-3xl font-bold text-primary font-tajawal">
+                <span className="text-3xl font-bold text-primary">
                   {getSettingValue("site_name", "Unity")}
                 </span>
               )}
@@ -45,7 +46,7 @@ const Header = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8 space-x-reverse">
+          <nav className="hidden md:flex space-x-8">
             {navItems.map((item) => (
               <Link 
                 key={item.href} 
@@ -65,9 +66,9 @@ const Header = () => {
             size="icon"
             className="md:hidden"
             onClick={toggleMobileMenu}
-            aria-label="تبديل القائمة"
+            aria-label="Toggle Menu"
           >
-            <i className="fas fa-bars text-lg"></i>
+            <Menu className="h-6 w-6" />
           </Button>
         </div>
         
