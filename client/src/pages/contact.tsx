@@ -207,16 +207,36 @@ const ContactPage = () => {
                 <div>
                   <h4 className="font-medium text-neutral-dark mb-3">{translations.contact.info.social.label}</h4>
                   <div className="flex space-x-4">
-                    <a href="#" className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                    <a 
+                      href={getSettingValue('social_facebook', '#')}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
+                    >
                       <i className="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition">
+                    <a 
+                      href={getSettingValue('social_instagram', '#')}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition"
+                    >
                       <i className="fab fa-instagram"></i>
                     </a>
-                    <a href="#" className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 text-white hover:bg-blue-500 transition">
+                    <a 
+                      href={getSettingValue('social_twitter', '#')}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 text-white hover:bg-blue-500 transition"
+                    >
                       <i className="fab fa-twitter"></i>
                     </a>
-                    <a href="#" className="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition">
+                    <a 
+                      href={getSettingValue('social_youtube', '#')}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+                    >
                       <i className="fab fa-youtube"></i>
                     </a>
                   </div>

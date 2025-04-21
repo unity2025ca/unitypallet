@@ -14,16 +14,36 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-4 font-primary">Unity</h3>
             <p className="text-gray-400 mb-4">{translations.footer.description}</p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-primary transition">
+              <a 
+                href={getSettingValue('social_facebook', '#')} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-400 hover:text-primary transition"
+              >
                 <i className="fab fa-facebook-f"></i>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
+              <a 
+                href={getSettingValue('social_instagram', '#')} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-400 hover:text-primary transition"
+              >
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
+              <a 
+                href={getSettingValue('social_twitter', '#')} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-400 hover:text-primary transition"
+              >
                 <i className="fab fa-twitter"></i>
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition">
+              <a 
+                href={getSettingValue('social_youtube', '#')} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-400 hover:text-primary transition"
+              >
                 <i className="fab fa-youtube"></i>
               </a>
             </div>
