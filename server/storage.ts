@@ -335,7 +335,8 @@ export class DatabaseStorage implements IStorage {
       await this.createUser({
         username: "publisher",
         password: "publisher123", // In a real app, this would be hashed
-        isAdmin: true, // For now, publisher needs admin rights until we implement proper role-based access
+        isAdmin: false, // Publishers are not admins
+        roleType: "publisher" // Set publisher role explicitly
       });
     }
     
