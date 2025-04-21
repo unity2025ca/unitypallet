@@ -70,7 +70,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
     // Handle different types
     if (setting.type === "color") {
       inputElement = (
-        <div className="flex space-x-2 space-x-reverse">
+        <div className="flex space-x-2">
           <Input 
             type="color"
             id={setting.key} 

@@ -49,43 +49,43 @@ export default function AdminSettings() {
     <div className="flex h-screen bg-slate-50">
       <Sidebar />
       <div className="flex-1 overflow-auto p-8">
-        <div className="mb-6 flex items-center space-x-4 space-x-reverse">
+        <div className="mb-6 flex items-center space-x-4">
           <Settings2 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold rtl-dir">إعدادات الموقع</h1>
+          <h1 className="text-3xl font-bold">Website Settings</h1>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-8 justify-start rtl-dir">
-              <TabsTrigger value="appearance">المظهر</TabsTrigger>
-              <TabsTrigger value="content">المحتوى</TabsTrigger>
-              <TabsTrigger value="contact">معلومات الاتصال</TabsTrigger>
-              <TabsTrigger value="social">مواقع التواصل</TabsTrigger>
+            <TabsList className="mb-8 justify-start">
+              <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="contact">Contact Info</TabsTrigger>
+              <TabsTrigger value="social">Social Media</TabsTrigger>
             </TabsList>
             
             <TabsContent value="appearance" className="space-y-4">
-              <p className="text-slate-600 mb-6 rtl-dir">تعديل مظهر الموقع، الألوان والشعار</p>
+              <p className="text-slate-600 mb-6">Modify the site appearance, colors and logo</p>
               {appearanceSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}
             </TabsContent>
             
             <TabsContent value="content" className="space-y-4">
-              <p className="text-slate-600 mb-6 rtl-dir">تعديل محتوى الموقع، العناوين والأوصاف</p>
+              <p className="text-slate-600 mb-6">Modify site content, headings and descriptions</p>
               {contentSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}
             </TabsContent>
             
             <TabsContent value="contact" className="space-y-4">
-              <p className="text-slate-600 mb-6 rtl-dir">تعديل معلومات الاتصال بالموقع</p>
+              <p className="text-slate-600 mb-6">Modify contact information</p>
               {contactSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}
             </TabsContent>
             
             <TabsContent value="social" className="space-y-4">
-              <p className="text-slate-600 mb-6 rtl-dir">تعديل حسابات مواقع التواصل الاجتماعي</p>
+              <p className="text-slate-600 mb-6">Modify social media accounts</p>
               {socialSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}

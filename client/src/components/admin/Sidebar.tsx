@@ -24,7 +24,7 @@ const Sidebar = () => {
       icon: "fas fa-envelope" 
     },
     { 
-      name: "إعدادات الموقع", 
+      name: "Website Settings", 
       href: "/admin/settings", 
       icon: "fas fa-cog" 
     },
@@ -35,10 +35,10 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 h-screen bg-sidebar text-sidebar-foreground fixed right-0 top-0 overflow-y-auto">
+    <div className="w-64 h-screen bg-sidebar text-sidebar-foreground fixed left-0 top-0 overflow-y-auto">
       <div className="p-6">
         <div className="flex items-center justify-center mb-8">
-          <span className="text-2xl font-bold text-sidebar-primary font-tajawal">
+          <span className="text-2xl font-bold text-sidebar-primary">
             Unity Admin
           </span>
         </div>
@@ -54,7 +54,7 @@ const Sidebar = () => {
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "hover:bg-sidebar-accent/50"
               }`}>
-                <i className={`${item.icon} w-5 ml-3`}></i>
+                <i className={`${item.icon} w-5 mr-3`}></i>
                 <span>{item.name}</span>
               </a>
             </Link>
@@ -68,7 +68,7 @@ const Sidebar = () => {
           className="w-full justify-start"
           onClick={handleLogout}
         >
-          <i className="fas fa-sign-out-alt w-5 ml-3"></i>
+          <i className="fas fa-sign-out-alt w-5 mr-3"></i>
           {translations.admin.sidebar.logout}
         </Button>
       </div>
