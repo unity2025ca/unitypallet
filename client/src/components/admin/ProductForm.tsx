@@ -24,7 +24,7 @@ import {
 
 // Extend the product schema with validation rules
 const productFormSchema = insertProductSchema.extend({
-  price: z.coerce.number().min(1, "السعر يجب أن يكون أكبر من صفر"),
+  price: z.coerce.number().min(1, "Price must be greater than zero"),
 });
 
 interface ProductFormProps {
@@ -66,7 +66,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               <FormItem>
                 <FormLabel>{translations.admin.products.form.title}</FormLabel>
                 <FormControl>
-                  <Input {...field} dir="ltr" />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -81,7 +81,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               <FormItem>
                 <FormLabel>{translations.admin.products.form.titleAr}</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} dir="rtl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -96,7 +96,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               <FormItem>
                 <FormLabel>{translations.admin.products.form.description}</FormLabel>
                 <FormControl>
-                  <Textarea {...field} rows={4} dir="ltr" />
+                  <Textarea {...field} rows={4} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -111,7 +111,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               <FormItem>
                 <FormLabel>{translations.admin.products.form.descriptionAr}</FormLabel>
                 <FormControl>
-                  <Textarea {...field} rows={4} />
+                  <Textarea {...field} rows={4} dir="rtl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -131,7 +131,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر الفئة" />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -160,7 +160,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر الحالة" />
+                      <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -199,7 +199,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
               <FormItem>
                 <FormLabel>{translations.admin.products.form.imageUrl}</FormLabel>
                 <FormControl>
-                  <Input {...field} dir="ltr" />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -210,13 +210,13 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
         {/* Preview */}
         {form.watch("imageUrl") && (
           <div className="border rounded-md p-4 mt-4">
-            <p className="font-medium mb-2">معاينة الصورة:</p>
+            <p className="font-medium mb-2">Image Preview:</p>
             <img 
               src={form.watch("imageUrl")} 
               alt="Product preview" 
               className="w-full max-h-40 object-cover rounded" 
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=صورة+غير+متوفرة";
+                (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
               }}
             />
           </div>
@@ -231,7 +231,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <i className="fas fa-spinner fa-spin"></i>
-              جارٍ الحفظ...
+              Saving...
             </span>
           ) : (
             translations.admin.products.form.submit

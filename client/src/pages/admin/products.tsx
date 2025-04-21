@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Product } from "@shared/schema";
 import Sidebar from "@/components/admin/Sidebar";
 import ProductForm from "@/components/admin/ProductForm";
+import { Menu } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -52,6 +53,11 @@ const AdminProducts = () => {
   const [_, navigate] = useLocation();
   const { isAuthenticated, isLoading } = useAdminAuth();
   const { toast } = useToast();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
   
   // State for managing forms and dialogs
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -74,13 +80,13 @@ const AdminProducts = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setAddDialogOpen(false);
       toast({
-        title: "تم إضافة المنتج بنجاح",
+        title: "Product added successfully",
       });
     },
     onError: () => {
       toast({
-        title: "فشل إضافة المنتج",
-        description: "حدث خطأ أثناء محاولة إضافة المنتج. يرجى المحاولة مرة أخرى.",
+        title: "Failed to add product",
+        description: "An error occurred while trying to add the product. Please try again.",
         variant: "destructive",
       });
     },
@@ -97,13 +103,13 @@ const AdminProducts = () => {
       setEditDialogOpen(false);
       setSelectedProduct(null);
       toast({
-        title: "تم تحديث المنتج بنجاح",
+        title: "Product updated successfully",
       });
     },
     onError: () => {
       toast({
-        title: "فشل تحديث المنتج",
-        description: "حدث خطأ أثناء محاولة تحديث المنتج. يرجى المحاولة مرة أخرى.",
+        title: "Failed to update product",
+        description: "An error occurred while trying to update the product. Please try again.",
         variant: "destructive",
       });
     },
@@ -119,13 +125,13 @@ const AdminProducts = () => {
       setDeleteDialogOpen(false);
       setSelectedProduct(null);
       toast({
-        title: "تم حذف المنتج بنجاح",
+        title: "Product deleted successfully",
       });
     },
     onError: () => {
       toast({
-        title: "فشل حذف المنتج",
-        description: "حدث خطأ أثناء محاولة حذف المنتج. يرجى المحاولة مرة أخرى.",
+        title: "Failed to delete product",
+        description: "An error occurred while trying to delete the product. Please try again.",
         variant: "destructive",
       });
     },
@@ -166,8 +172,8 @@ const AdminProducts = () => {
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <div className="flex-1 p-8 mr-64">
+        <Sidebar isMobileOpen={isMobileMenuOpen} toggleMobile={toggleMobileMenu} />
+        <div className="flex-1 p-4 md:p-8 md:ml-64">
           <div className="flex justify-center items-center h-full">
             <div className="w-16 h-16 border-4 border-primary border-solid rounded-full border-t-transparent animate-spin"></div>
           </div>
@@ -183,25 +189,34 @@ const AdminProducts = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 p-8 mr-64">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold font-tajawal">
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <Sidebar isMobileOpen={isMobileMenuOpen} toggleMobile={toggleMobileMenu} />
+      
+      <div className="flex-1 md:ml-64 p-4 md:p-8">
+        {/* Mobile Header with Menu Button */}
+        <div className="flex items-center justify-between md:hidden mb-4">
+          <h1 className="text-2xl font-bold">Products</h1>
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+            <Menu />
+          </Button>
+        </div>
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <h1 className="hidden md:block text-3xl font-bold mb-4 md:mb-0">
             {translations.admin.products.title}
           </h1>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <i className="fas fa-plus ml-2"></i>
+              <Button className="w-full md:w-auto">
+                <i className="fas fa-plus mr-2"></i>
                 {translations.admin.products.add}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="w-[95%] max-w-[600px]">
               <DialogHeader>
-                <DialogTitle className="font-tajawal">{translations.admin.products.add}</DialogTitle>
+                <DialogTitle>{translations.admin.products.add}</DialogTitle>
                 <DialogDescription>
-                  أضف منتج جديد للمتجر. يرجى ملء جميع الحقول المطلوبة.
+                  Add a new product to the store. Please fill out all required fields.
                 </DialogDescription>
               </DialogHeader>
               <ProductForm 
@@ -214,7 +229,7 @@ const AdminProducts = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle className="font-tajawal">قائمة المنتجات</CardTitle>
+            <CardTitle>Product List</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingProducts ? (
@@ -222,45 +237,45 @@ const AdminProducts = () => {
                 <div className="w-12 h-12 border-4 border-primary border-solid rounded-full border-t-transparent animate-spin"></div>
               </div>
             ) : products && products.length > 0 ? (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>العنوان</TableHead>
-                      <TableHead>الصورة</TableHead>
-                      <TableHead>السعر</TableHead>
-                      <TableHead>الفئة</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>الإجراءات</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Image</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead className="hidden md:table-cell">Category</TableHead>
+                      <TableHead className="hidden md:table-cell">Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
                       <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.titleAr}</TableCell>
+                        <TableCell className="font-medium">{product.title}</TableCell>
                         <TableCell>
                           <img 
                             src={product.imageUrl} 
-                            alt={product.titleAr} 
-                            className="w-16 h-16 object-cover rounded"
+                            alt={product.title} 
+                            className="w-14 h-14 object-cover rounded"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://placehold.co/100?text=صورة+غير+متوفرة";
+                              (e.target as HTMLImageElement).src = "https://placehold.co/100?text=Image+Not+Available";
                             }}
                           />
                         </TableCell>
-                        <TableCell>{product.price} ريال</TableCell>
-                        <TableCell>
+                        <TableCell>${product.price}</TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <Badge variant="outline">
                             {categoryMap[product.category]}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <Badge variant="outline" className={statusColors[product.status]}>
                             {statusMap[product.status]}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex space-x-2 space-x-reverse">
+                          <div className="flex space-x-2">
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -286,7 +301,7 @@ const AdminProducts = () => {
             ) : (
               <div className="text-center py-8">
                 <i className="fas fa-box-open text-4xl text-gray-300 mb-4"></i>
-                <p className="text-gray-500">لا توجد منتجات في المتجر حالياً</p>
+                <p className="text-gray-500">No products in the store yet</p>
               </div>
             )}
           </CardContent>
@@ -294,11 +309,11 @@ const AdminProducts = () => {
         
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="w-[95%] max-w-[600px]">
             <DialogHeader>
-              <DialogTitle className="font-tajawal">{translations.admin.products.edit}</DialogTitle>
+              <DialogTitle>{translations.admin.products.edit}</DialogTitle>
               <DialogDescription>
-                قم بتعديل بيانات المنتج. يرجى ملء جميع الحقول المطلوبة.
+                Edit product details. Please fill out all required fields.
               </DialogDescription>
             </DialogHeader>
             {selectedProduct && (
@@ -315,23 +330,23 @@ const AdminProducts = () => {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="font-tajawal">{translations.admin.products.delete}</AlertDialogTitle>
+              <AlertDialogTitle>{translations.admin.products.delete}</AlertDialogTitle>
               <AlertDialogDescription>
                 {translations.admin.products.confirmDelete}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse justify-start gap-2">
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteProduct} disabled={deleteProduct.isPending}>
                 {deleteProduct.isPending ? (
                   <span className="flex items-center gap-2">
                     <i className="fas fa-spinner fa-spin"></i>
-                    جارٍ الحذف...
+                    Deleting...
                   </span>
                 ) : (
-                  "نعم، قم بالحذف"
+                  "Yes, delete"
                 )}
               </AlertDialogAction>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
