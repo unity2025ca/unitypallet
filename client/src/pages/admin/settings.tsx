@@ -51,6 +51,7 @@ export default function AdminSettings() {
   const contentSettings = settings?.filter(s => s.category === "content") || [];
   const contactSettings = settings?.filter(s => s.category === "contact") || [];
   const socialSettings = settings?.filter(s => s.category === "social") || [];
+  const aboutSettings = settings?.filter(s => s.category === "about") || [];
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -77,6 +78,7 @@ export default function AdminSettings() {
               <TabsList className="mb-4 md:mb-8 justify-start">
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
+                <TabsTrigger value="about">About Us</TabsTrigger>
                 <TabsTrigger value="contact">Contact Info</TabsTrigger>
                 <TabsTrigger value="social">Social Media</TabsTrigger>
               </TabsList>
@@ -99,6 +101,13 @@ export default function AdminSettings() {
             <TabsContent value="contact" className="space-y-4">
               <p className="text-slate-600 mb-4 md:mb-6">Modify contact information</p>
               {contactSettings.map(setting => (
+                <SettingItem key={setting.id} setting={setting} />
+              ))}
+            </TabsContent>
+            
+            <TabsContent value="about" className="space-y-4">
+              <p className="text-slate-600 mb-4 md:mb-6">Modify About Us page content and info</p>
+              {aboutSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}
             </TabsContent>
