@@ -40,15 +40,15 @@ const ContactPage = () => {
     },
     onSuccess: () => {
       toast({
-        title: "تم إرسال رسالتك بنجاح",
-        description: "سنتواصل معك في أقرب وقت ممكن",
+        title: "Message Sent Successfully",
+        description: "We will contact you as soon as possible",
       });
       form.reset();
     },
     onError: () => {
       toast({
-        title: "فشل إرسال الرسالة",
-        description: "يرجى المحاولة مرة أخرى لاحقاً",
+        title: "Failed to Send Message",
+        description: "Please try again later",
         variant: "destructive",
       });
     },

@@ -19,7 +19,7 @@ const ProductDetailsPage = () => {
   });
   
   // Status colors
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     available: "bg-green-100 text-green-800 border-green-200",
     limited: "bg-amber-100 text-amber-800 border-amber-200",
     soldout: "bg-red-100 text-red-800 border-red-200",
@@ -33,14 +33,14 @@ const ProductDetailsPage = () => {
           <CardContent className="pt-6">
             <div className="flex mb-4 gap-2">
               <i className="fas fa-exclamation-circle text-red-500 text-2xl"></i>
-              <h1 className="text-2xl font-bold text-gray-900">المنتج غير موجود</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Product Not Found</h1>
             </div>
             <p className="mt-4 text-sm text-gray-600">
-              عذراً، لم نتمكن من العثور على المنتج المطلوب.
+              Sorry, we couldn't find the requested product.
             </p>
             <div className="mt-6">
               <Button asChild>
-                <Link href="/products">العودة إلى التسوق</Link>
+                <Link href="/products">Return to Shopping</Link>
               </Button>
             </div>
           </CardContent>
@@ -68,8 +68,8 @@ const ProductDetailsPage = () => {
             <div className="mb-6">
               <Button variant="outline" asChild className="mb-8">
                 <Link href="/products">
-                  <i className="fas fa-arrow-right ml-2"></i>
-                  العودة إلى التسوق
+                  <i className="fas fa-arrow-left mr-2"></i>
+                  Return to Shopping
                 </Link>
               </Button>
             </div>
@@ -79,28 +79,28 @@ const ProductDetailsPage = () => {
               <div>
                 <img 
                   src={product.imageUrl} 
-                  alt={product.titleAr}
+                  alt={product.title}
                   className="w-full h-auto rounded-lg shadow-md object-cover"
                 />
               </div>
               
               {/* Product Details */}
               <div>
-                <h1 className="text-3xl font-bold font-tajawal mb-2">{product.titleAr}</h1>
+                <h1 className="text-3xl font-bold font-primary mb-2">{product.title}</h1>
                 
                 <div className="flex items-center gap-4 mb-4">
-                  <Badge variant="outline" className={statusColors[product.status]}>
-                    {statusMap[product.status]}
+                  <Badge variant="outline" className={statusColors[product.status || 'available']}>
+                    {statusMap[product.status || 'available']}
                   </Badge>
                   <Badge variant="outline">
-                    {categoryMap[product.category]}
+                    {categoryMap[product.category || 'other']}
                   </Badge>
                 </div>
                 
-                <p className="text-gray-600 mb-6">{product.descriptionAr}</p>
+                <p className="text-gray-600 mb-6">{product.description}</p>
                 
                 <div className="text-2xl font-bold text-primary mb-6">
-                  {product.price} ريال
+                  ${product.price}
                 </div>
                 
                 <div className="space-y-4">
@@ -109,8 +109,8 @@ const ProductDetailsPage = () => {
                     className="w-full"
                     disabled={product.status === "soldout"}
                   >
-                    <i className="fab fa-whatsapp ml-2"></i>
-                    تواصل للطلب عبر واتساب
+                    <i className="fab fa-whatsapp mr-2"></i>
+                    Contact via WhatsApp to Order
                   </Button>
                   
                   <Button 
@@ -120,18 +120,18 @@ const ProductDetailsPage = () => {
                     asChild
                   >
                     <Link href="/contact">
-                      طلب المزيد من المعلومات
+                      Request More Information
                     </Link>
                   </Button>
                 </div>
                 
                 <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
                   <h3 className="font-semibold text-blue-800 mb-2">
-                    <i className="fas fa-info-circle ml-2"></i>
-                    معلومات عن البالات
+                    <i className="fas fa-info-circle mr-2"></i>
+                    About Amazon Return Pallets
                   </h3>
                   <p className="text-sm text-blue-700">
-                    بالات مرتجعات أمازون هي منتجات تم إرجاعها من قبل المشترين لأسباب مختلفة، ويتم تجميعها وبيعها بأسعار مخفضة. تختلف حالة المنتجات، ويتم توضيح ذلك في وصف كل بالة.
+                    Amazon return pallets are products returned by buyers for various reasons, collected and sold at discounted prices. Product conditions vary and are described in the details of each pallet.
                   </p>
                 </div>
               </div>

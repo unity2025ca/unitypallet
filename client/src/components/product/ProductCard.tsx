@@ -9,7 +9,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   // Map status to UI components
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     available: "bg-green-100 text-secondary",
     limited: "bg-amber-100 text-[#F59E0B]",
     soldout: "bg-red-100 text-red-600",
@@ -21,20 +21,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
       <img 
         src={product.imageUrl} 
-        alt={product.titleAr} 
+        alt={product.title} 
         className="w-full h-56 object-cover" 
       />
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold font-tajawal">{product.titleAr}</h3>
-          <span className={`${statusColors[product.status]} text-xs font-bold py-1 px-2 rounded`}>
-            {statusMap[product.status]}
+          <h3 className="text-lg font-semibold font-primary">{product.title}</h3>
+          <span className={`${statusColors[product.status || 'available']} text-xs font-bold py-1 px-2 rounded`}>
+            {statusMap[product.status || 'available']}
           </span>
         </div>
-        <p className="text-sm text-gray-600 mb-4">{product.descriptionAr}</p>
+        <p className="text-sm text-gray-600 mb-4">{product.description}</p>
         <div className="flex justify-between items-center">
           <span className={`text-lg font-bold ${isSoldOut ? 'text-gray-400' : 'text-primary'}`}>
-            {product.price} ريال
+            ${product.price}
           </span>
           <Button 
             asChild={!isSoldOut}
@@ -43,7 +43,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             disabled={isSoldOut}
           >
             {isSoldOut ? (
-              <span>نفذت</span>
+              <span>Sold Out</span>
             ) : (
               <Link href={`/products/${product.id}`}>
                 {translations.shop.detailsButton}
