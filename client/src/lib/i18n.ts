@@ -159,7 +159,7 @@ export const translations = {
       },
       whatsapp: {
         label: "WhatsApp",
-        value: "+966 50 123 4567"
+        value: "+1 289 216 6500"
       },
       social: {
         label: "Follow Us On"

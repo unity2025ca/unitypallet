@@ -190,7 +190,14 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.whatsapp.label}</p>
-                      <p className="text-gray-600">{translations.contact.info.whatsapp.value}</p>
+                      <a 
+                        href="https://wa.me/12892166500" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700 hover:underline"
+                      >
+                        {translations.contact.info.whatsapp.value}
+                      </a>
                     </div>
                   </div>
                 </div>

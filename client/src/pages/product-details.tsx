@@ -186,9 +186,12 @@ const ProductDetailsPage = () => {
                     size="lg" 
                     className="w-full"
                     disabled={product.status === "soldout"}
+                    asChild
                   >
-                    <i className="fab fa-whatsapp mr-2"></i>
-                    Contact via WhatsApp to Order
+                    <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
+                      <i className="fab fa-whatsapp mr-2"></i>
+                      Contact via WhatsApp to Order
+                    </a>
                   </Button>
                   
                   <Button 
