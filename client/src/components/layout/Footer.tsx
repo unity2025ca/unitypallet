@@ -1,7 +1,10 @@
 import { Link } from "wouter";
 import translations from "@/lib/i18n";
+import { useSettings } from "@/hooks/use-settings";
 
 const Footer = () => {
+  const { getSettingValue } = useSettings();
+  
   return (
     <footer className="bg-black text-white pt-12 pb-6">
       <div className="container mx-auto px-4">
@@ -105,11 +108,11 @@ const Footer = () => {
               </li>
               <li className="flex items-start space-x-2">
                 <i className="fas fa-phone-alt mt-1 text-gray-400"></i>
-                <span className="text-gray-400">{translations.contact.info.phone.value}</span>
+                <span className="text-gray-400">{getSettingValue('contact_phone', translations.contact.info.phone.value)}</span>
               </li>
               <li className="flex items-start space-x-2">
                 <i className="fas fa-envelope mt-1 text-gray-400"></i>
-                <span className="text-gray-400">{translations.contact.info.email.value}</span>
+                <span className="text-gray-400">{getSettingValue('contact_email', translations.contact.info.email.value)}</span>
               </li>
             </ul>
           </div>

@@ -6,6 +6,7 @@ import translations from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { insertContactSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/use-settings";
 import {
   Form,
   FormControl,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 
 const ContactPage = () => {
   const { toast } = useToast();
+  const { getSettingValue } = useSettings();
   
   // Contact form
   const form = useForm({
@@ -170,7 +172,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.phone.label}</p>
-                      <p className="text-gray-600">{translations.contact.info.phone.value}</p>
+                      <p className="text-gray-600">{getSettingValue('contact_phone', translations.contact.info.phone.value)}</p>
                     </div>
                   </div>
                   
@@ -180,7 +182,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <p className="font-medium">{translations.contact.info.email.label}</p>
-                      <p className="text-gray-600">{translations.contact.info.email.value}</p>
+                      <p className="text-gray-600">{getSettingValue('contact_email', translations.contact.info.email.value)}</p>
                     </div>
                   </div>
                   
@@ -196,7 +198,7 @@ const ContactPage = () => {
                         rel="noopener noreferrer"
                         className="text-green-600 hover:text-green-700 hover:underline"
                       >
-                        {translations.contact.info.whatsapp.value}
+                        {getSettingValue('contact_phone', translations.contact.info.whatsapp.value)}
                       </a>
                     </div>
                   </div>
