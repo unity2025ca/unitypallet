@@ -74,13 +74,13 @@
   --sidebar-ring: 240 4.9% 83.9%;
 }
 
-/* Arabic Font Families */
+/* Font Families */
 body {
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Tajawal', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 @layer base {
@@ -94,10 +94,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Custom utility classes */
-.font-cairo {
-  font-family: 'Cairo', sans-serif;
+.font-primary {
+  font-family: 'Inter', sans-serif;
 }
 
-.font-tajawal {
-  font-family: 'Tajawal', sans-serif;
+.font-heading {
+  font-family: 'Inter', sans-serif;
 }

@@ -93,18 +93,18 @@ export type InsertSubscriber = z.infer<typeof insertSubscriberSchema>;
 
 // Category mapping for UI
 export const categoryMap = {
-  electronics: "إلكترونيات",
-  home: "منزلية",
-  toys: "ألعاب",
-  mixed: "متنوعة",
-  other: "أخرى",
+  electronics: "Electronics",
+  home: "Home",
+  toys: "Toys",
+  mixed: "Mixed",
+  other: "Other",
 };
 
 // Status mapping for UI
 export const statusMap = {
-  available: "متوفر",
-  limited: "محدود",
-  soldout: "نفذت الكمية",
+  available: "Available",
+  limited: "Limited",
+  soldout: "Sold Out",
 };
 
 // Site settings schema
