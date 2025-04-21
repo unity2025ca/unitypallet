@@ -17,6 +17,7 @@ import AdminIndex from "@/pages/admin/index";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
 import AdminOrders from "@/pages/admin/orders";
+import AdminSettings from "@/pages/admin/settings";
 import AdminLogin from "@/pages/admin/login";
 import { useLocation } from "wouter";
 
@@ -43,6 +44,7 @@ function Router() {
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/products" component={AdminProducts} />
         <Route path="/admin/orders" component={AdminOrders} />
+        <Route path="/admin/settings" component={AdminSettings} />
         
         {/* Fallback to 404 */}
         <Route component={NotFound} />

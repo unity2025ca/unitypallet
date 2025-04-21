@@ -212,6 +212,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Settings routes
+  app.get("/api/settings", async (req, res) => {
+    try {
+      // Optional category filter
+      const category = req.query.category as string;
+      const settings = category 
+        ? await storage.getSettingsByCategory(category)
+        : await storage.getAllSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+  
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const key = req.params.key;
+      const setting = await storage.getSetting(key);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch setting" });
+    }
+  });
+  
+  app.put("/api/admin/settings/:key", requireAdmin, async (req, res) => {
+    try {
+      const key = req.params.key;
+      const { value } = req.body;
+      
+      if (!value) {
+        return res.status(400).json({ message: "Value is required" });
+      }
+      
+      const setting = await storage.updateSetting(key, value);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update setting" });
+    }
+  });
+  
   // Authentication routes
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
     res.json({ user: req.user });

@@ -106,3 +106,22 @@ export const statusMap = {
   limited: "محدود",
   soldout: "نفذت الكمية",
 };
+
+// Site settings schema
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  category: text("category").notNull(), // e.g., "appearance", "content", "contact"
+  label: text("label").notNull(), // Human-readable label for UI
+  type: text("type").notNull(), // e.g., "text", "color", "image", "boolean"
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSettingSchema = createInsertSchema(settings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type Setting = typeof settings.$inferSelect;
+export type InsertSetting = z.infer<typeof insertSettingSchema>;

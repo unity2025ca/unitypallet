@@ -7,10 +7,13 @@ import {
   type InsertContact,
   type Subscriber,
   type InsertSubscriber,
+  type Setting,
+  type InsertSetting,
   users,
   products,
   contacts,
-  subscribers
+  subscribers,
+  settings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc } from "drizzle-orm";
@@ -40,6 +43,13 @@ export interface IStorage {
   // Subscriber methods
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   getAllSubscribers(): Promise<Subscriber[]>;
+  
+  // Settings methods
+  getSetting(key: string): Promise<Setting | undefined>;
+  getAllSettings(): Promise<Setting[]>;
+  getSettingsByCategory(category: string): Promise<Setting[]>;
+  updateSetting(key: string, value: string): Promise<Setting | undefined>;
+  createSetting(setting: InsertSetting): Promise<Setting>;
   
   // Session store
   sessionStore: any; // Simplify type for session store
@@ -146,6 +156,39 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(subscribers).orderBy(asc(subscribers.id));
   }
   
+  // Settings methods
+  async getSetting(key: string): Promise<Setting | undefined> {
+    const result = await db.select().from(settings).where(eq(settings.key, key));
+    return result[0];
+  }
+  
+  async getAllSettings(): Promise<Setting[]> {
+    return db.select().from(settings).orderBy(asc(settings.id));
+  }
+  
+  async getSettingsByCategory(category: string): Promise<Setting[]> {
+    const result = await db.select().from(settings).where(eq(settings.category, category));
+    return result;
+  }
+  
+  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
+    const result = await db
+      .update(settings)
+      .set({ 
+        value, 
+        updatedAt: new Date() 
+      })
+      .where(eq(settings.key, key))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async createSetting(setting: InsertSetting): Promise<Setting> {
+    const result = await db.insert(settings).values(setting).returning();
+    return result[0];
+  }
+  
   // Initialize the database with sample data if it's empty
   private async initializeDatabase() {
     // Check if admin user exists, if not create one
@@ -162,6 +205,111 @@ export class DatabaseStorage implements IStorage {
     const productsExist = await this.getAllProducts();
     if (productsExist.length === 0) {
       await this.seedProducts();
+    }
+    
+    // Check if settings exist, if not create default settings
+    const settings = await this.getAllSettings();
+    if (settings.length === 0) {
+      await this.seedSettings();
+    }
+  }
+  
+  // Seed default settings
+  private async seedSettings() {
+    const defaultSettings: InsertSetting[] = [
+      // Appearance settings
+      {
+        key: "site_logo",
+        value: "https://images.unsplash.com/photo-1586892477838-2b96e85e0f96?w=200",
+        category: "appearance",
+        label: "شعار الموقع",
+        type: "image"
+      },
+      {
+        key: "primary_color",
+        value: "#16a34a",
+        category: "appearance",
+        label: "اللون الرئيسي",
+        type: "color"
+      },
+      {
+        key: "secondary_color",
+        value: "#0f766e",
+        category: "appearance",
+        label: "اللون الثانوي",
+        type: "color"
+      },
+      {
+        key: "font_family",
+        value: "Tajawal, sans-serif",
+        category: "appearance",
+        label: "نوع الخط",
+        type: "select"
+      },
+      
+      // Content settings
+      {
+        key: "site_name",
+        value: "وحدة",
+        category: "content",
+        label: "اسم الموقع",
+        type: "text"
+      },
+      {
+        key: "site_description",
+        value: "موقع متخصص في بيع بالات أمازون المرتجعة",
+        category: "content",
+        label: "وصف الموقع",
+        type: "textarea"
+      },
+      {
+        key: "hero_title",
+        value: "أفضل بالات أمازون المرتجعة",
+        category: "content",
+        label: "عنوان القسم الرئيسي",
+        type: "text"
+      },
+      {
+        key: "hero_subtitle",
+        value: "اكتشف مجموعة متنوعة من المنتجات بأسعار مميزة",
+        category: "content",
+        label: "العنوان الفرعي للقسم الرئيسي",
+        type: "text"
+      },
+      
+      // Contact settings
+      {
+        key: "contact_email",
+        value: "info@unity-pallets.com",
+        category: "contact",
+        label: "البريد الإلكتروني للتواصل",
+        type: "email"
+      },
+      {
+        key: "contact_phone",
+        value: "+966-5XXXXXXXX",
+        category: "contact",
+        label: "رقم الهاتف للتواصل",
+        type: "tel"
+      },
+      {
+        key: "instagram",
+        value: "unity.pallets",
+        category: "social",
+        label: "حساب انستغرام",
+        type: "text"
+      },
+      {
+        key: "twitter",
+        value: "unitypallets",
+        category: "social",
+        label: "حساب تويتر",
+        type: "text"
+      }
+    ];
+    
+    for (const setting of defaultSettings) {
+      await this.createSetting(setting);
     }
   }
   
