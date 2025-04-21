@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -13,6 +13,8 @@ import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 import { z } from "zod";
 import { sendBulkEmails } from "./email";
+import { upload, handleUploadError } from "./upload";
+import path from "path";
 
 // Setup authentication
 const setupAuth = (app: Express) => {
@@ -360,6 +362,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ authenticated: true, user: req.user });
     }
     res.json({ authenticated: false });
+  });
+  
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+  
+  // File upload routes
+  app.post('/api/upload', requireAdmin, upload.single('image'), handleUploadError, (req: Request, res: Response) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    
+    // Return the URL to the uploaded file
+    const fileUrl = `/uploads/${req.file.filename}`;
+    return res.status(200).json({ 
+      success: true, 
+      message: 'File uploaded successfully', 
+      fileUrl
+    });
+  });
+  
+  // Product image upload route - combining upload with product update
+  app.post('/api/admin/products/:id/image', requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+      
+      // Get the product
+      const product = await storage.getProductById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Create image URL
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      // Update product with new image URL
+      const updatedProduct = await storage.updateProduct(id, { imageUrl: fileUrl });
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Product image updated successfully', 
+        product: updatedProduct
+      });
+    } catch (error) {
+      console.error('Product image upload error:', error);
+      return res.status(500).json({ success: false, message: 'Failed to update product image' });
+    }
   });
 
   const httpServer = createServer(app);
