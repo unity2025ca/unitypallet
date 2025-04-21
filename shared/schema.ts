@@ -41,12 +41,27 @@ export const products = pgTable("products", {
   descriptionAr: text("description_ar").notNull(),
   category: categoryEnum("category").notNull(),
   status: statusEnum("status").default("available"),
-  price: integer("price").notNull(), // Price in riyals
-  imageUrl: text("image_url").notNull(),
+  price: integer("price").notNull(), // Price in Canadian dollars
+  imageUrl: text("image_url").notNull(), // Main product image (for backward compatibility)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Product Images schema - for multiple images per product
+export const productImages = pgTable("product_images", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  imageUrl: text("image_url").notNull(),
+  isMain: boolean("is_main").default(false), // Whether this is the main product image
+  displayOrder: integer("display_order").default(0), // Order to display images
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProductImageSchema = createInsertSchema(productImages).omit({
   id: true,
   createdAt: true,
 });
@@ -84,6 +99,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+export type ProductImage = typeof productImages.$inferSelect;
+export type InsertProductImage = z.infer<typeof insertProductImageSchema>;
 
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;

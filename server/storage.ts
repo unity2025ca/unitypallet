@@ -9,14 +9,17 @@ import {
   type InsertSubscriber,
   type Setting,
   type InsertSetting,
+  type ProductImage,
+  type InsertProductImage,
   users,
   products,
   contacts,
   subscribers,
-  settings
+  settings,
+  productImages
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and, desc } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { pool } from "./db";
@@ -35,6 +38,13 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
+  
+  // Product Images methods
+  getProductImages(productId: number): Promise<ProductImage[]>;
+  getProductMainImage(productId: number): Promise<ProductImage | undefined>;
+  addProductImage(productImage: InsertProductImage): Promise<ProductImage>;
+  setMainProductImage(productId: number, imageId: number): Promise<boolean>;
+  deleteProductImage(imageId: number): Promise<boolean>;
   
   // Contact methods
   createContact(contact: InsertContact): Promise<Contact>;
@@ -122,6 +132,117 @@ export class DatabaseStorage implements IStorage {
       .delete(products)
       .where(eq(products.id, id))
       .returning({ id: products.id });
+    
+    return result.length > 0;
+  }
+  
+  // Product Images methods
+  async getProductImages(productId: number): Promise<ProductImage[]> {
+    return db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.productId, productId))
+      .orderBy(asc(productImages.displayOrder), asc(productImages.id));
+  }
+  
+  async getProductMainImage(productId: number): Promise<ProductImage | undefined> {
+    const mainImage = await db
+      .select()
+      .from(productImages)
+      .where(and(
+        eq(productImages.productId, productId),
+        eq(productImages.isMain, true)
+      ));
+    
+    if (mainImage.length > 0) {
+      return mainImage[0];
+    }
+    
+    // If no main image is set, return the first image
+    const images = await db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.productId, productId))
+      .orderBy(asc(productImages.displayOrder), asc(productImages.id))
+      .limit(1);
+    
+    return images[0];
+  }
+  
+  async addProductImage(productImage: InsertProductImage): Promise<ProductImage> {
+    // If this is the first image for the product, make it the main image
+    const existingImages = await this.getProductImages(productImage.productId);
+    if (existingImages.length === 0) {
+      productImage.isMain = true;
+    }
+    
+    const result = await db.insert(productImages).values(productImage).returning();
+    return result[0];
+  }
+  
+  async setMainProductImage(productId: number, imageId: number): Promise<boolean> {
+    // First, set all product images to not be main
+    await db
+      .update(productImages)
+      .set({ isMain: false })
+      .where(eq(productImages.productId, productId));
+    
+    // Then set the selected image as main
+    const result = await db
+      .update(productImages)
+      .set({ isMain: true })
+      .where(and(
+        eq(productImages.id, imageId),
+        eq(productImages.productId, productId)
+      ))
+      .returning();
+    
+    // Also update the main product imageUrl for backwards compatibility
+    if (result.length > 0) {
+      const mainImageUrl = result[0].imageUrl;
+      await db
+        .update(products)
+        .set({ imageUrl: mainImageUrl })
+        .where(eq(products.id, productId));
+      
+      return true;
+    }
+    
+    return false;
+  }
+  
+  async deleteProductImage(imageId: number): Promise<boolean> {
+    // Get the image details before deleting
+    const imageToDelete = await db
+      .select()
+      .from(productImages)
+      .where(eq(productImages.id, imageId));
+    
+    if (imageToDelete.length === 0) {
+      return false;
+    }
+    
+    const { productId, isMain } = imageToDelete[0];
+    
+    // Delete the image
+    const result = await db
+      .delete(productImages)
+      .where(eq(productImages.id, imageId))
+      .returning({ id: productImages.id });
+    
+    // If the deleted image was the main image, set another image as main
+    if (isMain) {
+      const remainingImages = await db
+        .select()
+        .from(productImages)
+        .where(eq(productImages.productId, productId))
+        .orderBy(asc(productImages.displayOrder), asc(productImages.id))
+        .limit(1);
+      
+      if (remainingImages.length > 0) {
+        await this.setMainProductImage(productId, remainingImages[0].id);
+      }
+    }
     
     return result.length > 0;
   }
