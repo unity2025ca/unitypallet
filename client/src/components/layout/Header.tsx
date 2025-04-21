@@ -81,8 +81,8 @@ const Header = () => {
                 href={item.href}
                 className={`block px-3 py-2 rounded-md ${
                   location === item.href 
-                    ? "text-primary bg-blue-50" 
-                    : "text-neutral-dark hover:bg-neutral-light"
+                    ? "text-primary bg-red-50" 
+                    : "text-neutral-dark hover:bg-neutral-light hover:text-primary"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >

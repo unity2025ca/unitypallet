@@ -46,7 +46,7 @@ const ProductsPage = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-neutral-dark font-tajawal mb-4">
+          <h2 className="text-3xl font-bold text-neutral-dark font-primary mb-4">
             {translations.shop.title}
           </h2>
           <p className="mt-4 text-neutral-medium max-w-2xl mx-auto">
@@ -80,7 +80,7 @@ const ProductsPage = () => {
         ) : filteredProducts?.length === 0 ? (
           <div className="text-center py-12">
             <i className="fas fa-box-open text-4xl text-gray-300 mb-4"></i>
-            <p className="text-gray-500 text-lg">لا توجد منتجات في هذه الفئة حالياً</p>
+            <p className="text-gray-500 text-lg">No products available in this category</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -68,27 +68,27 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4 font-primary">{translations.footer.categories}</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/products?category=electronics" className="text-gray-400 hover:text-white transition">
+                <Link href="/products?category=electronics" className="text-gray-400 hover:text-primary transition">
                   {translations.shop.categories.electronics}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=home" className="text-gray-400 hover:text-white transition">
+                <Link href="/products?category=home" className="text-gray-400 hover:text-primary transition">
                   {translations.shop.categories.home}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=toys" className="text-gray-400 hover:text-white transition">
+                <Link href="/products?category=toys" className="text-gray-400 hover:text-primary transition">
                   {translations.shop.categories.toys}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=mixed" className="text-gray-400 hover:text-white transition">
+                <Link href="/products?category=mixed" className="text-gray-400 hover:text-primary transition">
                   {translations.shop.categories.mixed}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=other" className="text-gray-400 hover:text-white transition">
+                <Link href="/products?category=other" className="text-gray-400 hover:text-primary transition">
                   {translations.shop.categories.other}
                 </Link>
               </li>

@@ -27,7 +27,7 @@ const ProductFilter = ({ activeCategory, onCategoryChange }: ProductFilterProps)
             className={
               activeCategory === category.id
                 ? "px-4 py-2 rounded-full"
-                : "px-4 py-2 rounded-full bg-white border border-gray-200 hover:bg-gray-100"
+                : "px-4 py-2 rounded-full bg-white border border-gray-200 hover:bg-gray-100 hover:text-primary hover:border-primary"
             }
             onClick={() => onCategoryChange(category.id)}
           >
