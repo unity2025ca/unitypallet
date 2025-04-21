@@ -11,7 +11,7 @@ const Hero = () => {
             <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4">
               {translations.hero.title}
             </h1>
-            <p className="text-xl mb-8 text-gray-200">
+            <p className="text-xl mb-8 text-black font-medium">
               {translations.hero.subtitle}
             </p>
             <div className="flex flex-wrap gap-4">
