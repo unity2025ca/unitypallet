@@ -23,6 +23,11 @@ const Sidebar = () => {
       href: "/admin/orders", 
       icon: "fas fa-envelope" 
     },
+    { 
+      name: "إعدادات الموقع", 
+      href: "/admin/settings", 
+      icon: "fas fa-cog" 
+    },
   ];
   
   const handleLogout = () => {

@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import translations from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks/use-settings";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location] = useLocation();
+  const { getSettingValue } = useSettings();
 
   const navItems = [
     { name: translations.navItems.home, href: "/" },
@@ -28,7 +30,17 @@ const Header = () => {
           <div className="flex items-center">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <span className="text-3xl font-bold text-primary font-tajawal">Unity</span>
+              {getSettingValue("site_logo") ? (
+                <img 
+                  src={getSettingValue("site_logo")} 
+                  alt={getSettingValue("site_name", "Unity")} 
+                  className="h-10 ml-2" 
+                />
+              ) : (
+                <span className="text-3xl font-bold text-primary font-tajawal">
+                  {getSettingValue("site_name", "Unity")}
+                </span>
+              )}
             </Link>
           </div>
           
