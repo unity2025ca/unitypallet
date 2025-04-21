@@ -127,7 +127,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                 <FormLabel>{translations.admin.products.form.category}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  defaultValue={field.value || 'electronics'}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -156,7 +156,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                 <FormLabel>{translations.admin.products.form.status}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  defaultValue={field.value || 'available'}
                 >
                   <FormControl>
                     <SelectTrigger>

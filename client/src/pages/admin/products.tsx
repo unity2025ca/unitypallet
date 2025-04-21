@@ -266,12 +266,12 @@ const AdminProducts = () => {
                         <TableCell>${product.price}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <Badge variant="outline">
-                            {categoryMap[product.category]}
+                            {categoryMap[product.category as keyof typeof categoryMap]}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className={statusColors[product.status]}>
-                            {statusMap[product.status]}
+                          <Badge variant="outline" className={statusColors[product.status as keyof typeof statusColors]}>
+                            {statusMap[product.status as keyof typeof statusMap]}
                           </Badge>
                         </TableCell>
                         <TableCell>
