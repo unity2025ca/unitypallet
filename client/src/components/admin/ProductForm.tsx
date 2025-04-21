@@ -199,7 +199,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
         
         // Refresh product images using React Query
         // Instead of full page reload which loses state
-        queryClient.invalidateQueries([`/api/products/${productId}/images`]);
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}/images`] });
       } else {
         throw new Error(result.message || 'Failed to upload additional image');
       }
@@ -236,9 +236,9 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
         });
         
         // Refresh product images using React Query
-        queryClient.invalidateQueries([`/api/products/${productId}/images`]);
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}/images`] });
         // Also refresh the product details to update the main image
-        queryClient.invalidateQueries([`/api/products/${productId}`]);
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}`] });
       } else {
         throw new Error(result.message || 'Failed to update main image');
       }
@@ -272,8 +272,10 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           description: "The image has been removed from this product"
         });
         
-        // Refresh product images
-        window.location.reload();
+        // Refresh product images using React Query
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}/images`] });
+        // Also refresh the product details in case it was a main image
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}`] });
       } else {
         throw new Error(result.message || 'Failed to delete image');
       }
