@@ -18,11 +18,20 @@ import path from "path";
 
 // Setup authentication
 const setupAuth = (app: Express) => {
+  // Trust proxy for secure cookies with HTTPS when behind a reverse proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
+  
   app.use(session({
     secret: process.env.SESSION_SECRET || 'unity-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 }, // 1 day
+    cookie: { 
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    },
     store: storage.sessionStore
   }));
   
@@ -380,25 +389,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Authentication routes
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.json({ user: req.user });
+  // Authentication routes with improved error handling
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Internal server error during login" 
+        });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false, 
+          message: info?.message || "Invalid username or password" 
+        });
+      }
+      
+      // Log in the user
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Session creation error:", loginErr);
+          return res.status(500).json({ 
+            success: false, 
+            message: "Failed to create session" 
+          });
+        }
+        
+        // Successfully logged in
+        console.log("User logged in successfully:", user.username);
+        return res.status(200).json({ 
+          success: true, 
+          message: "Login successful", 
+          user 
+        });
+      });
+    })(req, res, next);
   });
   
   app.post("/api/logout", (req, res) => {
+    // Store username for logging
+    const username = (req.user as any)?.username;
+    
     req.logout((err) => {
       if (err) {
-        return res.status(500).json({ message: "Failed to logout" });
+        console.error("Logout error:", err);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to logout" 
+        });
       }
-      res.status(200).json({ message: "Logged out successfully" });
+      
+      console.log("User logged out successfully:", username);
+      res.status(200).json({ 
+        success: true, 
+        message: "Logged out successfully" 
+      });
     });
   });
   
   app.get("/api/session", (req, res) => {
-    if (req.isAuthenticated()) {
-      return res.json({ authenticated: true, user: req.user });
+    try {
+      if (req.isAuthenticated()) {
+        const user = req.user as any;
+        console.log("Session check - authenticated:", user?.username);
+        return res.json({ 
+          authenticated: true, 
+          user,
+          sessionID: req.sessionID
+        });
+      }
+      
+      console.log("Session check - not authenticated");
+      res.json({ 
+        authenticated: false,
+        sessionID: req.sessionID 
+      });
+    } catch (error) {
+      console.error("Session check error:", error);
+      res.status(500).json({ 
+        authenticated: false, 
+        error: "Failed to check authentication status" 
+      });
     }
-    res.json({ authenticated: false });
   });
   
   // Serve uploaded files statically

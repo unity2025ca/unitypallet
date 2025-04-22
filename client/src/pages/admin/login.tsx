@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import translations from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +14,13 @@ const AdminLogin = () => {
   const { login, isAuthenticated } = useAdminAuth();
   const [_, navigate] = useLocation();
   
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate("/admin/dashboard");
-    return null;
-  }
+  // Redirect if already authenticated with proper checks
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("User is already authenticated, redirecting to dashboard");
+      navigate("/admin/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

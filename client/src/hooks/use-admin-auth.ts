@@ -24,24 +24,46 @@ export const useAdminAuth = () => {
     queryKey: ["/api/session"],
   });
 
-  // Login mutation
+  // Login mutation with improved error handling
   const login = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      const res = await apiRequest("POST", "/api/login", { username, password });
-      return res.json();
+      try {
+        const res = await apiRequest("POST", "/api/login", { username, password });
+        
+        // Ensure the response is valid
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
+          throw new Error(errorData.message || "Failed to authenticate");
+        }
+        
+        // Return the successful response
+        return res.json();
+      } catch (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Ensure authentication state is refreshed
       queryClient.invalidateQueries({ queryKey: ["/api/session"] });
-      navigate("/admin/dashboard");
+      
+      // Use setTimeout to give a moment for the session to be established
+      setTimeout(() => {
+        console.log("Redirecting after successful login");
+        navigate("/admin/dashboard");
+      }, 300);
+      
       toast({
         title: "تم تسجيل الدخول بنجاح",
         description: "مرحبًا بك في لوحة التحكم",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Login mutation error:", error);
+      
       toast({
         title: "فشل تسجيل الدخول",
-        description: "يرجى التحقق من اسم المستخدم وكلمة المرور",
+        description: error?.message || "يرجى التحقق من اسم المستخدم وكلمة المرور",
         variant: "destructive",
       });
     },
