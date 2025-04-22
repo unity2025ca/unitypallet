@@ -657,18 +657,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
   
   // File upload routes - only admin can upload general files
-  app.post('/api/upload', requireAdmin, upload.single('image'), handleUploadError, (req: Request, res: Response) => {
+  app.post('/api/upload', requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
     
-    // Return the URL to the uploaded file
-    const fileUrl = `/uploads/${req.file.filename}`;
-    return res.status(200).json({ 
-      success: true, 
-      message: 'File uploaded successfully', 
-      fileUrl
-    });
+    try {
+      // رفع الصورة إلى Cloudinary
+      const uploadResult = await uploadImage(req.file.path);
+      
+      // حذف الملف المؤقت بعد الرفع
+      fs.unlinkSync(req.file.path);
+      
+      if (!uploadResult.success) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to upload image to cloud storage',
+          error: uploadResult.error
+        });
+      }
+      
+      // إرجاع عنوان URL للصورة المرفوعة
+      return res.status(200).json({ 
+        success: true, 
+        message: 'File uploaded successfully', 
+        fileUrl: uploadResult.imageUrl,
+        publicId: uploadResult.publicId
+      });
+    } catch (error: any) {
+      console.error('Error uploading file to cloud storage:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error uploading file',
+        error: error.message
+      });
+    }
   });
   
   // Product image upload route - publishers can upload product images
