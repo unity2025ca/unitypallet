@@ -4,21 +4,21 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="relative bg-gradient-to-r from-primary to-gray-500 overflow-hidden">
+    <section className="relative bg-black overflow-hidden">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4 text-white">
               {translations.hero.title}
             </h1>
-            <p className="text-xl mb-8 text-white font-medium">
+            <p className="text-xl mb-8 text-gray-300 font-medium">
               {translations.hero.subtitle}
             </p>
             <div className="flex flex-wrap gap-4">
               <Button 
                 asChild
                 size="lg"
-                className="gray-button text-white font-bold"
+                className="btn-red font-bold"
               >
                 <Link href="/products">
                   {translations.hero.browseButton}
@@ -28,7 +28,7 @@ const Hero = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="gray-button text-white font-bold"
+                className="btn-white font-bold"
               >
                 <Link href="/how-it-works">
                   {translations.hero.howItWorksButton}

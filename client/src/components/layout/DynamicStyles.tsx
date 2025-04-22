@@ -161,15 +161,38 @@ export default function DynamicStyles() {
       border-color: var(--secondary);
     }
     
-    /* Gray Button Class */
-    .gray-button {
-      background: #4b5563 !important;
-      border: 1px solid #374151 !important;
+    /* Button Classes for Red-White-Black Theme */
+    .btn-red {
+      background: #dc2626 !important;
+      border: 1px solid #b91c1c !important;
+      color: white !important;
       transition: all 0.3s ease !important;
     }
     
-    .gray-button:hover {
-      background: #374151 !important;
+    .btn-red:hover {
+      background: #b91c1c !important;
+    }
+    
+    .btn-white {
+      background: white !important;
+      border: 2px solid #e5e7eb !important;
+      color: #111827 !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .btn-white:hover {
+      background: #f3f4f6 !important;
+    }
+    
+    .btn-black {
+      background: #111827 !important;
+      border: 1px solid black !important;
+      color: white !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .btn-black:hover {
+      background: black !important;
     }
     
     /* Fix button contrast issues */
