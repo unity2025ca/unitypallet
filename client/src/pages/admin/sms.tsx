@@ -11,6 +11,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Subscriber, Contact } from "@shared/schema";
 
 const AdminSms = () => {
   // Auth check
@@ -37,13 +38,55 @@ const AdminSms = () => {
   });
   
   // Fetch subscribers
-  const { data: subscribers, isLoading: subscribersLoading } = useQuery({
+  const { 
+    data: subscribers, 
+    isLoading: subscribersLoading,
+    refetch: refetchSubscribers 
+  } = useQuery<Subscriber[]>({
     queryKey: ["/api/admin/subscribers"],
+    enabled: isAdmin
+  });
+  
+  // Fetch contacts (for the import feature)
+  const { data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
+    queryKey: ["/api/admin/contacts"],
     enabled: isAdmin
   });
   
   // Get count of subscribers with phone numbers
   const subscribersWithPhone = subscribers?.filter(sub => sub.phone && sub.phone.startsWith('+')) || [];
+  
+  // Import contacts mutation
+  const importContactsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/subscribers/import-contacts");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Import Successful",
+          description: data.message,
+          variant: "default",
+        });
+        // Refetch subscribers to update the list
+        refetchSubscribers();
+      } else {
+        toast({
+          title: "Import Partial or Failed",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import contacts",
+        variant: "destructive",
+      });
+    }
+  });
   
   // Mutation for sending single SMS
   const singleSmsMutation = useMutation({
@@ -443,21 +486,52 @@ const AdminSms = () => {
                   </div>
                 ) : (
                   <div className="bg-muted p-4 rounded-md mb-4">
-                    <div className="flex items-center mb-2">
-                      {subscribersWithPhone.length > 0 ? (
-                        <CheckCircle className="text-green-500 mr-2 h-5 w-5" />
-                      ) : (
-                        <AlertCircle className="text-amber-500 mr-2 h-5 w-5" />
-                      )}
-                      <span className="font-medium">
-                        {subscribersWithPhone.length} subscribers with phone numbers
-                      </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        {subscribersWithPhone.length > 0 ? (
+                          <CheckCircle className="text-green-500 mr-2 h-5 w-5" />
+                        ) : (
+                          <AlertCircle className="text-amber-500 mr-2 h-5 w-5" />
+                        )}
+                        <span className="font-medium">
+                          {subscribersWithPhone.length} subscribers with phone numbers
+                        </span>
+                      </div>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => importContactsMutation.mutate()}
+                        disabled={importContactsMutation.isPending || contactsLoading}
+                      >
+                        {importContactsMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                            Importing...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-download mr-2"></i>
+                            Import from Contacts
+                          </>
+                        )}
+                      </Button>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      {subscribersWithPhone.length > 0 
-                        ? `Your message will be sent to ${subscribersWithPhone.length} subscriber(s).`
-                        : "There are no subscribers with phone numbers. Add phone numbers to subscriber profiles first."}
-                    </p>
+                    
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-500">
+                        {subscribersWithPhone.length > 0 
+                          ? `Your message will be sent to ${subscribersWithPhone.length} subscriber(s).`
+                          : "There are no subscribers with phone numbers. Import from contacts or add phone numbers to subscriber profiles."}
+                      </p>
+                      
+                      {contacts && contacts.length > 0 && (
+                        <p className="text-xs text-gray-500">
+                          You have {contacts.length} contact(s) available that may be imported as subscribers.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
                 
