@@ -137,6 +137,27 @@ const AdminProducts = () => {
     },
   });
   
+  // Update display order mutation
+  const updateDisplayOrderMutation = useMutation({
+    mutationFn: async ({ id, displayOrder }: { id: number; displayOrder: number }) => {
+      const res = await apiRequest("PATCH", `/api/admin/products/${id}`, { displayOrder });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({
+        title: "Display order updated",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to update display order",
+        description: "An error occurred while trying to update the display order. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Handle add product
   const handleAddProduct = (data: any) => {
     createProduct.mutate(data);
@@ -166,6 +187,12 @@ const AdminProducts = () => {
   const handleDeleteClick = (product: Product) => {
     setSelectedProduct(product);
     setDeleteDialogOpen(true);
+  };
+  
+  // Handle display order update
+  const handleUpdateDisplayOrder = (id: number, displayOrder: number) => {
+    if (displayOrder < 0) return; // Prevent negative order
+    updateDisplayOrderMutation.mutate({ id, displayOrder });
   };
   
   // Loading state
@@ -246,6 +273,7 @@ const AdminProducts = () => {
                       <TableHead>Price</TableHead>
                       <TableHead className="hidden md:table-cell">Category</TableHead>
                       <TableHead className="hidden md:table-cell">Status</TableHead>
+                      <TableHead className="hidden md:table-cell">Display Order</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -273,6 +301,28 @@ const AdminProducts = () => {
                           <Badge variant="outline" className={statusColors[product.status as keyof typeof statusColors]}>
                             {statusMap[product.status as keyof typeof statusMap]}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="px-2 py-0 h-6"
+                              onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) - 1)}
+                              disabled={(product.displayOrder || 0) <= 0}
+                            >
+                              -
+                            </Button>
+                            <span className="w-8 text-center">{product.displayOrder || 0}</span>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="px-2 py-0 h-6" 
+                              onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) + 1)}
+                            >
+                              +
+                            </Button>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
