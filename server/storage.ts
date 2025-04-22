@@ -288,16 +288,85 @@ export class DatabaseStorage implements IStorage {
   // Subscriber methods
   async createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber> {
     try {
+      // Handle case where only phone is provided (email might be empty)
+      if (subscriber.phone && (!subscriber.email || subscriber.email.trim() === '')) {
+        // Check if this phone number already exists
+        const existingWithPhone = await db
+          .select()
+          .from(subscribers)
+          .where(eq(subscribers.phone, subscriber.phone));
+        
+        if (existingWithPhone.length > 0) {
+          // Phone number already exists, return the existing subscriber
+          return existingWithPhone[0];
+        }
+        
+        // No existing subscriber with this phone, create a new one with a placeholder email
+        const timestamp = new Date().getTime();
+        subscriber.email = `phone_subscriber_${timestamp}@placeholder.com`;
+      } else if (subscriber.email && subscriber.phone) {
+        // Both email and phone provided - check for existing subscriber by email
+        const existingWithEmail = await db
+          .select()
+          .from(subscribers)
+          .where(eq(subscribers.email, subscriber.email));
+        
+        if (existingWithEmail.length > 0) {
+          // Subscriber with this email exists, update their phone if needed
+          const existing = existingWithEmail[0];
+          if (!existing.phone) {
+            await this.updateSubscriber(existing.id, { phone: subscriber.phone });
+            return { ...existing, phone: subscriber.phone };
+          }
+          return existing;
+        }
+        
+        // Check for subscriber with this phone number
+        const existingWithPhone = await db
+          .select()
+          .from(subscribers)
+          .where(eq(subscribers.phone, subscriber.phone));
+        
+        if (existingWithPhone.length > 0) {
+          // Subscriber with this phone exists, update their email if it's a placeholder
+          const existing = existingWithPhone[0];
+          if (existing.email && existing.email.includes('phone_subscriber_')) {
+            await this.updateSubscriber(existing.id, { email: subscriber.email });
+            return { ...existing, email: subscriber.email };
+          }
+          return existing;
+        }
+      } else if (subscriber.email) {
+        // Only email provided, check if it exists
+        const existingWithEmail = await db
+          .select()
+          .from(subscribers)
+          .where(eq(subscribers.email, subscriber.email));
+        
+        if (existingWithEmail.length > 0) {
+          return existingWithEmail[0];
+        }
+      }
+      
+      // Create new subscriber
       const result = await db.insert(subscribers).values(subscriber).returning();
       return result[0];
     } catch (error) {
-      // If insert fails due to unique constraint, return the existing subscriber
-      const existingSubscriber = await db
-        .select()
-        .from(subscribers)
-        .where(eq(subscribers.email, subscriber.email));
-        
-      return existingSubscriber[0];
+      console.error('Error creating subscriber:', error);
+      // If all else fails, try to find by email as a fallback
+      if (subscriber.email) {
+        const existingSubscriber = await db
+          .select()
+          .from(subscribers)
+          .where(eq(subscribers.email, subscriber.email));
+          
+        if (existingSubscriber.length > 0) {
+          return existingSubscriber[0];
+        }
+      }
+      
+      // Re-throw the error if we couldn't recover
+      throw error;
     }
   }
   

@@ -48,12 +48,36 @@ const CTA = () => {
       return;
     }
     
-    const data: { email: string, phone?: string } = { email };
-    if (phone) {
-      data.phone = phone;
+    if (showPhoneInput) {
+      // Phone-based subscription
+      if (!phone) {
+        toast({
+          title: "Phone Number Required",
+          description: "Please enter a valid phone number to subscribe",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      subscribe.mutate({ email: '', phone });
+    } else {
+      // Email-based subscription
+      if (!email) {
+        toast({
+          title: "Email Required",
+          description: "Please enter a valid email address to subscribe",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const data: { email: string, phone?: string } = { email };
+      if (phone) {
+        data.phone = phone;
+      }
+      
+      subscribe.mutate(data);
     }
-    
-    subscribe.mutate(data);
   };
 
   return (
