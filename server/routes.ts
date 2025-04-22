@@ -14,6 +14,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 import { z } from "zod";
 import { sendBulkEmails } from "./email";
+import { sendSMS, sendBulkSMS } from "./sms";
 import { upload, handleUploadError } from "./upload";
 import path from "path";
 
