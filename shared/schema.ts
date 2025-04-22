@@ -88,6 +88,7 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
 export const subscribers = pgTable("subscribers", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
+  phone: text("phone"), // Phone number in international format (e.g. +1234567890)
   createdAt: timestamp("created_at").defaultNow(),
 });
 

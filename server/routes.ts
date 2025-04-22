@@ -263,6 +263,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SMS Messaging routes
+  
+  // Send SMS to a single number (admin only)
+  app.post("/api/admin/sms/send", requireAdmin, async (req, res) => {
+    try {
+      const { to, body } = req.body;
+      
+      // Validate required fields
+      if (!to || !body) {
+        const missingFields = [];
+        if (!to) missingFields.push('to');
+        if (!body) missingFields.push('body');
+        
+        return res.status(400).json({ 
+          success: false, 
+          message: `Missing required fields: ${missingFields.join(', ')}` 
+        });
+      }
+      
+      // Validate phone number format (starts with + and has at least 10 digits)
+      const phoneRegex = /^\+[0-9]{10,15}$/;
+      if (!phoneRegex.test(to)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid phone number format. Must be in international format starting with + (e.g., +1234567890)"
+        });
+      }
+      
+      // Send SMS
+      const result = await sendSMS(to, body);
+      
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error: any) {
+      console.error('SMS send error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to send SMS: ${error.message || 'Unknown error'}`
+      });
+    }
+  });
+  
+  // Send bulk SMS to multiple numbers (admin only)
+  app.post("/api/admin/sms/bulk", requireAdmin, async (req, res) => {
+    try {
+      const { to, body } = req.body;
+      
+      // Validate required fields
+      if (!to || !Array.isArray(to) || to.length === 0 || !body) {
+        const errors = [];
+        if (!to) errors.push('Missing "to" field');
+        else if (!Array.isArray(to)) errors.push('"to" must be an array');
+        else if (to.length === 0) errors.push('"to" array cannot be empty');
+        if (!body) errors.push('Missing "body" field');
+        
+        return res.status(400).json({ 
+          success: false, 
+          message: `Validation error: ${errors.join(', ')}` 
+        });
+      }
+      
+      // Validate all phone numbers
+      const phoneRegex = /^\+[0-9]{10,15}$/;
+      const invalidNumbers = to.filter(number => !phoneRegex.test(number));
+      
+      if (invalidNumbers.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid phone number format detected. All numbers must be in international format starting with + (e.g., +1234567890)",
+          invalidNumbers
+        });
+      }
+      
+      // Send bulk SMS
+      const results = await sendBulkSMS(to, body);
+      
+      // Check if all messages were sent successfully
+      const allSuccessful = results.every(result => result.success);
+      
+      if (allSuccessful) {
+        res.status(200).json({
+          success: true,
+          message: `Successfully sent ${results.length} messages`,
+          results
+        });
+      } else {
+        // Some messages failed
+        const successCount = results.filter(r => r.success).length;
+        const failureCount = results.length - successCount;
+        
+        res.status(207).json({
+          success: false,
+          message: `Partially successful: ${successCount} sent, ${failureCount} failed`,
+          results
+        });
+      }
+    } catch (error: any) {
+      console.error('Bulk SMS send error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to send bulk SMS: ${error.message || 'Unknown error'}`
+      });
+    }
+  });
+  
+  // Send SMS to all subscribers (admin only)
+  app.post("/api/admin/sms/subscribers", requireAdmin, async (req, res) => {
+    try {
+      const { body } = req.body;
+      
+      // Validate required field
+      if (!body) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required field: body" 
+        });
+      }
+      
+      // Get all subscribers
+      const subscribers = await storage.getAllSubscribers();
+      
+      if (subscribers.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No subscribers found to send SMS to" 
+        });
+      }
+      
+      // Filter subscribers with valid phone numbers
+      const subscribersWithPhone = subscribers.filter(sub => sub.phone && sub.phone.startsWith('+'));
+      
+      if (subscribersWithPhone.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No subscribers with valid phone numbers found" 
+        });
+      }
+      
+      // Extract phone numbers
+      const phoneNumbers = subscribersWithPhone.map(sub => sub.phone as string);
+      
+      // Send bulk SMS
+      const results = await sendBulkSMS(phoneNumbers, body);
+      
+      // Check if all messages were sent successfully
+      const allSuccessful = results.every(result => result.success);
+      
+      if (allSuccessful) {
+        res.status(200).json({
+          success: true,
+          message: `Successfully sent ${results.length} messages to subscribers`,
+          results
+        });
+      } else {
+        // Some messages failed
+        const successCount = results.filter(r => r.success).length;
+        const failureCount = results.length - successCount;
+        
+        res.status(207).json({
+          success: false,
+          message: `Partially successful: ${successCount} sent, ${failureCount} failed`,
+          results
+        });
+      }
+    } catch (error: any) {
+      console.error('Subscriber SMS send error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to send SMS to subscribers: ${error.message || 'Unknown error'}`
+      });
+    }
+  });
+  
   // Email newsletter to subscribers
   app.post("/api/admin/subscribers/email", requireAdmin, async (req, res) => {
     try {
