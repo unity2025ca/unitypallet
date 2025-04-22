@@ -44,7 +44,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             variant={isSoldOut ? "ghost" : "default"}
             className={isSoldOut ? 
               "bg-gray-300 text-gray-600 cursor-not-allowed" : 
-              "red-gray-gradient text-white"
+              "gray-button text-white"
             }
             disabled={isSoldOut}
           >

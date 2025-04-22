@@ -18,7 +18,7 @@ const Hero = () => {
               <Button 
                 asChild
                 size="lg"
-                className="red-gray-gradient text-white font-bold"
+                className="gray-button text-white font-bold"
               >
                 <Link href="/products">
                   {translations.hero.browseButton}
@@ -28,7 +28,7 @@ const Hero = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="bg-gray-500 hover:bg-gray-600 text-white border-gray-600 font-bold"
+                className="gray-button text-white font-bold"
               >
                 <Link href="/how-it-works">
                   {translations.hero.howItWorksButton}

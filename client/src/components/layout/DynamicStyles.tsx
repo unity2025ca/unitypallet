@@ -161,15 +161,15 @@ export default function DynamicStyles() {
       border-color: var(--secondary);
     }
     
-    /* Custom Red-Gray Gradient Class */
-    .red-gray-gradient {
-      background: linear-gradient(45deg, var(--primary) 50%, #4b5563 50%) !important;
-      border: 1px solid var(--primary) !important;
+    /* Gray Button Class */
+    .gray-button {
+      background: #4b5563 !important;
+      border: 1px solid #374151 !important;
       transition: all 0.3s ease !important;
     }
     
-    .red-gray-gradient:hover {
-      background: linear-gradient(45deg, #4b5563 50%, var(--primary) 50%) !important;
+    .gray-button:hover {
+      background: #374151 !important;
     }
     
     /* Fix button contrast issues */
@@ -193,7 +193,7 @@ export default function DynamicStyles() {
       color: white !important;
     }
 
-    /* Custom gradient buttons with red and gray */
+    /* Gray buttons */
     .bg-white button:not([class*="destructive"]):not([class*="outline"]),
     .bg-background button:not([class*="destructive"]):not([class*="outline"]),
     button.bg-default,
@@ -202,13 +202,13 @@ export default function DynamicStyles() {
     button[class*="bg-gray"],
     [data-theme-button],
     .btn {
-      background: linear-gradient(45deg, var(--primary) 50%, #4b5563 50%) !important;
+      background: #4b5563 !important;
       color: white !important;
-      border: 1px solid var(--primary) !important;
+      border: 1px solid #374151 !important;
       transition: all 0.3s ease !important;
     }
     
-    /* Hover effect for gradient buttons */
+    /* Hover effect for buttons */
     .bg-white button:not([class*="destructive"]):not([class*="outline"]):hover,
     .bg-background button:not([class*="destructive"]):not([class*="outline"]):hover,
     button.bg-default:hover,
@@ -217,7 +217,7 @@ export default function DynamicStyles() {
     button[class*="bg-gray"]:hover,
     [data-theme-button]:hover,
     .btn:hover {
-      background: linear-gradient(45deg, #4b5563 50%, var(--primary) 50%) !important;
+      background: #374151 !important;
     }
     
     /* Override global shadcn colors with our custom primary */
