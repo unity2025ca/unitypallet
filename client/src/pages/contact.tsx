@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const ContactPage = () => {
   const { toast } = useToast();
@@ -109,7 +111,23 @@ const ContactPage = () => {
                     <FormItem>
                       <FormLabel>{translations.contact.form.phone}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="tel" dir="ltr" />
+                        <PhoneInput
+                          country={'ca'} // Default to Canada
+                          value={field.value}
+                          onChange={(phone) => field.onChange("+" + phone)}
+                          inputClass="!w-full !h-10 !text-base"
+                          containerClass="!w-full"
+                          placeholder="Enter phone number with country code"
+                          enableSearch={true}
+                          disableSearchIcon={true}
+                          searchPlaceholder="Search country..."
+                          searchClass="!py-2 !px-3"
+                          buttonClass="!px-3 !border-r !rounded-l-md"
+                          inputProps={{
+                            name: field.name,
+                            required: true,
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

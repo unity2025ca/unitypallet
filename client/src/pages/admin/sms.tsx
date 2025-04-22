@@ -12,6 +12,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Subscriber, Contact } from "@shared/schema";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const AdminSms = () => {
   // Auth check
