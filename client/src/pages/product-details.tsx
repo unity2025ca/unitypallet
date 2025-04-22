@@ -197,7 +197,7 @@ const ProductDetailsPage = () => {
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="w-full gray-button"
+                    className="w-full btn-black"
                     asChild
                   >
                     <Link href="/contact">

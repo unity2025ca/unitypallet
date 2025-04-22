@@ -132,7 +132,7 @@ const ContactPage = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full gray-button" 
+                  className="w-full btn-red" 
                   disabled={submitContact.isPending}
                 >
                   {submitContact.isPending ? (
@@ -157,7 +157,7 @@ const ContactPage = () => {
                 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-red-100 text-red-600">
                       <i className="fas fa-map-marker-alt"></i>
                     </div>
                     <div>
@@ -167,7 +167,7 @@ const ContactPage = () => {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-black text-white">
                       <i className="fas fa-phone-alt"></i>
                     </div>
                     <div>
@@ -177,7 +177,7 @@ const ContactPage = () => {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-primary">
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white">
                       <i className="fas fa-envelope"></i>
                     </div>
                     <div>
@@ -187,7 +187,7 @@ const ContactPage = () => {
                   </div>
                   
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white text-black border border-black">
                       <i className="fab fa-whatsapp"></i>
                     </div>
                     <div>
@@ -211,7 +211,7 @@ const ContactPage = () => {
                       href={getSettingValue('social_facebook', '#')}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition"
                     >
                       <i className="fab fa-facebook-f"></i>
                     </a>
@@ -219,7 +219,7 @@ const ContactPage = () => {
                       href={getSettingValue('social_instagram', '#')}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition"
                     >
                       <i className="fab fa-instagram"></i>
                     </a>
@@ -227,7 +227,7 @@ const ContactPage = () => {
                       href={getSettingValue('social_twitter', '#')}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 text-white hover:bg-blue-500 transition"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition"
                     >
                       <i className="fab fa-twitter"></i>
                     </a>
@@ -235,7 +235,7 @@ const ContactPage = () => {
                       href={getSettingValue('social_youtube', '#')}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition"
                     >
                       <i className="fab fa-youtube"></i>
                     </a>
