@@ -715,9 +715,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       try {
-        // رفع الصورة إلى Cloudinary
-        const productId = `product_${id}`;
-        const uploadResult = await uploadImage(req.file.path, productId);
+        // رفع الصورة إلى Cloudinary بمعرّف فريد للصورة
+        const productPublicId = `product_${id}_${Date.now()}`;
+        const uploadResult = await uploadImage(req.file.path, productPublicId);
         
         // حذف الملف المؤقت بعد الرفع
         fs.unlinkSync(req.file.path);
