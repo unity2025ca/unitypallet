@@ -143,7 +143,18 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
             </nav>
           </div>
           
-          <div className="p-6 border-t border-sidebar-border mt-auto">
+          <div className="p-6 border-t border-sidebar-border mt-auto space-y-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-green-600 hover:text-green-700 hover:bg-green-50"
+              asChild
+            >
+              <Link href="/">
+                <i className="fas fa-home w-5 mr-3"></i>
+                Return to Website
+              </Link>
+            </Button>
+            
             <Button 
               variant="outline" 
               className="w-full justify-start"
