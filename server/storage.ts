@@ -126,13 +126,12 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getProductsByCategory(category: string): Promise<Product[]> {
-    // Handle category filtering using a safer approach with runtime type checking
-    const result = await db
+    const validCategory = category as "electronics" | "home" | "toys" | "mixed" | "other";
+    return db
       .select()
       .from(products)
-      .where(eq(products.category, category))
+      .where(eq(products.category, validCategory))
       .orderBy(asc(products.displayOrder), asc(products.id));
-    return result;
   }
   
   async createProduct(product: InsertProduct): Promise<Product> {

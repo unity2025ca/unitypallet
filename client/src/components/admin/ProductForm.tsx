@@ -31,6 +31,7 @@ import { queryClient } from "@/lib/queryClient";
 // Extend the product schema with validation rules
 const productFormSchema = insertProductSchema.extend({
   price: z.coerce.number().min(1, "Price must be greater than zero"),
+  displayOrder: z.coerce.number().int().default(0),
 });
 
 interface ProductFormProps {
@@ -64,6 +65,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       status: "available",
       price: 0,
       imageUrl: "",
+      displayOrder: 0,
     },
   });
 
@@ -441,6 +443,24 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                 <FormControl>
                   <Input {...field} type="number" min="0" />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Display Order */}
+          <FormField
+            control={form.control}
+            name="displayOrder"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display Order</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" min="0" />
+                </FormControl>
+                <FormDescription>
+                  Products with lower numbers will be displayed first
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
