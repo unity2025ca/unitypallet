@@ -52,6 +52,7 @@ export default function AdminSettings() {
   const contactSettings = settings?.filter(s => s.category === "contact") || [];
   const socialSettings = settings?.filter(s => s.category === "social") || [];
   const aboutSettings = settings?.filter(s => s.category === "about") || [];
+  const howItWorksSettings = settings?.filter(s => s.category === "how_it_works") || [];
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -79,6 +80,7 @@ export default function AdminSettings() {
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="about">About Us</TabsTrigger>
+                <TabsTrigger value="how_it_works">How It Works</TabsTrigger>
                 <TabsTrigger value="contact">Contact Info</TabsTrigger>
                 <TabsTrigger value="social">Social Media</TabsTrigger>
               </TabsList>
