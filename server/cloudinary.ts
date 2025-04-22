@@ -1,17 +1,47 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-// التحقق من وجود متغيرات البيئة المطلوبة
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+// تكوين Cloudinary
+let cloudName, apiKey, apiSecret;
+
+// يمكن تكوين Cloudinary إما عبر متغيرات البيئة المنفصلة أو عبر CLOUDINARY_URL
+if (process.env.CLOUDINARY_URL) {
+  console.log('Using CLOUDINARY_URL for configuration');
+  // استخراج التكوين من CLOUDINARY_URL
+  try {
+    // تنسيق URL: cloudinary://api_key:api_secret@cloud_name
+    const cloudinaryUrl = process.env.CLOUDINARY_URL;
+    const match = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+    
+    if (match) {
+      apiKey = match[1];
+      apiSecret = match[2];
+      cloudName = match[3];
+      console.log(`Extracted Cloudinary config from URL - cloud_name: ${cloudName}`);
+    } else {
+      console.error('Invalid CLOUDINARY_URL format');
+    }
+  } catch (error) {
+    console.error('Error parsing CLOUDINARY_URL:', error);
+  }
+} else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  console.log('Using individual Cloudinary environment variables');
+  cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  apiKey = process.env.CLOUDINARY_API_KEY;
+  apiSecret = process.env.CLOUDINARY_API_SECRET;
+} else {
   console.error('Missing required Cloudinary environment variables');
 }
 
 // تكوين Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
   secure: true,
 });
+
+// عرض رسالة تأكيد لمساعدة في تصحيح الأخطاء
+console.log(`Cloudinary initialized with cloud_name: ${cloudName}`);
 
 // المجلد الافتراضي لتخزين صور المنتجات
 const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
@@ -24,35 +54,84 @@ const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
  */
 export const uploadImage = async (filePath: string, publicId?: string) => {
   try {
-    const options: any = {
-      folder: PRODUCT_IMAGES_FOLDER,
-      resource_type: 'image',
-      // تحسين للأداء وتقليل حجم الصورة
-      quality: 'auto',
-      fetch_format: 'auto',
-    };
-
-    // إضافة معرّف عام إذا تم توفيره
-    if (publicId) {
-      options.public_id = publicId;
-    }
-
-    // رفع الصورة إلى Cloudinary
-    const result = await cloudinary.uploader.upload(filePath, options);
+    console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
     
-    return {
-      success: true,
-      imageUrl: result.secure_url,
-      publicId: result.public_id,
-      format: result.format,
-      width: result.width,
-      height: result.height,
-    };
+    // تحقق من وجود المسار
+    if (!filePath) {
+      console.error('No file path provided for upload');
+      return {
+        success: false,
+        error: 'No file path provided for upload'
+      };
+    }
+    
+    // التحقق من وجود الملف
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found at path: ${filePath}`);
+      return {
+        success: false,
+        error: `File not found at path: ${filePath}`
+      };
+    }
+    
+    // طريقة بديلة: استخدام stream بدلاً من base64
+    return new Promise((resolve) => {
+      const options: any = {
+        folder: PRODUCT_IMAGES_FOLDER,
+        resource_type: 'auto',
+        // تحسين للأداء وتقليل حجم الصورة
+        quality: 'auto',
+        fetch_format: 'auto',
+      };
+  
+      // إضافة معرّف عام إذا تم توفيره
+      if (publicId) {
+        options.public_id = publicId;
+      }
+      
+      // استخدام طريقة upload_stream بدلاً من upload
+      // هذه الطريقة تقوم برفع الملف كـ stream بدلاً من قراءته كاملاً في الذاكرة
+      const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          resolve({
+            success: false,
+            error: error.message || 'Unknown Cloudinary upload error',
+          });
+          return;
+        }
+        
+        console.log('Image uploaded successfully to Cloudinary');
+        resolve({
+          success: true,
+          imageUrl: result?.secure_url,
+          publicId: result?.public_id,
+          format: result?.format,
+          width: result?.width,
+          height: result?.height,
+        });
+      });
+      
+      // إنشاء stream لقراءة الملف وتمريره إلى uploadStream
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(uploadStream);
+      
+      fileStream.on('error', (error: any) => {
+        console.error('Error reading file:', error);
+        resolve({
+          success: false,
+          error: `Error reading file: ${error.message}`,
+        });
+      });
+    });
   } catch (error: any) {
     console.error('Cloudinary upload error:', error);
+    // تسجيل سبب الخطأ بشكل أكثر تفصيلاً
+    console.error('Upload error details:', JSON.stringify(error, null, 2));
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'Unknown Cloudinary upload error',
     };
   }
 };
