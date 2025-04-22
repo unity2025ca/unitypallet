@@ -3,16 +3,17 @@ import translations from "@/lib/i18n";
 import FaqAccordion from "@/components/shared/FaqAccordion";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Faq } from "@shared/schema";
 
 const FaqPage = () => {
   // Fetch FAQs from API
-  const { data: faqItems, isLoading, error } = useQuery({
+  const { data: faqItems, isLoading, error } = useQuery<Faq[]>({
     queryKey: ['/api/faqs'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Map FAQs to the format expected by FaqAccordion when data is available
-  const formattedFaqItems = faqItems?.map(faq => ({
+  const formattedFaqItems = faqItems?.map((faq: Faq) => ({
     question: faq.question,
     answer: faq.answer
   })) || [];
