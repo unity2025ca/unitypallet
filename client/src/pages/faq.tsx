@@ -1,7 +1,27 @@
+import { useState, useEffect } from "react";
 import translations from "@/lib/i18n";
 import FaqAccordion from "@/components/shared/FaqAccordion";
+import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const FaqPage = () => {
+  // Fetch FAQs from API
+  const { data: faqItems, isLoading, error } = useQuery({
+    queryKey: ['/api/faqs'],
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Map FAQs to the format expected by FaqAccordion when data is available
+  const formattedFaqItems = faqItems?.map(faq => ({
+    question: faq.question,
+    answer: faq.answer
+  })) || [];
+
+  // Show fallback content if no FAQs found in the database
+  const displayFaqItems = formattedFaqItems.length > 0 
+    ? formattedFaqItems 
+    : translations.faq.questions;
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -14,7 +34,18 @@ const FaqPage = () => {
           </p>
         </div>
         
-        <FaqAccordion faqItems={translations.faq.questions} />
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">
+            <p>Could not load FAQs. Using default questions.</p>
+            <FaqAccordion faqItems={translations.faq.questions} />
+          </div>
+        ) : (
+          <FaqAccordion faqItems={displayFaqItems} />
+        )}
       </div>
     </section>
   );

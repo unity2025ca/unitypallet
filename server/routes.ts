@@ -5,7 +5,8 @@ import {
   insertProductSchema, 
   insertContactSchema, 
   insertSubscriberSchema, 
-  insertUserSchema 
+  insertUserSchema,
+  insertFaqSchema
 } from "@shared/schema";
 import session from "express-session";
 import passport from "passport";
@@ -613,6 +614,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting product image:', error);
       return res.status(500).json({ message: "Error deleting product image" });
+    }
+  });
+
+  // FAQ Routes - Public routes for getting FAQs
+  app.get('/api/faqs', async (req: Request, res: Response) => {
+    try {
+      const faqs = await storage.getAllFaqs();
+      res.json(faqs);
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+      res.status(500).json({ message: "Failed to fetch FAQs" });
+    }
+  });
+
+  // Admin routes for managing FAQs
+  app.get('/api/admin/faqs', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const faqs = await storage.getAllFaqs();
+      res.json(faqs);
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+      res.status(500).json({ message: "Failed to fetch FAQs" });
+    }
+  });
+
+  app.get('/api/admin/faqs/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid FAQ ID" });
+      }
+      
+      const faq = await storage.getFaqById(id);
+      if (!faq) {
+        return res.status(404).json({ message: "FAQ not found" });
+      }
+      
+      res.json(faq);
+    } catch (error) {
+      console.error('Error fetching FAQ:', error);
+      res.status(500).json({ message: "Failed to fetch FAQ" });
+    }
+  });
+
+  app.post('/api/admin/faqs', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertFaqSchema.parse(req.body);
+      const faq = await storage.createFaq(validatedData);
+      res.status(201).json(faq);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid FAQ data", errors: error.errors });
+      }
+      console.error('Error creating FAQ:', error);
+      res.status(500).json({ message: "Failed to create FAQ" });
+    }
+  });
+
+  app.put('/api/admin/faqs/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid FAQ ID" });
+      }
+      
+      // Partial validation of the request body
+      const validatedData = insertFaqSchema.partial().parse(req.body);
+      
+      const updatedFaq = await storage.updateFaq(id, validatedData);
+      if (!updatedFaq) {
+        return res.status(404).json({ message: "FAQ not found" });
+      }
+      
+      res.json(updatedFaq);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid FAQ data", errors: error.errors });
+      }
+      console.error('Error updating FAQ:', error);
+      res.status(500).json({ message: "Failed to update FAQ" });
+    }
+  });
+
+  app.delete('/api/admin/faqs/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid FAQ ID" });
+      }
+      
+      const success = await storage.deleteFaq(id);
+      if (!success) {
+        return res.status(404).json({ message: "FAQ not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting FAQ:', error);
+      res.status(500).json({ message: "Failed to delete FAQ" });
     }
   });
 
