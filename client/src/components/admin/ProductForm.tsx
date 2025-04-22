@@ -120,8 +120,18 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       const result = await response.json();
       
       if (result.success) {
+        // Check where the image URL is in the response
+        let imageUrl = result.fileUrl;
+        
+        // For product images, the response is different
+        if (!imageUrl && result.image && result.image.imageUrl) {
+          imageUrl = result.image.imageUrl;
+        }
+        
+        console.log('Image URL from server:', imageUrl);
+        
         // Update the form with the image URL
-        form.setValue('imageUrl', result.fileUrl, { 
+        form.setValue('imageUrl', imageUrl, { 
           shouldValidate: true, 
           shouldDirty: true 
         });
