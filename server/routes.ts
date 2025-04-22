@@ -334,6 +334,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Import phone numbers from contact messages
+  app.post("/api/admin/subscribers/import-from-messages", requireAdmin, async (_req, res) => {
+    try {
+      // Get all contacts
+      const contacts = await storage.getAllContacts();
+      
+      if (contacts.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No contacts found to import" 
+        });
+      }
+      
+      // Get current subscribers
+      const existingSubscribers = await storage.getAllSubscribers();
+      const existingPhones = new Set(existingSubscribers.filter(sub => sub.phone).map(sub => sub.phone));
+      
+      // Regular expression to match phone numbers in messages
+      // This pattern looks for international format numbers: +1234567890 or +123 456 7890
+      const phoneRegex = /\+[0-9\s]{10,15}/g;
+      
+      let imported = 0;
+      let skipped = 0;
+      
+      // Process each contact's message
+      for (const contact of contacts) {
+        if (!contact.message || !contact.message.trim()) {
+          continue;
+        }
+        
+        // Extract phone numbers from message content
+        const message = contact.message.trim();
+        const matches = message.match(phoneRegex);
+        
+        if (!matches || matches.length === 0) {
+          continue;
+        }
+        
+        // Process each found phone number
+        for (const match of matches) {
+          // Normalize phone number (remove spaces)
+          const phoneNumber = match.replace(/\s/g, '').trim();
+          
+          // Skip if phone number already exists as a subscriber
+          if (existingPhones.has(phoneNumber)) {
+            skipped++;
+            continue;
+          }
+          
+          // Create new subscriber with the phone number
+          await storage.createSubscriber({
+            email: contact.email || '',
+            phone: phoneNumber,
+            subscribed: true
+          });
+          
+          imported++;
+          existingPhones.add(phoneNumber);
+        }
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: `Successfully imported ${imported} phone numbers from messages. ${skipped} numbers were skipped (already exist).`,
+        imported,
+        skipped
+      });
+    } catch (error: any) {
+      console.error('Message phone import error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to import phone numbers from messages: ${error.message || 'Unknown error'}`
+      });
+    }
+  });
 
   // SMS Messaging routes
   

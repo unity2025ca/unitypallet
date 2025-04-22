@@ -88,6 +88,38 @@ const AdminSms = () => {
     }
   });
   
+  // Import phone numbers from messages mutation
+  const importFromMessagesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/subscribers/import-from-messages");
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Message Import Successful",
+          description: data.message,
+          variant: "default",
+        });
+        // Refetch subscribers to update the list
+        refetchSubscribers();
+      } else {
+        toast({
+          title: "Message Import Failed",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Message Import Failed",
+        description: error.message || "Failed to import numbers from messages",
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Mutation for sending single SMS
   const singleSmsMutation = useMutation({
     mutationFn: async (data: { to: string; body: string }) => {
@@ -498,25 +530,47 @@ const AdminSms = () => {
                         </span>
                       </div>
                       
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => importContactsMutation.mutate()}
-                        disabled={importContactsMutation.isPending || contactsLoading}
-                      >
-                        {importContactsMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                            Importing...
-                          </>
-                        ) : (
-                          <>
-                            <i className="fas fa-download mr-2"></i>
-                            Import from Contacts
-                          </>
-                        )}
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => importContactsMutation.mutate()}
+                          disabled={importContactsMutation.isPending || importFromMessagesMutation.isPending || contactsLoading}
+                        >
+                          {importContactsMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Importing...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-download mr-2"></i>
+                              Import from Contacts
+                            </>
+                          )}
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => importFromMessagesMutation.mutate()}
+                          disabled={importFromMessagesMutation.isPending || importContactsMutation.isPending || contactsLoading}
+                        >
+                          {importFromMessagesMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Importing...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-search mr-2"></i>
+                              Import from Messages
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="space-y-1">
