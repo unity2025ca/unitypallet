@@ -117,7 +117,7 @@ export class DatabaseStorage implements IStorage {
   
   // Product methods
   async getAllProducts(): Promise<Product[]> {
-    return db.select().from(products).orderBy(asc(products.id));
+    return db.select().from(products).orderBy(asc(products.displayOrder), asc(products.id));
   }
   
   async getProductById(id: number): Promise<Product | undefined> {
@@ -127,8 +127,12 @@ export class DatabaseStorage implements IStorage {
   
   async getProductsByCategory(category: string): Promise<Product[]> {
     // Handle category filtering using a safer approach with runtime type checking
-    const result = await db.select().from(products);
-    return result.filter(p => p.category === category);
+    const result = await db
+      .select()
+      .from(products)
+      .where(eq(products.category, category))
+      .orderBy(asc(products.displayOrder), asc(products.id));
+    return result;
   }
   
   async createProduct(product: InsertProduct): Promise<Product> {

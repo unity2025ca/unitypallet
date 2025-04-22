@@ -46,6 +46,7 @@ export const products = pgTable("products", {
   status: statusEnum("status").default("available"),
   price: integer("price").notNull(), // Price in Canadian dollars
   imageUrl: text("image_url").notNull(), // Main product image (for backward compatibility)
+  displayOrder: integer("display_order").default(0), // Display order for sorting products
   createdAt: timestamp("created_at").defaultNow(),
 });
 
