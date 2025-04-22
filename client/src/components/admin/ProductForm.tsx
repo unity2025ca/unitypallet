@@ -308,7 +308,26 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 relative pb-16">
+        {/* Fixed Submit Button at the top */}
+        <div className="sticky top-0 z-50 bg-white p-4 border-b flex justify-between items-center mb-4 shadow-md">
+          <h3 className="font-medium">Product Details</h3>
+          <Button 
+            type="submit" 
+            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              translations.admin.products.form.submit
+            )}
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Title */}
           <FormField
@@ -557,21 +576,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           </div>
         )}
         
-        {/* Submit Button */}
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <i className="fas fa-spinner fa-spin"></i>
-              Saving...
-            </span>
-          ) : (
-            translations.admin.products.form.submit
-          )}
-        </Button>
+        {/* No bottom submit button needed since we have the sticky one at the top */}
       </form>
     </Form>
   );
