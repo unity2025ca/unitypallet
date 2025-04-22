@@ -17,6 +17,8 @@ import { sendBulkEmails } from "./email";
 import { sendSMS, sendBulkSMS } from "./sms";
 import { upload, handleUploadError } from "./upload";
 import path from "path";
+import fs from "fs";
+import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
 
 // Setup authentication
 const setupAuth = (app: Express) => {
@@ -712,47 +714,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Product not found" });
       }
       
-      // Create image URL
-      const fileUrl = `/uploads/${req.file.filename}`;
-      
-      // Set whether this should be the main image
-      const isMain = req.body.isMain === 'true';
-      
-      // Get the display order
-      let displayOrder = 0;
-      if (req.body.displayOrder) {
-        displayOrder = parseInt(req.body.displayOrder);
-        if (isNaN(displayOrder)) displayOrder = 0;
+      try {
+        // رفع الصورة إلى Cloudinary
+        const productId = `product_${id}`;
+        const uploadResult = await uploadImage(req.file.path, productId);
+        
+        // حذف الملف المؤقت بعد الرفع
+        fs.unlinkSync(req.file.path);
+        
+        if (!uploadResult.success) {
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to upload image to cloud storage',
+            error: uploadResult.error
+          });
+        }
+        
+        // استخدام عنوان URL من Cloudinary
+        const fileUrl = uploadResult.imageUrl;
+        
+        // Set whether this should be the main image
+        const isMain = req.body.isMain === 'true';
+        
+        // Get the display order
+        let displayOrder = 0;
+        if (req.body.displayOrder) {
+          displayOrder = parseInt(req.body.displayOrder);
+          if (isNaN(displayOrder)) displayOrder = 0;
+        }
+        
+        // إضافة معلومات إضافية للصورة (معرف Cloudinary)
+        const cloudinaryData = {
+          publicId: uploadResult.publicId,
+          width: uploadResult.width,
+          height: uploadResult.height,
+          format: uploadResult.format
+        };
+        
+        // Add the image to product_images table
+        const productImage = await storage.addProductImage({
+          productId: id,
+          imageUrl: fileUrl || '', // نتأكد من أن fileUrl ليس undefined
+          isMain: isMain || false,
+          displayOrder: displayOrder || 0
+        });
+        
+        // If this is set as the main image, update the main product image reference
+        if (isMain) {
+          await storage.setMainProductImage(id, productImage.id);
+        }
+        
+        // For backward compatibility, always update the product's imageUrl when a new image is added
+        // If this is the main image or this is the first image for the product
+        const existingImages = await storage.getProductImages(id);
+        if (isMain || existingImages.length === 1) {
+          await storage.updateProduct(id, { imageUrl: fileUrl });
+        }
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Product image added successfully',
+          image: productImage
+        });
+        
+      } catch (uploadError: any) {
+        console.error('Error uploading product image to cloud storage:', uploadError);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error uploading product image to cloud storage',
+          error: uploadError.message
+        });
       }
-      
-      // Add the image to product_images table
-      const productImage = await storage.addProductImage({
-        productId: id,
-        imageUrl: fileUrl,
-        isMain,
-        displayOrder
-      });
-      
-      // If this is set as the main image, update the main product image reference
-      if (isMain) {
-        await storage.setMainProductImage(id, productImage.id);
-      }
-      
-      // For backward compatibility, always update the product's imageUrl when a new image is added
-      // If this is the main image or this is the first image for the product
-      const existingImages = await storage.getProductImages(id);
-      if (isMain || existingImages.length === 1) {
-        await storage.updateProduct(id, { imageUrl: fileUrl });
-      }
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Product image added successfully',
-        image: productImage
-      });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Product image upload error:', error);
-      return res.status(500).json({ success: false, message: 'Failed to add product image' });
+      return res.status(500).json({ success: false, message: 'Failed to add product image', error: error.message });
     }
   });
   
@@ -804,16 +839,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid image ID" });
       }
       
+      // نحصل على تفاصيل الصورة أولاً للحصول على عنوان URL لاستخراج معرّف Cloudinary
+      const imageDetails = await storage.getProductImageById(imageId);
+      
+      if (!imageDetails) {
+        return res.status(404).json({ success: false, message: 'Product image not found' });
+      }
+      
+      // نحذف الصورة من قاعدة البيانات
       const success = await storage.deleteProductImage(imageId);
       
       if (success) {
+        // نحاول حذف الصورة من Cloudinary إذا كانت الصورة تستخدم Cloudinary
+        if (imageDetails.imageUrl && imageDetails.imageUrl.includes('cloudinary.com')) {
+          try {
+            // استخراج معرّف Cloudinary من عنوان URL
+            const publicId = extractPublicIdFromUrl(imageDetails.imageUrl);
+            
+            if (publicId) {
+              // حذف الصورة من Cloudinary
+              await deleteImage(publicId);
+              console.log(`Deleted image from Cloudinary: ${publicId}`);
+            }
+          } catch (cloudinaryError) {
+            // نسجل الخطأ فقط ولا نمنع نجاح العملية إذا فشل الحذف من Cloudinary
+            console.error('Error deleting image from Cloudinary:', cloudinaryError);
+          }
+        }
+        
         return res.status(200).json({ success: true, message: 'Product image deleted' });
       } else {
-        return res.status(404).json({ success: false, message: 'Product image not found' });
+        return res.status(404).json({ success: false, message: 'Failed to delete product image' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting product image:', error);
-      return res.status(500).json({ message: "Error deleting product image" });
+      return res.status(500).json({ 
+        message: "Error deleting product image", 
+        error: error.message
+      });
     }
   });
 
