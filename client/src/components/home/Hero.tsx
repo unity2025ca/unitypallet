@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="relative bg-gradient-to-r from-primary to-white overflow-hidden">
+    <section className="relative bg-gradient-to-r from-primary to-gray-500 overflow-hidden">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4 text-white">
               {translations.hero.title}
             </h1>
-            <p className="text-xl mb-8 text-black font-medium">
+            <p className="text-xl mb-8 text-white font-medium">
               {translations.hero.subtitle}
             </p>
             <div className="flex flex-wrap gap-4">
@@ -54,7 +54,7 @@ const Hero = () => {
           xmlns="http://www.w3.org/2000/svg"
           className="h-[70px] w-full"
         >
-          <path d="M0 48h2880V0h-720C1442.5 52 720 0 720 0H0v48z" fill="#f9fafb"></path>
+          <path d="M0 48h2880V0h-720C1442.5 52 720 0 720 0H0v48z" fill="#ffffff"></path>
         </svg>
       </div>
     </section>
