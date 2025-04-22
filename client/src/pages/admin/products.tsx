@@ -212,8 +212,8 @@ const AdminProducts = () => {
                 {translations.admin.products.add}
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95%] max-w-[600px]">
-              <DialogHeader>
+            <DialogContent className="w-[95%] max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="sticky top-0 z-40 bg-white pb-4">
                 <DialogTitle>{translations.admin.products.add}</DialogTitle>
                 <DialogDescription>
                   Add a new product to the store. Please fill out all required fields.
@@ -309,8 +309,8 @@ const AdminProducts = () => {
         
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="w-[95%] max-w-[600px]">
-            <DialogHeader>
+          <DialogContent className="w-[95%] max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="sticky top-0 z-40 bg-white pb-4">
               <DialogTitle>{translations.admin.products.edit}</DialogTitle>
               <DialogDescription>
                 Edit product details. Please fill out all required fields.

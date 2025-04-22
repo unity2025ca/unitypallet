@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom scrollbar styling */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-track {
+  background: #222;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #b91c1c; /* Red color on hover, matching the app's theme */
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 0%;
