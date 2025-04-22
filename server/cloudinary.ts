@@ -130,6 +130,13 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
         }
         
         console.log('Image uploaded successfully to Cloudinary');
+        console.log('Image URL:', result?.secure_url);
+        console.log('Public ID:', result?.public_id);
+        
+        if (!result?.secure_url) {
+          console.error('Warning: No secure_url returned from Cloudinary');
+        }
+        
         resolve({
           success: true,
           imageUrl: result?.secure_url,

@@ -732,6 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // استخدام عنوان URL من Cloudinary
         const fileUrl = uploadResult.imageUrl;
+        console.log('File URL from Cloudinary:', fileUrl);
         
         // Set whether this should be the main image
         const isMain = req.body.isMain === 'true';
