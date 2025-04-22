@@ -161,6 +161,17 @@ export default function DynamicStyles() {
       border-color: var(--secondary);
     }
     
+    /* Custom Red-Gray Gradient Class */
+    .red-gray-gradient {
+      background: linear-gradient(45deg, var(--primary) 50%, #4b5563 50%) !important;
+      border: 1px solid var(--primary) !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .red-gray-gradient:hover {
+      background: linear-gradient(45deg, #4b5563 50%, var(--primary) 50%) !important;
+    }
+    
     /* Fix button contrast issues */
     .bg-white .btn, 
     button[class*="bg-white"],
@@ -182,7 +193,7 @@ export default function DynamicStyles() {
       color: white !important;
     }
 
-    /* All buttons should use the primary red color */
+    /* Custom gradient buttons with red and gray */
     .bg-white button:not([class*="destructive"]):not([class*="outline"]),
     .bg-background button:not([class*="destructive"]):not([class*="outline"]),
     button.bg-default,
@@ -191,9 +202,22 @@ export default function DynamicStyles() {
     button[class*="bg-gray"],
     [data-theme-button],
     .btn {
-      background-color: var(--primary) !important;
+      background: linear-gradient(45deg, var(--primary) 50%, #4b5563 50%) !important;
       color: white !important;
       border: 1px solid var(--primary) !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    /* Hover effect for gradient buttons */
+    .bg-white button:not([class*="destructive"]):not([class*="outline"]):hover,
+    .bg-background button:not([class*="destructive"]):not([class*="outline"]):hover,
+    button.bg-default:hover,
+    a[role="button"]:not([class*="destructive"]):not([class*="outline"]):hover,
+    button[class*="variant-default"]:hover,
+    button[class*="bg-gray"]:hover,
+    [data-theme-button]:hover,
+    .btn:hover {
+      background: linear-gradient(45deg, #4b5563 50%, var(--primary) 50%) !important;
     }
     
     /* Override global shadcn colors with our custom primary */

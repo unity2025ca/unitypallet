@@ -81,7 +81,7 @@ const AdminLogin = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-primary text-white border border-primary hover:bg-primary/90" 
+              className="w-full red-gray-gradient text-white" 
               disabled={login.isPending}
             >
               {login.isPending ? (
