@@ -161,6 +161,20 @@ export default function DynamicStyles() {
       border-color: var(--secondary);
     }
     
+    /* Fix button contrast issues */
+    .bg-white .btn, 
+    button[class*="bg-white"],
+    .bg-background .btn,
+    button[class*="bg-background"] {
+      border: 1px solid #e2e8f0;
+      color: #374151 !important;
+    }
+    
+    /* Ensure primary buttons have readable text */
+    .bg-primary, button[class*="bg-primary"] {
+      color: white !important;
+    }
+    
     /* Override global shadcn colors with our custom primary */
     :root {
       --background: 0 0% 100%;
@@ -174,7 +188,7 @@ export default function DynamicStyles() {
       --primary-s: ${hexToHSL(primaryColor).s}%;
       --primary-l: ${hexToHSL(primaryColor).l}%;
       --primary: var(--primary-h) var(--primary-s) var(--primary-l);
-      --primary-foreground: 210 40% 98%;
+      --primary-foreground: ${hexToHSL(primaryColor).l > 60 ? '222.2 47.4% 11.2%' : '210 40% 98%'};
       --secondary: 210 40% 96.1%;
       --secondary-foreground: 222.2 47.4% 11.2%;
       --muted: 210 40% 96.1%;
