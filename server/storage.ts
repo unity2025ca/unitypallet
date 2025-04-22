@@ -57,6 +57,7 @@ export interface IStorage {
   // Subscriber methods
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   getAllSubscribers(): Promise<Subscriber[]>;
+  updateSubscriber(id: number, data: Partial<InsertSubscriber>): Promise<Subscriber | undefined>;
   
   // Settings methods
   getSetting(key: string): Promise<Setting | undefined>;
@@ -302,6 +303,16 @@ export class DatabaseStorage implements IStorage {
   
   async getAllSubscribers(): Promise<Subscriber[]> {
     return db.select().from(subscribers).orderBy(asc(subscribers.id));
+  }
+  
+  async updateSubscriber(id: number, data: Partial<InsertSubscriber>): Promise<Subscriber | undefined> {
+    const result = await db
+      .update(subscribers)
+      .set(data)
+      .where(eq(subscribers.id, id))
+      .returning();
+    
+    return result[0];
   }
   
   // Settings methods

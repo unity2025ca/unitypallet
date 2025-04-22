@@ -264,6 +264,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch subscribers" });
     }
   });
+  
+  // Import contact phone numbers as subscribers
+  app.post("/api/admin/subscribers/import-contacts", requireAdmin, async (_req, res) => {
+    try {
+      // Get all contacts
+      const contacts = await storage.getAllContacts();
+      
+      if (contacts.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No contacts found to import" 
+        });
+      }
+      
+      // Get current subscribers
+      const existingSubscribers = await storage.getAllSubscribers();
+      const existingEmails = new Set(existingSubscribers.map(sub => sub.email));
+      const existingPhones = new Set(existingSubscribers.filter(sub => sub.phone).map(sub => sub.phone));
+      
+      let imported = 0;
+      let skipped = 0;
+      
+      // Process each contact
+      for (const contact of contacts) {
+        // Skip if no phone number or already exists
+        if (!contact.phone || existingPhones.has(contact.phone)) {
+          skipped++;
+          continue;
+        }
+        
+        // Create subscriber with contact information
+        // If the email already exists, update the phone number
+        const existingWithEmail = existingEmails.has(contact.email);
+        
+        if (existingWithEmail) {
+          // Find the subscriber with matching email
+          const subToUpdate = existingSubscribers.find(sub => sub.email === contact.email);
+          if (subToUpdate && !subToUpdate.phone) {
+            // Update phone if not already set
+            await storage.updateSubscriber(subToUpdate.id, { phone: contact.phone });
+            imported++;
+          } else {
+            skipped++;
+          }
+        } else {
+          // Create new subscriber
+          await storage.createSubscriber({
+            email: contact.email,
+            phone: contact.phone
+          });
+          imported++;
+          existingEmails.add(contact.email);
+          existingPhones.add(contact.phone);
+        }
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: `Successfully imported ${imported} contacts to subscribers. ${skipped} contacts were skipped (already exist or missing phone).`,
+        imported,
+        skipped
+      });
+    } catch (error: any) {
+      console.error('Contact import error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to import contacts: ${error.message || 'Unknown error'}`
+      });
+    }
+  });
 
   // SMS Messaging routes
   
