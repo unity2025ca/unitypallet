@@ -11,12 +11,15 @@ import {
   type InsertSetting,
   type ProductImage,
   type InsertProductImage,
+  type Faq,
+  type InsertFaq,
   users,
   products,
   contacts,
   subscribers,
   settings,
-  productImages
+  productImages,
+  faqs
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc } from "drizzle-orm";
@@ -60,6 +63,13 @@ export interface IStorage {
   getSettingsByCategory(category: string): Promise<Setting[]>;
   updateSetting(key: string, value: string): Promise<Setting | undefined>;
   createSetting(setting: InsertSetting): Promise<Setting>;
+  
+  // FAQ methods
+  getAllFaqs(): Promise<Faq[]>;
+  getFaqById(id: number): Promise<Faq | undefined>;
+  createFaq(faq: InsertFaq): Promise<Faq>;
+  updateFaq(id: number, faq: Partial<InsertFaq>): Promise<Faq | undefined>;
+  deleteFaq(id: number): Promise<boolean>;
   
   // Session store
   sessionStore: any; // Simplify type for session store
@@ -315,6 +325,43 @@ export class DatabaseStorage implements IStorage {
   async createSetting(setting: InsertSetting): Promise<Setting> {
     const result = await db.insert(settings).values(setting).returning();
     return result[0];
+  }
+  
+  // FAQ methods
+  async getAllFaqs(): Promise<Faq[]> {
+    return db.select().from(faqs).orderBy(asc(faqs.displayOrder), asc(faqs.id));
+  }
+  
+  async getFaqById(id: number): Promise<Faq | undefined> {
+    const result = await db.select().from(faqs).where(eq(faqs.id, id));
+    return result[0];
+  }
+  
+  async createFaq(faq: InsertFaq): Promise<Faq> {
+    const result = await db.insert(faqs).values(faq).returning();
+    return result[0];
+  }
+  
+  async updateFaq(id: number, faqData: Partial<InsertFaq>): Promise<Faq | undefined> {
+    const result = await db
+      .update(faqs)
+      .set({
+        ...faqData,
+        updatedAt: new Date()
+      })
+      .where(eq(faqs.id, id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async deleteFaq(id: number): Promise<boolean> {
+    const result = await db
+      .delete(faqs)
+      .where(eq(faqs.id, id))
+      .returning({ id: faqs.id });
+    
+    return result.length > 0;
   }
   
   // Initialize the database with sample data if it's empty
