@@ -184,7 +184,7 @@ const ProductDetailsPage = () => {
                 <div className="space-y-4">
                   <Button 
                     size="lg" 
-                    className="w-full"
+                    className="w-full gray-button"
                     disabled={product.status === "soldout"}
                     asChild
                   >
@@ -197,7 +197,7 @@ const ProductDetailsPage = () => {
                   <Button 
                     variant="outline" 
                     size="lg" 
-                    className="w-full"
+                    className="w-full gray-button"
                     asChild
                   >
                     <Link href="/contact">

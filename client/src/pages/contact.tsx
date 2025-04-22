@@ -132,7 +132,7 @@ const ContactPage = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  className="w-full gray-button" 
                   disabled={submitContact.isPending}
                 >
                   {submitContact.isPending ? (
