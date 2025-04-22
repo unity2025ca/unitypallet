@@ -120,6 +120,46 @@ export default function AdminSettings() {
                 <SettingItem key={setting.id} setting={setting} />
               ))}
             </TabsContent>
+            
+            <TabsContent value="how_it_works" className="space-y-4">
+              <p className="text-slate-600 mb-4 md:mb-6">Modify 'How It Works' page content and steps</p>
+              
+              <div className="border-b pb-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Page Header</h3>
+                {howItWorksSettings
+                  .filter(s => !s.key.includes('step') && !s.key.includes('type') && !s.key.includes('explanation'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
+              
+              <div className="border-b pb-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Purchase Steps</h3>
+                {howItWorksSettings
+                  .filter(s => s.key.includes('step'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
+              
+              <div className="border-b pb-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Explanation Section</h3>
+                {howItWorksSettings
+                  .filter(s => s.key.includes('explanation'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Product Types</h3>
+                {howItWorksSettings
+                  .filter(s => s.key.includes('type'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
