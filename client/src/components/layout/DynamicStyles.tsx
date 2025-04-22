@@ -165,14 +165,32 @@ export default function DynamicStyles() {
     .bg-white .btn, 
     button[class*="bg-white"],
     .bg-background .btn,
-    button[class*="bg-background"] {
+    button[class*="bg-background"],
+    a[href][class*="bg-white"],
+    a[href][class*="bg-background"] {
       border: 1px solid #e2e8f0;
       color: #374151 !important;
     }
     
     /* Ensure primary buttons have readable text */
-    .bg-primary, button[class*="bg-primary"] {
+    .bg-primary, 
+    button[class*="bg-primary"],
+    a[href][class*="bg-primary"],
+    [class*="text-primary-foreground"],
+    .text-primary-foreground,
+    [data-theme-button] {
       color: white !important;
+    }
+
+    /* Fix for Details & Login buttons */
+    .bg-white button:not([class*="bg-"]),
+    .bg-background button:not([class*="bg-"]),
+    button.bg-default,
+    a[role="button"]:not([class*="bg-"]),
+    button[class*="variant-default"] {
+      background-color: var(--primary) !important;
+      color: white !important;
+      border: 1px solid var(--primary) !important;
     }
     
     /* Override global shadcn colors with our custom primary */

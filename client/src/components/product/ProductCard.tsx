@@ -42,7 +42,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Button 
             asChild={!isSoldOut}
             variant={isSoldOut ? "ghost" : "default"}
-            className={isSoldOut ? "bg-gray-300 text-gray-600 cursor-not-allowed" : ""}
+            className={isSoldOut ? 
+              "bg-gray-300 text-gray-600 cursor-not-allowed" : 
+              "bg-primary text-white border border-primary hover:bg-primary/90"
+            }
             disabled={isSoldOut}
           >
             {isSoldOut ? (
