@@ -182,15 +182,18 @@ export default function DynamicStyles() {
       color: white !important;
     }
 
-    /* Fix for other buttons that need visibility */
-    .bg-white button:not([class*="bg-"]):not([class*="bg-gray"]),
-    .bg-background button:not([class*="bg-"]):not([class*="bg-gray"]),
-    button.bg-default:not([class*="bg-gray"]),
-    a[role="button"]:not([class*="bg-"]):not([class*="bg-gray"]),
-    button[class*="variant-default"]:not([class*="bg-gray"]) {
-      background-color: #6b7280 !important; /* gray-500 */
+    /* All buttons should use the primary red color */
+    .bg-white button:not([class*="destructive"]):not([class*="outline"]),
+    .bg-background button:not([class*="destructive"]):not([class*="outline"]),
+    button.bg-default,
+    a[role="button"]:not([class*="destructive"]):not([class*="outline"]),
+    button[class*="variant-default"],
+    button[class*="bg-gray"],
+    [data-theme-button],
+    .btn {
+      background-color: var(--primary) !important;
       color: white !important;
-      border: 1px solid #4b5563 !important; /* gray-600 */
+      border: 1px solid var(--primary) !important;
     }
     
     /* Override global shadcn colors with our custom primary */
