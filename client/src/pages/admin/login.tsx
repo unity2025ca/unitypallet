@@ -96,8 +96,7 @@ const AdminLogin = () => {
           </form>
           
           <div className="mt-6 text-center text-sm text-gray-500">
-            <p>اسم المستخدم الافتراضي: admin</p>
-            <p>كلمة المرور الافتراضية: admin123</p>
+      
           </div>
         </CardContent>
       </Card>

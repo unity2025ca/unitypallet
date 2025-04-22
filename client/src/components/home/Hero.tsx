@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="relative bg-gradient-to-r from-primary to-black text-white overflow-hidden">
+    <section className="relative bg-gradient-to-r from-primary to-white overflow-hidden">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4 text-white">
               {translations.hero.title}
             </h1>
             <p className="text-xl mb-8 text-black font-medium">
