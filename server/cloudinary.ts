@@ -42,7 +42,11 @@ cloudinary.config({
 });
 
 // عرض رسالة تأكيد لمساعدة في تصحيح الأخطاء
-console.log(`Cloudinary initialized with cloud_name: ${cloudName}`);
+console.log(`Cloudinary initialized with:
+- cloud_name: ${cloudName}
+- api_key exists: ${Boolean(apiKey)}
+- api_secret exists: ${Boolean(apiSecret)}
+`);
 
 // المجلد الافتراضي لتخزين صور المنتجات
 const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
@@ -67,6 +71,18 @@ export interface CloudinaryUploadResult {
 export const uploadImage = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
   try {
     console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
+    
+    // التحقق من تكوين Cloudinary
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('Cloudinary configuration is incomplete:');
+      console.error(`- cloud_name exists: ${Boolean(cloudName)}`);
+      console.error(`- api_key exists: ${Boolean(apiKey)}`);
+      console.error(`- api_secret exists: ${Boolean(apiSecret)}`);
+      return {
+        success: false,
+        error: 'Cloudinary configuration is incomplete. Check environment variables.'
+      };
+    }
     
     // تحقق من وجود المسار
     if (!filePath) {
