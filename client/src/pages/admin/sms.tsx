@@ -382,15 +382,26 @@ const AdminSms = () => {
                   <label htmlFor="to" className="block text-sm font-medium">
                     Phone Number
                   </label>
-                  <Input
-                    id="to"
-                    name="to"
-                    placeholder="+12345678900"
+                  <PhoneInput
+                    country={'ca'} // Default to Canada
                     value={singleSmsData.to}
-                    onChange={handleSingleSmsChange}
+                    onChange={(phone) => setSingleSmsData(prev => ({ ...prev, to: "+" + phone }))}
+                    inputClass="!w-full !h-10 !text-base"
+                    containerClass="!w-full"
+                    placeholder="Enter phone number with country code"
+                    enableSearch={true}
+                    disableSearchIcon={true}
+                    searchPlaceholder="Search country..."
+                    searchClass="!py-2 !px-3"
+                    buttonClass="!px-3 !border-r !rounded-l-md"
+                    inputProps={{
+                      name: "to",
+                      id: "to",
+                      required: true,
+                    }}
                   />
                   <p className="text-sm text-gray-500">
-                    Must be in international format (e.g., +1234567890)
+                    Phone number will be automatically formatted in international format
                   </p>
                 </div>
                 
