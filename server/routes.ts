@@ -353,46 +353,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingPhones = new Set(existingSubscribers.filter(sub => sub.phone).map(sub => sub.phone));
       
       // Regular expression to match phone numbers in messages
-      // This pattern looks for international format numbers: +1234567890 or +123 456 7890
-      const phoneRegex = /\+[0-9\s]{10,15}/g;
+      // This pattern looks for phone numbers:
+      // 1. International format with +: +1234567890 or +123 456 7890
+      // 2. Numbers without +: 1234567890
+      const phoneRegex = /(?:\+)?[0-9]{10,15}/g;
       
       let imported = 0;
       let skipped = 0;
       
-      // Process each contact's message
+      // Process each contact
       for (const contact of contacts) {
-        if (!contact.message || !contact.message.trim()) {
-          continue;
-        }
-        
-        // Extract phone numbers from message content
-        const message = contact.message.trim();
-        const matches = message.match(phoneRegex);
-        
-        if (!matches || matches.length === 0) {
-          continue;
-        }
-        
-        // Process each found phone number
-        for (const match of matches) {
-          // Normalize phone number (remove spaces)
-          const phoneNumber = match.replace(/\s/g, '').trim();
+        // First check the contact's phone field
+        if (contact.phone && contact.phone.trim()) {
+          // Normalize and format phone number
+          let contactPhone = contact.phone.trim();
           
-          // Skip if phone number already exists as a subscriber
-          if (existingPhones.has(phoneNumber)) {
-            skipped++;
-            continue;
+          // Add + if it doesn't start with one
+          if (!contactPhone.startsWith('+')) {
+            contactPhone = '+' + contactPhone;
           }
           
-          // Create new subscriber with the phone number
-          await storage.createSubscriber({
-            email: contact.email || '',
-            phone: phoneNumber,
-            subscribed: true
-          });
+          // Skip if phone number already exists as a subscriber
+          if (existingPhones.has(contactPhone)) {
+            skipped++;
+          } else {
+            // Create new subscriber with the contact's phone number
+            await storage.createSubscriber({
+              email: contact.email || '',
+              phone: contactPhone
+            });
+            
+            imported++;
+            existingPhones.add(contactPhone);
+          }
+        }
+        
+        // Then check the contact's message for additional phone numbers
+        if (contact.message && contact.message.trim()) {
+          // Extract phone numbers from message content
+          const message = contact.message.trim();
+          const matches = message.match(phoneRegex);
           
-          imported++;
-          existingPhones.add(phoneNumber);
+          if (matches && matches.length > 0) {
+            // Process each found phone number
+            for (const match of matches) {
+              // Normalize phone number (remove spaces)
+              let phoneNumber = match.replace(/\s/g, '').trim();
+              
+              // Add + if it doesn't start with one
+              if (!phoneNumber.startsWith('+')) {
+                phoneNumber = '+' + phoneNumber;
+              }
+              
+              // Skip if phone number already exists as a subscriber
+              if (existingPhones.has(phoneNumber)) {
+                skipped++;
+                continue;
+              }
+              
+              // Create new subscriber with the phone number
+              await storage.createSubscriber({
+                email: contact.email || '',
+                phone: phoneNumber
+              });
+              
+              imported++;
+              existingPhones.add(phoneNumber);
+            }
+          }
         }
       }
       
