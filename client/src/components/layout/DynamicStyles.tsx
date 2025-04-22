@@ -182,15 +182,15 @@ export default function DynamicStyles() {
       color: white !important;
     }
 
-    /* Fix for Details & Login buttons */
-    .bg-white button:not([class*="bg-"]),
-    .bg-background button:not([class*="bg-"]),
-    button.bg-default,
-    a[role="button"]:not([class*="bg-"]),
-    button[class*="variant-default"] {
-      background-color: var(--primary) !important;
+    /* Fix for other buttons that need visibility */
+    .bg-white button:not([class*="bg-"]):not([class*="bg-gray"]),
+    .bg-background button:not([class*="bg-"]):not([class*="bg-gray"]),
+    button.bg-default:not([class*="bg-gray"]),
+    a[role="button"]:not([class*="bg-"]):not([class*="bg-gray"]),
+    button[class*="variant-default"]:not([class*="bg-gray"]) {
+      background-color: #6b7280 !important; /* gray-500 */
       color: white !important;
-      border: 1px solid var(--primary) !important;
+      border: 1px solid #4b5563 !important; /* gray-600 */
     }
     
     /* Override global shadcn colors with our custom primary */
