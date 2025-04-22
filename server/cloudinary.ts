@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs';
 
 // تكوين Cloudinary
 let cloudName, apiKey, apiSecret;
@@ -46,13 +47,24 @@ console.log(`Cloudinary initialized with cloud_name: ${cloudName}`);
 // المجلد الافتراضي لتخزين صور المنتجات
 const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
 
+// واجهة لنتيجة التحميل
+export interface CloudinaryUploadResult {
+  success: boolean;
+  imageUrl?: string;
+  publicId?: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  error?: string;
+}
+
 /**
  * رفع صورة إلى Cloudinary
  * @param filePath مسار الملف المؤقت على الخادم
  * @param publicId معرّف عام للصورة (اختياري)
  * @returns وعد يحتوي على نتيجة التحميل
  */
-export const uploadImage = async (filePath: string, publicId?: string) => {
+export const uploadImage = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
   try {
     console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
     
@@ -66,7 +78,6 @@ export const uploadImage = async (filePath: string, publicId?: string) => {
     }
     
     // التحقق من وجود الملف
-    const fs = require('fs');
     if (!fs.existsSync(filePath)) {
       console.error(`File not found at path: ${filePath}`);
       return {
@@ -76,7 +87,7 @@ export const uploadImage = async (filePath: string, publicId?: string) => {
     }
     
     // طريقة بديلة: استخدام stream بدلاً من base64
-    return new Promise((resolve) => {
+    return new Promise<CloudinaryUploadResult>((resolve) => {
       const options: any = {
         folder: PRODUCT_IMAGES_FOLDER,
         resource_type: 'auto',
