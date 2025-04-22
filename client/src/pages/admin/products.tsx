@@ -309,16 +309,21 @@ const AdminProducts = () => {
                               size="sm" 
                               className="px-2 py-0 h-6"
                               onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) - 1)}
-                              disabled={(product.displayOrder || 0) <= 0}
+                              disabled={(product.displayOrder || 0) <= 0 || updateDisplayOrderMutation.isPending}
                             >
                               -
                             </Button>
-                            <span className="w-8 text-center">{product.displayOrder || 0}</span>
+                            <span className="w-8 text-center">
+                              {updateDisplayOrderMutation.isPending ? 
+                                <span className="animate-pulse">...</span> : 
+                                product.displayOrder || 0}
+                            </span>
                             <Button 
                               variant="outline" 
                               size="sm"
                               className="px-2 py-0 h-6" 
                               onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) + 1)}
+                              disabled={updateDisplayOrderMutation.isPending}
                             >
                               +
                             </Button>

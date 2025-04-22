@@ -199,6 +199,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update product display order (PATCH method for partial updates)
+  app.patch("/api/admin/products/:id", canManageProducts, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+      }
+      
+      // Validate that display order is a number
+      const displayOrder = parseInt(req.body.displayOrder);
+      if (isNaN(displayOrder) || displayOrder < 0) {
+        return res.status(400).json({ message: "Display order must be a non-negative number" });
+      }
+      
+      // Update just the display order field
+      const updatedProduct = await storage.updateProduct(id, { displayOrder });
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating product display order:", error);
+      res.status(500).json({ message: "Failed to update product display order" });
+    }
+  });
+
   // Only admin can delete products (publishers can't delete)
   app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
