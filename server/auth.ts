@@ -25,6 +25,8 @@ async function hashPassword(password: string) {
 // المقارنة بين كلمات المرور
 async function comparePasswords(supplied: string, stored: string) {
   try {
+    console.log('Comparing passwords, stored format:', stored ? stored.substring(0, 10) + '...' : 'null');
+    
     // تحقق من أن كلمة المرور المخزنة بالشكل الصحيح
     if (!stored || !stored.includes('.')) {
       console.error('Invalid stored password format, missing salt separator');
@@ -39,6 +41,13 @@ async function comparePasswords(supplied: string, stored: string) {
       return false;
     }
     
+    console.log('Password verification debug:', { 
+      hashedLength: hashed.length,
+      saltLength: salt.length,
+      algorithm: 'scrypt',
+      keyLength: 64
+    });
+    
     const hashedBuf = Buffer.from(hashed, "hex");
     const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
     
@@ -51,7 +60,9 @@ async function comparePasswords(supplied: string, stored: string) {
       return false;
     }
     
-    return timingSafeEqual(hashedBuf, suppliedBuf);
+    const result = timingSafeEqual(hashedBuf, suppliedBuf);
+    console.log('Password verification result:', result);
+    return result;
   } catch (error) {
     console.error('Error comparing passwords:', error);
     return false;

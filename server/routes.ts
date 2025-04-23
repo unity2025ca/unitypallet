@@ -18,7 +18,7 @@ import path from "path";
 import fs from "fs";
 import * as crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
-import { setupAuth, hashPassword as authHashPassword } from "./auth";
+import { setupAuth, hashPassword } from "./auth";
 
 // Setup authentication is now done in auth.ts
 
@@ -1177,32 +1177,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Function to hash passwords for user security
-  async function hashPassword(password: string): Promise<string> {
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = crypto.pbkdf2Sync(password, salt, 310000, 32, 'sha256').toString('hex');
-    return `${hash}.${salt}`;
-  }
-  
-  // Function to verify a password against a stored hash
-  async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-    try {
-      // Split the stored hash into the hash and salt
-      const [hashedPassword, salt] = storedHash.split('.');
-      if (!hashedPassword || !salt) {
-        return false;
-      }
-      
-      // Hash the input password with the same salt
-      const hash = crypto.pbkdf2Sync(password, salt, 310000, 32, 'sha256').toString('hex');
-      
-      // Compare the hashed input with the stored hash
-      return hash === hashedPassword;
-    } catch (error) {
-      console.error('Error verifying password:', error);
-      return false;
-    }
-  }
+  // Import the hashPassword function directly from auth.ts
+  // Remove redundant functions to avoid conflicts
   
   // Users management endpoints
   app.get("/api/admin/users", requireAdmin, async (req: Request, res: Response) => {
