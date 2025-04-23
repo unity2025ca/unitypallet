@@ -20,15 +20,13 @@ interface AdminUser {
 }
 
 const AdminDashboard = () => {
+  // 1. Always declare all hooks at the top
   const [_, navigate] = useLocation();
   const { isAuthenticated, isLoading, user } = useAdminAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSecurityTips, setShowSecurityTips] = useState(true);
   
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-  
+  // 2. All useEffect hooks grouped together 
   // Initialize environment checks
   useEffect(() => {
     // Check for session storage to determine if user is returning
@@ -40,6 +38,14 @@ const AdminDashboard = () => {
     }
   }, []);
   
+  // Authentication navigation effect
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/admin/login");
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+  
+  // 3. All data fetching hooks grouped together
   // Fetch products for dashboard stats
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -57,7 +63,12 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
   
-  // Loading state
+  // 4. Utility functions
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+  
+  // 5. Loading state handling - always include the same hooks
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
@@ -71,15 +82,8 @@ const AdminDashboard = () => {
     );
   }
   
-  // Use useEffect to handle navigation for authentication check
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate("/admin/login");
-    }
-  }, [isLoading, isAuthenticated, navigate]);
-  
-  // Return null while loading or if not authenticated
-  if (isLoading || !isAuthenticated) {
+  // 6. Authentication check - only done after all hooks have been called
+  if (!isAuthenticated) {
     return null;
   }
 
