@@ -80,18 +80,8 @@ const AdminDashboard = () => {
       <Sidebar isMobileOpen={isMobileMenuOpen} toggleMobile={toggleMobileMenu} />
       
       <div className="flex-1 md:ml-64 p-4 md:p-8">
-        {/* Mobile Header with Menu Button */}
-        <div className="flex items-center justify-between md:hidden mb-4">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-            <Menu />
-          </Button>
-        </div>
-        
-        {/* Desktop Title */}
-        <h1 className="hidden md:block text-3xl font-bold mb-6">
-          {translations.admin.dashboard.title}
-        </h1>
+        {/* Header with admin info and notifications */}
+        <Header title={translations.admin.dashboard.title} toggleMobileMenu={toggleMobileMenu} />
         
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-lg shadow-lg mb-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">

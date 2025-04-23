@@ -16,7 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { User } from '@shared/schema';
 
 // Import notification sound
 const notificationSoundUrl = "/notification-sound.mp3";
@@ -116,11 +115,19 @@ const formatRelativeTime = (dateString: string) => {
   }
 };
 
+// Define User type for admin users 
+interface AdminUser {
+  id: number;
+  username: string;
+  isAdmin: boolean;
+  roleType?: string;
+}
+
 // Notification center component
 export function NotificationCenter({ 
   user 
 }: { 
-  user: User 
+  user: AdminUser 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [location, setLocation] = useLocation();
@@ -141,7 +148,7 @@ export function NotificationCenter({
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    queryFn: getQueryFn({ url: '/api/notifications' }),
+    queryFn: getQueryFn({ on401: "throw" }),
     refetchInterval: 60000, // Refetch every minute as a fallback
   });
   

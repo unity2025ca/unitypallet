@@ -2,7 +2,6 @@ import { Menu, BellRing } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from './NotificationCenter';
 import { useAdminAuth } from '@/hooks/use-admin-auth';
-import { User } from '@shared/schema';
 
 interface HeaderProps {
   title: string;
