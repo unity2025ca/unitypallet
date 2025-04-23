@@ -84,7 +84,7 @@ const AppointmentBubble: React.FC = () => {
       {/* Floating bubble button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center p-4 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-all duration-300 group"
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center p-4 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-all duration-300 group"
       >
         <Calendar className="w-6 h-6" />
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 ease-in-out">
@@ -208,7 +208,7 @@ const AppointmentBubble: React.FC = () => {
                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-red-600 hover:bg-red-700">
                   {form.formState.isSubmitting ? (
                     <span className="flex items-center gap-2">
                       <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
