@@ -113,6 +113,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           icon: "fas fa-sms",
           roles: ["admin"] // Only admin can access
         },
+        { 
+          name: "Visitor Statistics", 
+          href: "/admin/visitor-stats", 
+          icon: "fas fa-chart-line",
+          roles: ["admin"] // Only admin can access
+        },
       ]
     },
     {

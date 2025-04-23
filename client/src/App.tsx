@@ -27,6 +27,7 @@ import AdminFaqs from "@/pages/admin/faqs";
 import AdminSms from "@/pages/admin/sms";
 import AdminAppointments from "@/pages/admin/appointments";
 import AdminUsers from "@/pages/admin/users";
+import AdminVisitorStats from "@/pages/admin/visitor-stats";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 
