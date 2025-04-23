@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import crypto from "crypto";
 import { 
   insertProductSchema, 
   insertContactSchema, 
@@ -18,7 +19,6 @@ import { sendSMS, sendBulkSMS } from "./sms";
 import { upload, handleUploadError } from "./upload";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
 
 // Setup authentication
@@ -42,6 +42,27 @@ const setupAuth = (app: Express) => {
   
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Function to verify a password against a stored hash
+  const verifyPassword = async (password: string, storedHash: string): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Split the stored hash into the hash and salt
+        const [hashedPassword, salt] = storedHash.split('.');
+        const saltBuffer = Buffer.from(salt, 'hex');
+        
+        // Hash the input password with the same salt
+        crypto.pbkdf2(password, saltBuffer, 310000, 32, 'sha256', (err, derivedKey) => {
+          if (err) return reject(err);
+          
+          // Compare the hashed input with the stored hash
+          resolve(derivedKey.toString('hex') === hashedPassword);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
   
   // Configure passport to use local strategy
   passport.use(new LocalStrategy(async (username, password, done) => {

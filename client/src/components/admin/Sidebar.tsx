@@ -152,12 +152,10 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
             <Button 
               variant="outline" 
               className="w-full justify-start text-green-600 hover:text-green-700 hover:bg-green-50"
-              asChild
+              onClick={() => window.location.href = '/'}
             >
-              <Link href="/">
-                <i className="fas fa-home w-5 mr-3"></i>
-                Return to Website
-              </Link>
+              <i className="fas fa-home w-5 mr-3"></i>
+              Return to Website
             </Button>
             
             <Button 
