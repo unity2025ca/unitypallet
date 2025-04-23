@@ -36,8 +36,8 @@ router.post('/api/visitor-stats', async (req: Request, res: Response) => {
       // ملاحظة: هذه الخدمة لها حدود على عدد الطلبات، قد تحتاج استبدالها بخدمة مدفوعة لموقع الإنتاج
       const response = await fetch(`https://ipapi.co/${ipAddress}/json/`);
       if (response.ok) {
-        const data = await response.json();
-        countryCode = data.country_code;
+        const data = await response.json() as { country_code?: string };
+        countryCode = data.country_code || null;
       }
     } catch (error) {
       console.error('Error fetching country from IP:', error);

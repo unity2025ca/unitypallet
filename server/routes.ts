@@ -7,8 +7,10 @@ import {
   insertContactSchema, 
   insertSubscriberSchema, 
   insertUserSchema,
-  insertFaqSchema
+  insertFaqSchema,
+  insertVisitorStatsSchema
 } from "@shared/schema";
+import visitorStatsRouter from "./routes/visitor-stats";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -156,6 +158,9 @@ const setupAuth = (app: Express) => {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication and get permission checkers
   const { requireAdmin, requirePublisher, canManageProducts, canViewContacts, canManageAppointments } = setupAuth(app);
+  
+  // Use visitor stats router
+  app.use(visitorStatsRouter);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {
