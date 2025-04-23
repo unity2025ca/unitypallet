@@ -25,6 +25,7 @@ import AdminLogin from "@/pages/admin/login";
 import AdminNewsletter from "@/pages/admin/newsletter";
 import AdminFaqs from "@/pages/admin/faqs";
 import AdminSms from "@/pages/admin/sms";
+import AdminAppointments from "@/pages/admin/appointments";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 
@@ -54,6 +55,7 @@ function Router() {
         <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route path="/admin/sms" component={AdminSms} />
         <Route path="/admin/faqs" component={AdminFaqs} />
+        <Route path="/admin/appointments" component={AdminAppointments} />
         <Route path="/admin/settings" component={AdminSettings} />
         
         {/* Fallback to 404 */}

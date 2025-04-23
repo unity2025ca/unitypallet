@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { apiRequest } from '@/lib/queryClient';
 
 // Define the form schema with validation
 const appointmentFormSchema = z.object({
@@ -42,8 +43,14 @@ const AppointmentBubble: React.FC = () => {
   
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
-      // In a real implementation, you would send this data to your API
-      // For now, we'll just show a success message
+      // Send the appointment data to the server
+      const response = await apiRequest('POST', '/api/appointments', data);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to schedule appointment');
+      }
+      
       toast({
         title: "Appointment scheduled!",
         description: `Thank you, ${data.name}. We'll contact you to confirm your appointment.`,
@@ -55,6 +62,7 @@ const AppointmentBubble: React.FC = () => {
       // Reset the form
       form.reset();
     } catch (error) {
+      console.error('Error scheduling appointment:', error);
       toast({
         title: "Something went wrong.",
         description: "Your appointment could not be scheduled. Please try again.",

@@ -1181,6 +1181,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Appointment endpoints
+  app.post('/api/appointments', async (req: Request, res: Response) => {
+    try {
+      const result = await storage.createAppointment(req.body);
+      res.status(201).json({ success: true, appointment: result });
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      res.status(500).json({ success: false, message: "Failed to create appointment" });
+    }
+  });
+  
+  app.get('/api/admin/appointments', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const appointments = await storage.getAllAppointments();
+      res.status(200).json(appointments);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      res.status(500).json({ success: false, message: "Failed to fetch appointments" });
+    }
+  });
+  
+  app.get('/api/admin/appointments/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid appointment ID" });
+      }
+      
+      const appointment = await storage.getAppointmentById(id);
+      
+      if (appointment) {
+        res.status(200).json(appointment);
+      } else {
+        res.status(404).json({ success: false, message: "Appointment not found" });
+      }
+    } catch (error) {
+      console.error('Error fetching appointment:', error);
+      res.status(500).json({ success: false, message: "Failed to fetch appointment" });
+    }
+  });
+  
+  app.patch('/api/admin/appointments/:id/status', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid appointment ID" });
+      }
+      
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ success: false, message: "Status is required" });
+      }
+      
+      const appointment = await storage.updateAppointmentStatus(id, status);
+      
+      if (appointment) {
+        res.status(200).json({ success: true, appointment });
+      } else {
+        res.status(404).json({ success: false, message: "Appointment not found" });
+      }
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      res.status(500).json({ success: false, message: "Failed to update appointment status" });
+    }
+  });
+  
+  app.delete('/api/admin/appointments/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid appointment ID" });
+      }
+      
+      const result = await storage.deleteAppointment(id);
+      
+      if (result) {
+        res.status(200).json({ success: true, message: "Appointment deleted successfully" });
+      } else {
+        res.status(404).json({ success: false, message: "Appointment not found" });
+      }
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      res.status(500).json({ success: false, message: "Failed to delete appointment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
