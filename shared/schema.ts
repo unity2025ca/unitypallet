@@ -211,3 +211,29 @@ export const insertVisitorStatsSchema = createInsertSchema(visitorStats, {
 
 export type VisitorStat = typeof visitorStats.$inferSelect;
 export type InsertVisitorStat = z.infer<typeof insertVisitorStatsSchema>;
+
+// Notifications schema
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "new_contact", 
+  "new_appointment", 
+  "status_update"
+]);
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedId: integer("related_id"),
+  isRead: boolean("is_read").default(false),
+  created_at: timestamp("created_at").defaultNow()
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  created_at: true
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
