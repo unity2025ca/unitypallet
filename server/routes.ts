@@ -1171,6 +1171,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const appointment = await storage.updateAppointmentStatus(id, status);
       
       if (appointment) {
+        // Create a date object for the notification
+        const appointmentDateTime = new Date(`${appointment.date} ${appointment.time}`);
+        
+        // Create notifications for other staff members
+        await createAppointmentStatusNotification(
+          id,
+          status,
+          req.user?.id || 0,
+          appointmentDateTime
+        );
+        
         res.status(200).json({ success: true, appointment });
       } else {
         res.status(404).json({ success: false, message: "Appointment not found" });
