@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { AudioPlayer } from '@/components/ui/audio-player';
+import { NotificationBadge } from '@/components/ui/notification-badge';
 
 // Notification type from API
 interface Notification {
@@ -96,6 +97,7 @@ export function NotificationCenter({
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [bellAlertActive, setBellAlertActive] = useState(false);
   
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
@@ -231,6 +233,11 @@ export function NotificationCenter({
           
           // Update notifications list
           queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+          
+          // Activate bell alert animation
+          setBellAlertActive(true);
+          // Turn off after 10 seconds
+          setTimeout(() => setBellAlertActive(false), 10000);
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -264,11 +271,18 @@ export function NotificationCenter({
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
+            <Bell 
+              className={cn(
+                "h-5 w-5 transition-colors", 
+                bellAlertActive ? "text-red-500 animate-pulse" : "",
+                isOpen ? "text-primary" : ""
+              )} 
+            />
             {unreadCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-destructive">
-                {unreadCount}
-              </Badge>
+              <NotificationBadge 
+                count={unreadCount} 
+                className="absolute -top-1 -right-1"
+              />
             )}
           </Button>
         </SheetTrigger>
