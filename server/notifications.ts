@@ -1,6 +1,6 @@
 import { storage } from './storage';
 import { InsertNotification } from '@shared/schema';
-import { sendNotificationToAdmins, sendNotificationToPublishers } from './websocket';
+import { sendNotificationToAdmins, sendNotificationToPublishers, sendNotificationToUser } from './websocket';
 
 // Create a notification for a new contact message
 export async function createContactNotification(contactId: number, name: string, message: string) {
@@ -71,12 +71,20 @@ export async function createAppointmentNotification(appointmentId: number, name:
       // Create the notification in the database
       const notification = await storage.createNotification(notificationData);
       notifications.push(notification);
+      
+      // Send notification directly to this user
+      sendNotificationToUser(staff.id, notification);
     }
     
-    // Send notifications in real-time
+    // Send notifications via broadcast channels as well
     if (notifications.length > 0) {
-      // We just use the first notification as a template for broadcasting
+      // First notify all admins
+      sendNotificationToAdmins(notifications[0]);
+      
+      // Then notify all publishers who might not be admins
       sendNotificationToPublishers(notifications[0]);
+      
+      console.log(`Appointment notification sent to ${notifications.length} staff members`);
     }
     
     return { success: true, count: notifications.length };
@@ -124,12 +132,18 @@ export async function createAppointmentStatusNotification(
       // Create the notification in the database
       const notification = await storage.createNotification(notificationData);
       notifications.push(notification);
+      
+      // Send notification directly to this user
+      sendNotificationToUser(staff.id, notification);
     }
     
-    // Send notifications in real-time
+    // Send notifications via broadcast channels as well
     if (notifications.length > 0) {
-      // We just use the first notification as a template for broadcasting
+      // Send to both admins and publishers
+      sendNotificationToAdmins(notifications[0]);
       sendNotificationToPublishers(notifications[0]);
+      
+      console.log(`Appointment status notification sent to ${notifications.length} staff members`);
     }
     
     return { success: true, count: notifications.length };

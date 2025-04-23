@@ -1109,10 +1109,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.createAppointment(req.body);
       
       // Create notification for admins and publishers about new appointment
+      // Form appointment date from date and time fields
+      const appointmentDateTime = new Date(`${result.date} ${result.time}`);
       await createAppointmentNotification(
         result.id, 
         result.name,
-        new Date(result.appointmentDate)
+        appointmentDateTime
       );
       
       res.status(201).json({ success: true, appointment: result });
