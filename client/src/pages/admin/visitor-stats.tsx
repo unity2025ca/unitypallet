@@ -13,8 +13,33 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 import Sidebar from '@/components/admin/Sidebar';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+
+// Interfaces for visitor statistics data
+interface VisitorCount {
+  count: number;
+}
+
+interface DateStat {
+  date: string;
+  count: number;
+}
+
+interface PageStat {
+  url: string;
+  count: number;
+}
+
+interface CountryStat {
+  country: string;
+  count: number;
+}
+
+interface DeviceStat {
+  device: string;
+  count: number;
+}
 
 // Custom color palette for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#FF6666', '#4CAF50', '#FFA726'];
@@ -47,7 +72,7 @@ const VisitorStatsPage = () => {
     data: visitorCount, 
     isLoading: isLoadingCount,
     error: countError
-  } = useQuery({
+  } = useQuery<VisitorCount>({
     queryKey: ['/api/admin/visitor-stats/count'],
     retry: 1,
   });
@@ -58,7 +83,7 @@ const VisitorStatsPage = () => {
     isLoading: isLoadingDateStats, 
     refetch: refetchDateStats,
     error: dateError
-  } = useQuery({
+  } = useQuery<DateStat[]>({
     queryKey: ['/api/admin/visitor-stats/date-range', selectedTimePeriod],
     queryFn: async () => {
       const response = await fetch(`/api/admin/visitor-stats/date-range?days=${selectedTimePeriod}`);
@@ -75,7 +100,7 @@ const VisitorStatsPage = () => {
     data: visitorsByPage, 
     isLoading: isLoadingPageStats,
     error: pageError
-  } = useQuery({
+  } = useQuery<PageStat[]>({
     queryKey: ['/api/admin/visitor-stats/pages'],
     retry: 1,
   });
@@ -85,7 +110,7 @@ const VisitorStatsPage = () => {
     data: visitorsByCountry, 
     isLoading: isLoadingCountryStats,
     error: countryError
-  } = useQuery({
+  } = useQuery<CountryStat[]>({
     queryKey: ['/api/admin/visitor-stats/countries'],
     retry: 1,
   });
@@ -95,7 +120,7 @@ const VisitorStatsPage = () => {
     data: visitorsByDevice, 
     isLoading: isLoadingDeviceStats,
     error: deviceError
-  } = useQuery({
+  } = useQuery<DeviceStat[]>({
     queryKey: ['/api/admin/visitor-stats/devices'],
     retry: 1,
   });

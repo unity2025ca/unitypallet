@@ -60,6 +60,7 @@ function Router() {
         <Route path="/admin/appointments" component={AdminAppointments} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/settings" component={AdminSettings} />
+        <Route path="/admin/visitor-stats" component={AdminVisitorStats} />
         
         {/* Fallback to 404 */}
         <Route component={NotFound} />
