@@ -1107,6 +1107,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/appointments', async (req: Request, res: Response) => {
     try {
       const result = await storage.createAppointment(req.body);
+      
+      // Create notification for admins and publishers about new appointment
+      await createAppointmentNotification(
+        result.id, 
+        result.name,
+        new Date(result.appointmentDate)
+      );
+      
       res.status(201).json({ success: true, appointment: result });
     } catch (error) {
       console.error('Error creating appointment:', error);
