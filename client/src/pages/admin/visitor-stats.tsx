@@ -341,8 +341,8 @@ const VisitorStatsPage = () => {
                   : 'No data'}
               </div>
               <div className="flex items-center mt-2 text-sm text-gray-600">
-                <span>{visitorsByDevice && visitorsByDevice.length > 0 
-                  ? `${Math.round((visitorsByDevice[0].count / visitorCount?.count) * 100)}% of visitors` 
+                <span>{visitorsByDevice && visitorsByDevice.length > 0 && visitorCount && visitorCount.count
+                  ? `${Math.round((visitorsByDevice[0].count / visitorCount.count) * 100)}% of visitors` 
                   : 'No data recorded'}</span>
               </div>
             </CardContent>

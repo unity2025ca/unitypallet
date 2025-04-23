@@ -798,7 +798,13 @@ export class DatabaseStorage implements IStorage {
       .groupBy(visitorStats.countryCode)
       .orderBy(desc(sql<number>`count(*)`));
     
-    return result;
+    // Filter and transform to ensure country is never null
+    return result
+      .filter(item => item.country !== null)
+      .map(item => ({
+        country: (item.country || 'Unknown') as string,
+        count: item.count
+      }));
   }
 
   async getVisitorStatsByDevice(): Promise<{ device: string; count: number }[]> {
@@ -812,7 +818,13 @@ export class DatabaseStorage implements IStorage {
       .groupBy(visitorStats.deviceType)
       .orderBy(desc(sql<number>`count(*)`));
     
-    return result;
+    // Filter and transform to ensure device is never null
+    return result
+      .filter(item => item.device !== null)
+      .map(item => ({
+        device: (item.device || 'Unknown') as string,
+        count: item.count
+      }));
   }
 }
 

@@ -80,7 +80,7 @@ export async function getVisitorStatsByCountry(): Promise<{ country: string; cou
   return result
     .filter(item => item.country !== null)
     .map(item => ({ 
-      country: item.country as string,
+      country: (item.country || 'Unknown') as string,
       count: item.count 
     }));
 }
@@ -100,7 +100,7 @@ export async function getVisitorStatsByDevice(): Promise<{ device: string; count
   return result
     .filter(item => item.device !== null)
     .map(item => ({ 
-      device: item.device as string,
+      device: (item.device || 'Unknown') as string,
       count: item.count 
     }));
 }
