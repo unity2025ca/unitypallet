@@ -4,16 +4,17 @@ import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-interface User {
+// Define admin user type that matches what Header component expects
+interface AdminUser {
   id: number;
   username: string;
   isAdmin: boolean;
-  roleType?: string; // Add roleType field for role-based access control
+  roleType?: string;
 }
 
 interface Session {
   authenticated: boolean;
-  user?: User;
+  user?: AdminUser;
 }
 
 export const useAdminAuth = () => {

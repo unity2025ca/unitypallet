@@ -11,6 +11,14 @@ import { Activity, Calendar, Users, Package, Mail, Settings, AlertTriangle } fro
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Define admin user type to match what Header component expects
+interface AdminUser {
+  id: number;
+  username: string;
+  isAdmin: boolean;
+  roleType?: string;
+}
+
 const AdminDashboard = () => {
   const [_, navigate] = useLocation();
   const { isAuthenticated, isLoading, user } = useAdminAuth();
@@ -81,7 +89,11 @@ const AdminDashboard = () => {
       
       <div className="flex-1 md:ml-64 p-4 md:p-8">
         {/* Header with admin info and notifications */}
-        <Header title={translations.admin.dashboard.title} toggleMobileMenu={toggleMobileMenu} user={user} />
+        <Header 
+          title={translations.admin.dashboard.title} 
+          toggleMobileMenu={toggleMobileMenu} 
+          user={user || null} 
+        />
         
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-lg shadow-lg mb-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">

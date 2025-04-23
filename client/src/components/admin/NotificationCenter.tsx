@@ -32,50 +32,16 @@ interface Notification {
   created_at: string;
 }
 
-// WebSocket connection setup helper
-const createWebSocketConnection = (
-  userId: number, 
-  isAdmin: boolean, 
-  isPublisher: boolean,
-  onMessage: (data: any) => void
-) => {
-  // Create WebSocket connection
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
-  
-  // Connection opened
-  socket.addEventListener('open', () => {
-    console.log('WebSocket connection established');
-    // Authenticate the connection
-    socket.send(JSON.stringify({
-      type: 'auth',
-      userId,
-      isAdmin,
-      isPublisher
-    }));
-  });
-  
-  // Listen for messages
-  socket.addEventListener('message', (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      onMessage(data);
-    } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
-    }
-  });
-  
-  // Handle connection errors
-  socket.addEventListener('error', (error) => {
-    console.error('WebSocket error:', error);
-  });
-  
-  // Handle connection close
-  socket.addEventListener('close', () => {
-    console.log('WebSocket connection closed');
-  });
-  
-  return socket;
+// Simplified WebSocket connection helper
+const createSimpleWebSocket = () => {
+  try {
+    // Create WebSocket connection
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return new WebSocket(`${protocol}//${window.location.host}/ws`);
+  } catch (error) {
+    console.error('Failed to create WebSocket connection:', error);
+    return null;
+  }
 };
 
 // Notification icon based on type
@@ -231,43 +197,68 @@ export function NotificationCenter({
     setIsOpen(false);
   };
   
-  // WebSocket connection and notification handling
+  // Simplified WebSocket connection and notification handling
   useEffect(() => {
     if (!user) return;
     
-    const handleWebSocketMessage = (data: any) => {
-      if (data.type === 'notification') {
-        // Play notification sound
-        if (audioRef.current) {
-          audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(error => {
-            console.error('Error playing notification sound:', error);
-          });
-        }
-        
-        // Show toast notification
-        toast({
-          title: data.notification.title,
-          description: data.notification.message,
-          variant: 'default',
-        });
-        
-        // Update notifications
-        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      }
-    };
+    // Create simplified WebSocket connection
+    const socket = createSimpleWebSocket();
+    if (!socket) return;
     
-    // Create WebSocket connection
-    const socket = createWebSocketConnection(
-      user.id,
-      user.isAdmin === true,
-      user.roleType === 'publisher',
-      handleWebSocketMessage
-    );
+    // Set up connection handling
+    socket.addEventListener('open', () => {
+      console.log('WebSocket connection established');
+      // Authenticate the connection when opened
+      socket.send(JSON.stringify({
+        type: 'auth',
+        userId: user.id,
+        isAdmin: user.isAdmin === true,
+        isPublisher: user.roleType === 'publisher'
+      }));
+    });
+    
+    // Handle incoming messages
+    socket.addEventListener('message', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'notification') {
+          // Play notification sound
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(error => {
+              console.error('Error playing notification sound:', error);
+            });
+          }
+          
+          // Show toast notification
+          toast({
+            title: data.notification.title,
+            description: data.notification.message,
+            variant: 'default',
+          });
+          
+          // Update notifications list
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    });
+    
+    // Handle errors
+    socket.addEventListener('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+    
+    // Handle connection close
+    socket.addEventListener('close', () => {
+      console.log('WebSocket connection closed');
+    });
     
     // Cleanup on unmount
     return () => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
+      if (socket.readyState === WebSocket.OPEN) {
         socket.close();
       }
     };
