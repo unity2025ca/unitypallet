@@ -101,14 +101,22 @@ export function NotificationCenter({
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Audio element for notification sound
+  // Audio element for notification sound - we'll use the JSX element directly
+  // and this effect will just help with debugging
   useEffect(() => {
-    const audio = new Audio(notificationSoundUrl);
-    audioRef.current = audio;
-    return () => {
-      audio.pause();
-      audio.remove();
-    };
+    if (audioRef.current) {
+      // Add event listeners for debugging
+      audioRef.current.addEventListener('canplaythrough', () => {
+        console.log('Notification sound loaded successfully');
+      });
+      
+      audioRef.current.addEventListener('error', (e) => {
+        console.error('Error loading notification sound:', e);
+      });
+      
+      // Force preload
+      audioRef.current.load();
+    }
   }, []);
   
   // Fetch notifications
@@ -223,12 +231,58 @@ export function NotificationCenter({
         const data = JSON.parse(event.data);
         
         if (data.type === 'notification') {
-          // Play notification sound
+          // Play notification sound with a user interaction workaround
           if (audioRef.current) {
+            // Reset audio position
             audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(error => {
-              console.error('Error playing notification sound:', error);
-            });
+            
+            // Make sure volume is set correctly
+            audioRef.current.volume = 1.0;
+            
+            // Create a user interaction promise
+            const playPromise = audioRef.current.play();
+            
+            // Handle autoplay restrictions that browsers might impose
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log('Notification sound played successfully');
+                })
+                .catch(error => {
+                  console.error('Error playing notification sound (autoplay restrictions?):', error);
+                  
+                  // Create a temporary button that will trigger sound on click
+                  // as a workaround for autoplay restrictions
+                  const tempButton = document.createElement('button');
+                  tempButton.innerText = 'Click to enable notification sounds';
+                  tempButton.style.position = 'fixed';
+                  tempButton.style.top = '10px';
+                  tempButton.style.right = '10px';
+                  tempButton.style.zIndex = '9999';
+                  tempButton.style.padding = '5px 10px';
+                  tempButton.style.backgroundColor = '#f44336';
+                  tempButton.style.color = 'white';
+                  tempButton.style.border = 'none';
+                  tempButton.style.borderRadius = '4px';
+                  tempButton.style.cursor = 'pointer';
+                  
+                  tempButton.onclick = () => {
+                    if (audioRef.current) {
+                      audioRef.current.play();
+                    }
+                    document.body.removeChild(tempButton);
+                  };
+                  
+                  document.body.appendChild(tempButton);
+                  
+                  // Remove the button after 10 seconds if not clicked
+                  setTimeout(() => {
+                    if (document.body.contains(tempButton)) {
+                      document.body.removeChild(tempButton);
+                    }
+                  }, 10000);
+                });
+            }
           }
           
           // Show toast notification
