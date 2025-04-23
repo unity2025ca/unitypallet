@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import NotificationSound from './NotificationSound';
+import { AudioPlayer } from '@/components/ui/audio-player';
 
 // Notification type from API
 interface Notification {
@@ -257,8 +257,8 @@ export function NotificationCenter({
   
   return (
     <div className="flex items-center gap-2">
-      {/* Sound toggle control */}
-      <NotificationSound />
+      {/* Audio player with sound controls */}
+      <AudioPlayer />
     
       {/* Notifications panel trigger */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -276,8 +276,8 @@ export function NotificationCenter({
           <SheetHeader className="flex flex-row items-center justify-between">
             <SheetTitle>Notifications</SheetTitle>
             <div className="flex items-center gap-2">
-              {/* Sound toggle control in the panel */}
-              <NotificationSound />
+              {/* Audio player in the panel */}
+              <AudioPlayer />
               
               {notifications.length > 0 && (
                 <Button 
