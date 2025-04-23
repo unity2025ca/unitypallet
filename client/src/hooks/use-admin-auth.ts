@@ -8,6 +8,7 @@ interface User {
   id: number;
   username: string;
   isAdmin: boolean;
+  roleType?: string; // Add roleType field for role-based access control
 }
 
 interface Session {

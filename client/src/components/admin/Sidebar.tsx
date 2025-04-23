@@ -24,7 +24,7 @@ interface NavCategory {
 }
 
 const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { logout, user } = useAdminAuth();
   const [isMobile, setIsMobile] = useState(false);
   
@@ -193,43 +193,86 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
             </div>
             
             <nav className="space-y-6">
-              {navCategories.map((category, index) => (
-                <div key={index} className="space-y-1">
-                  <h4 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {category.name}
-                  </h4>
-                  <div className="space-y-1">
-                    {category.items.map((item) => (
-                      <Link 
-                        key={item.href} 
-                        href={item.href}
-                        onClick={handleNavClick}
-                      >
-                        <a className={`flex items-center px-4 py-2 text-sm rounded-md transition ${
-                          location === item.href
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50"
-                        }`}>
-                          <i className={`${item.icon} w-4 mr-3`}></i>
-                          <span>{item.name}</span>
-                        </a>
-                      </Link>
-                    ))}
+              {navCategories.map((category, index) => {
+                // Filter items based on user role
+                const accessibleItems = category.items.filter(item => 
+                  !item.roles || item.roles.includes(userRole)
+                );
+                
+                // Skip rendering this category if no items are accessible
+                if (accessibleItems.length === 0) return null;
+                
+                return (
+                  <div key={index} className="space-y-1">
+                    <h4 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {category.name}
+                    </h4>
+                    <div className="space-y-1">
+                      {accessibleItems.map((item) => (
+                        <TooltipProvider key={item.href}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className={`flex items-center px-4 py-2 text-sm rounded-md transition cursor-pointer ${
+                                  isActive(item.href)
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                                    : "hover:bg-sidebar-accent/50"
+                                }`}
+                                onClick={() => {
+                                  handleNavClick();
+                                  navigate(item.href);
+                                }}
+                              >
+                                <i className={`${item.icon} w-4 mr-3`}></i>
+                                <span>{item.name}</span>
+                                
+                                {/* Show admin indicator for admin-only items */}
+                                {item.roles && item.roles.length === 1 && item.roles[0] === 'admin' && (
+                                  <Shield className="w-3 h-3 ml-2 text-red-500" />
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              {item.roles && item.roles.length === 1 && item.roles[0] === 'admin' 
+                                ? 'Admin only access' 
+                                : 'Access allowed'}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </nav>
           </div>
           
-          <div className="p-6 border-t border-sidebar-border mt-auto space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-green-600 hover:text-green-700 hover:bg-green-50"
-              onClick={() => window.location.href = '/'}
+          <div className="p-6 border-t border-sidebar-border mt-auto space-y-4">
+            {/* User profile section */}
+            <div className="flex items-center p-2 mb-2 bg-sidebar-accent/20 rounded-md">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary mr-3">
+                <span className="text-sm font-semibold">
+                  {user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{user?.username || 'User'}</p>
+                <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+              </div>
+            </div>
+            
+            <div 
+              className="flex w-full items-center justify-start p-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors cursor-pointer"
+              onClick={() => {
+                if (isMobile && toggleMobile) {
+                  toggleMobile();
+                }
+                navigate("/");
+              }}
             >
               <i className="fas fa-home w-5 mr-3"></i>
               Return to Website
-            </Button>
+            </div>
             
             <Button 
               variant="outline" 
