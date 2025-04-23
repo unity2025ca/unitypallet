@@ -26,6 +26,7 @@ import AdminNewsletter from "@/pages/admin/newsletter";
 import AdminFaqs from "@/pages/admin/faqs";
 import AdminSms from "@/pages/admin/sms";
 import { useLocation } from "wouter";
+import AppointmentBubble from "@/components/shared/AppointmentBubble";
 
 function Router() {
   const [location] = useLocation();
@@ -59,6 +60,7 @@ function Router() {
         <Route component={NotFound} />
       </Switch>
       {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <AppointmentBubble />}
     </>
   );
 }
