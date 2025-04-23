@@ -24,10 +24,38 @@ async function hashPassword(password: string) {
 
 // المقارنة بين كلمات المرور
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    // تحقق من أن كلمة المرور المخزنة بالشكل الصحيح
+    if (!stored || !stored.includes('.')) {
+      console.error('Invalid stored password format, missing salt separator');
+      return false;
+    }
+    
+    const [hashed, salt] = stored.split(".");
+    
+    // تحقق من وجود الهاش والملح
+    if (!hashed || !salt) {
+      console.error('Invalid stored password, missing hash or salt');
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    // تحقق من أن الأطوال متساوية قبل المقارنة
+    if (hashedBuf.length !== suppliedBuf.length) {
+      console.error('Hash length mismatch', { 
+        hashedLength: hashedBuf.length, 
+        suppliedLength: suppliedBuf.length 
+      });
+      return false;
+    }
+    
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error('Error comparing passwords:', error);
+    return false;
+  }
 }
 
 export function setupAuth(app: Express) {
