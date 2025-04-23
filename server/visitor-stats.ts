@@ -76,7 +76,13 @@ export async function getVisitorStatsByCountry(): Promise<{ country: string; cou
     .groupBy(visitorStats.countryCode)
     .orderBy(desc(sql<number>`count(*)`));
   
-  return result as { country: string; count: number }[];
+  // Filter out any null values and convert to the expected type
+  return result
+    .filter(item => item.country !== null)
+    .map(item => ({ 
+      country: item.country as string,
+      count: item.count 
+    }));
 }
 
 export async function getVisitorStatsByDevice(): Promise<{ device: string; count: number }[]> {
@@ -90,5 +96,11 @@ export async function getVisitorStatsByDevice(): Promise<{ device: string; count
     .groupBy(visitorStats.deviceType)
     .orderBy(desc(sql<number>`count(*)`));
   
-  return result as { device: string; count: number }[];
+  // Filter out any null values and convert to the expected type
+  return result
+    .filter(item => item.device !== null)
+    .map(item => ({ 
+      device: item.device as string,
+      count: item.count 
+    }));
 }

@@ -1,7 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import crypto from "crypto";
 import { 
   insertProductSchema, 
   insertContactSchema, 
@@ -11,10 +10,6 @@ import {
   insertVisitorStatsSchema
 } from "@shared/schema";
 import visitorStatsRouter from "./routes/visitor-stats";
-import session from "express-session";
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import MemoryStore from "memorystore";
 import { z } from "zod";
 import { sendBulkEmails } from "./email";
 import { sendSMS, sendBulkSMS } from "./sms";
@@ -22,138 +17,9 @@ import { upload, handleUploadError } from "./upload";
 import path from "path";
 import fs from "fs";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
+import { setupAuth, hashPassword } from "./auth";
 
-// Setup authentication
-const setupAuth = (app: Express) => {
-  // Trust proxy for secure cookies with HTTPS when behind a reverse proxy
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-  }
-  
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'unity-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    },
-    store: storage.sessionStore
-  }));
-  
-  app.use(passport.initialize());
-  app.use(passport.session());
-  
-  // Function to verify a password against a stored hash
-  const verifyPassword = async (password: string, storedHash: string): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      try {
-        // Split the stored hash into the hash and salt
-        const [hashedPassword, salt] = storedHash.split('.');
-        const saltBuffer = Buffer.from(salt, 'hex');
-        
-        // Hash the input password with the same salt
-        crypto.pbkdf2(password, saltBuffer, 310000, 32, 'sha256', (err, derivedKey) => {
-          if (err) return reject(err);
-          
-          // Compare the hashed input with the stored hash
-          resolve(derivedKey.toString('hex') === hashedPassword);
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-  
-  // Configure passport to use local strategy
-  passport.use(new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
-        return done(null, false, { message: "Invalid username" });
-      }
-      
-      // Verify password using secure hash comparison
-      const isValidPassword = await verifyPassword(password, user.password);
-      if (!isValidPassword) {
-        return done(null, false, { message: "Invalid password" });
-      }
-      
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }));
-  
-  // Serialize user to session
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-  
-  // Deserialize user from session
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
-  
-  // Auth middleware for role-based permissions
-  
-  // Check if user is admin (full access)
-  const requireAdmin = (req: Request, res: Response, next: any) => {
-    const user = req.user as any;
-    if (!req.isAuthenticated() || !(user?.isAdmin || user?.roleType === 'admin')) {
-      return res.status(401).json({ message: "Unauthorized - Admin access required" });
-    }
-    next();
-  };
-  
-  // Check if user is a publisher (can manage products and view contacts)
-  const requirePublisher = (req: Request, res: Response, next: any) => {
-    const user = req.user as any;
-    if (!req.isAuthenticated() || 
-        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
-      return res.status(401).json({ message: "Unauthorized - Publisher access required" });
-    }
-    next();
-  };
-  
-  // Check if user can manage products (admin or publisher)
-  const canManageProducts = (req: Request, res: Response, next: any) => {
-    const user = req.user as any;
-    if (!req.isAuthenticated() || 
-        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
-      return res.status(401).json({ message: "Unauthorized - Cannot manage products" });
-    }
-    next();
-  };
-  
-  // Check if user can view contacts (admin or publisher)
-  const canViewContacts = (req: Request, res: Response, next: any) => {
-    const user = req.user as any;
-    if (!req.isAuthenticated() || 
-        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
-      return res.status(401).json({ message: "Unauthorized - Cannot view contacts" });
-    }
-    next();
-  };
-  
-  // Check if user can manage appointments (admin or publisher)
-  const canManageAppointments = (req: Request, res: Response, next: any) => {
-    const user = req.user as any;
-    if (!req.isAuthenticated() || 
-        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
-      return res.status(401).json({ message: "Unauthorized - Cannot manage appointments" });
-    }
-    next();
-  };
-  
-  return { requireAdmin, requirePublisher, canManageProducts, canViewContacts, canManageAppointments };
-};
+// Setup authentication is now done in auth.ts
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication and get permission checkers
