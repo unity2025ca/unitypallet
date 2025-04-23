@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { User } from '@shared/schema';
 
 // Import notification sound
 const notificationSoundUrl = "/notification-sound.mp3";
@@ -119,7 +120,7 @@ const formatRelativeTime = (dateString: string) => {
 export function NotificationCenter({ 
   user 
 }: { 
-  user: { id: number; isAdmin: boolean; roleType: string } 
+  user: User 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [location, setLocation] = useLocation();
@@ -138,14 +139,14 @@ export function NotificationCenter({
   }, []);
   
   // Fetch notifications
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ url: '/api/notifications' }),
     refetchInterval: 60000, // Refetch every minute as a fallback
   });
   
   // Count unread notifications
-  const unreadCount = notifications.filter((n: Notification) => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
   
   // Mark notification as read mutation
   const markAsReadMutation = useMutation({
@@ -252,7 +253,7 @@ export function NotificationCenter({
     // Create WebSocket connection
     const socket = createWebSocketConnection(
       user.id,
-      user.isAdmin,
+      user.isAdmin === true,
       user.roleType === 'publisher',
       handleWebSocketMessage
     );

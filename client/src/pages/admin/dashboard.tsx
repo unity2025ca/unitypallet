@@ -4,9 +4,10 @@ import { useLocation } from "wouter";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import translations from "@/lib/i18n";
 import Sidebar from "@/components/admin/Sidebar";
+import { Header } from "@/components/admin/Header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Product } from "@shared/schema";
-import { Menu, Activity, Calendar, Users, Package, Mail, Settings, AlertTriangle } from "lucide-react";
+import { Activity, Calendar, Users, Package, Mail, Settings, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
