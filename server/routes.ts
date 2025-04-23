@@ -16,8 +16,9 @@ import { sendSMS, sendBulkSMS } from "./sms";
 import { upload, handleUploadError } from "./upload";
 import path from "path";
 import fs from "fs";
+import * as crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
-import { setupAuth, hashPassword } from "./auth";
+import { setupAuth, hashPassword as authHashPassword } from "./auth";
 
 // Setup authentication is now done in auth.ts
 
@@ -1178,41 +1179,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Function to hash passwords for user security
   async function hashPassword(password: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // Generate a random salt
-      crypto.randomBytes(16, (err, salt) => {
-        if (err) return reject(err);
-        
-        // Hash the password with the salt
-        crypto.pbkdf2(password, salt, 310000, 32, 'sha256', (err, derivedKey) => {
-          if (err) return reject(err);
-          
-          // Return the hashed password in the format: [hash].[salt]
-          resolve(derivedKey.toString('hex') + '.' + salt.toString('hex'));
-        });
-      });
-    });
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(password, salt, 310000, 32, 'sha256').toString('hex');
+    return `${hash}.${salt}`;
   }
   
   // Function to verify a password against a stored hash
   async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      try {
-        // Split the stored hash into the hash and salt
-        const [hashedPassword, salt] = storedHash.split('.');
-        const saltBuffer = Buffer.from(salt, 'hex');
-        
-        // Hash the input password with the same salt
-        crypto.pbkdf2(password, saltBuffer, 310000, 32, 'sha256', (err, derivedKey) => {
-          if (err) return reject(err);
-          
-          // Compare the hashed input with the stored hash
-          resolve(derivedKey.toString('hex') === hashedPassword);
-        });
-      } catch (error) {
-        reject(error);
+    try {
+      // Split the stored hash into the hash and salt
+      const [hashedPassword, salt] = storedHash.split('.');
+      if (!hashedPassword || !salt) {
+        return false;
       }
-    });
+      
+      // Hash the input password with the same salt
+      const hash = crypto.pbkdf2Sync(password, salt, 310000, 32, 'sha256').toString('hex');
+      
+      // Compare the hashed input with the stored hash
+      return hash === hashedPassword;
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      return false;
+    }
   }
   
   // Users management endpoints
