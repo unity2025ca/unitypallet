@@ -62,9 +62,15 @@ const AdminDashboard = () => {
     );
   }
   
-  // Check if user is authenticated
-  if (!isAuthenticated) {
-    navigate("/admin/login");
+  // Use useEffect to handle navigation for authentication check
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/admin/login");
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+  
+  // Return null while loading or if not authenticated
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 
