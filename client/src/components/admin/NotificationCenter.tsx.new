@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 // Import notification sound
@@ -206,6 +205,34 @@ export function NotificationCenter({
     setIsOpen(false);
   };
   
+  // Handle sound toggle with user feedback
+  const toggleSound = () => {
+    // Toggle notification sound setting
+    setNotificationSound(!notificationSound);
+    
+    // Try to play a test sound if enabling
+    if (!notificationSound && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => {
+        console.error('Failed to play test sound:', e);
+        toast({
+          title: 'Sound Permission',
+          description: 'Please interact with the page and try again',
+          variant: 'destructive',
+        });
+      });
+    }
+    
+    // Show toast notification
+    toast({
+      title: notificationSound ? 'Sound Disabled' : 'Sound Enabled',
+      description: notificationSound 
+        ? 'Notification sounds are now turned off' 
+        : 'Notification sounds are now turned on',
+      variant: 'default',
+    });
+  };
+  
   // Simplified WebSocket connection and notification handling
   useEffect(() => {
     if (!user) return;
@@ -247,7 +274,7 @@ export function NotificationCenter({
               // Show a toast to inform user about sound issue
               toast({
                 title: 'Notification Sound',
-                description: 'Click the Sound button in Notifications panel to enable sounds',
+                description: 'Click the Sound button to enable sounds',
                 variant: 'default',
               });
             });
@@ -286,35 +313,7 @@ export function NotificationCenter({
         socket.close();
       }
     };
-  }, [user, queryClient, toast]);
-  
-  // Handle sound toggle with user feedback
-  const toggleSound = () => {
-    // Toggle notification sound setting
-    setNotificationSound(!notificationSound);
-    
-    // Try to play a test sound if enabling
-    if (!notificationSound && audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => {
-        console.error('Failed to play test sound:', e);
-        toast({
-          title: 'Sound Permission',
-          description: 'Please interact with the page and try again',
-          variant: 'destructive',
-        });
-      });
-    }
-    
-    // Show toast notification
-    toast({
-      title: notificationSound ? 'Sound Disabled' : 'Sound Enabled',
-      description: notificationSound 
-        ? 'Notification sounds are now turned off' 
-        : 'Notification sounds are now turned on',
-      variant: 'default',
-    });
-  };
+  }, [user, queryClient, toast, notificationSound]);
   
   return (
     <div className="flex items-center gap-2">
@@ -350,35 +349,11 @@ export function NotificationCenter({
           <SheetHeader className="flex flex-row items-center justify-between">
             <SheetTitle>Notifications</SheetTitle>
             <div className="flex items-center gap-2">
-              {/* Sound toggle button */}
+              {/* Sound toggle button - inside panel */}
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Toggle notification sound
-                  setNotificationSound(!notificationSound);
-                  
-                  // Try to play a test sound if enabling
-                  if (!notificationSound && audioRef.current) {
-                    audioRef.current.currentTime = 0;
-                    audioRef.current.play().catch(e => {
-                      console.error('Failed to play test sound:', e);
-                      toast({
-                        title: 'Sound Permission',
-                        description: 'Please click this button again to enable notification sounds',
-                        variant: 'destructive',
-                      });
-                    });
-                  }
-                  
-                  toast({
-                    title: notificationSound ? 'Sound Disabled' : 'Sound Enabled',
-                    description: notificationSound 
-                      ? 'Notification sounds are now turned off' 
-                      : 'Notification sounds are now turned on',
-                    variant: 'default',
-                  });
-                }}
+                onClick={toggleSound}
                 title={notificationSound ? 'Disable notification sound' : 'Enable notification sound'}
               >
                 {notificationSound ? 'Sound: On' : 'Sound: Off'}
