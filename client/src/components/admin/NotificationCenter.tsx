@@ -209,9 +209,17 @@ export function NotificationCenter({
         const data = JSON.parse(event.data);
         
         if (data.type === 'notification') {
-          // Play notification sound using the global function set by NotificationSound component
-          if (typeof window !== 'undefined' && (window as any).playNotificationSound) {
-            (window as any).playNotificationSound();
+          // Play notification sound using the global function
+          try {
+            if (typeof window !== 'undefined') {
+              if (typeof (window as any).playNotificationSound === 'function') {
+                (window as any).playNotificationSound();
+              } else {
+                console.log('Notification sound function not available yet, wait for next notification');
+              }
+            }
+          } catch (error) {
+            console.error('Error playing notification sound:', error);
           }
           
           // Show toast notification
