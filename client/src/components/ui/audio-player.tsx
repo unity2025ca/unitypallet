@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Very simple audio player component that can be used to play notification sounds
@@ -8,29 +8,6 @@ export function AudioPlayer() {
   const [enabled, setEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
-  
-  // Try to play audio when clicked
-  const handlePlay = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play()
-        .then(() => {
-          toast({
-            title: "Sound Test Successful",
-            description: "You will hear notification sounds",
-            variant: "default",
-          });
-        })
-        .catch(error => {
-          console.error("Could not play audio:", error);
-          toast({
-            title: "Sound Test Failed",
-            description: "Browser blocked autoplay, click on Test Sound button",
-            variant: "destructive",
-          });
-        });
-    }
-  };
   
   // Toggle sound enabled state
   const toggleSound = () => {
@@ -78,7 +55,7 @@ export function AudioPlayer() {
   }, [enabled]);
   
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       {/* Sound toggle button */}
       <Button
         variant="ghost"
@@ -91,17 +68,6 @@ export function AudioPlayer() {
         ) : (
           <VolumeX className="h-5 w-5 text-muted-foreground" />
         )}
-      </Button>
-      
-      {/* Test sound button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handlePlay}
-        title="Test notification sound"
-        className="px-2"
-      >
-        <Play className="h-4 w-4 mr-1" /> Test Sound
       </Button>
       
       {/* Hidden audio element */}
