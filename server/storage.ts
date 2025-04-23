@@ -13,13 +13,16 @@ import {
   type InsertProductImage,
   type Faq,
   type InsertFaq,
+  type Appointment,
+  type InsertAppointment,
   users,
   products,
   contacts,
   subscribers,
   settings,
   productImages,
-  faqs
+  faqs,
+  appointments
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc } from "drizzle-orm";
@@ -72,6 +75,13 @@ export interface IStorage {
   createFaq(faq: InsertFaq): Promise<Faq>;
   updateFaq(id: number, faq: Partial<InsertFaq>): Promise<Faq | undefined>;
   deleteFaq(id: number): Promise<boolean>;
+  
+  // Appointment methods
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  getAllAppointments(): Promise<Appointment[]>;
+  getAppointmentById(id: number): Promise<Appointment | undefined>;
+  updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
+  deleteAppointment(id: number): Promise<boolean>;
   
   // Session store
   sessionStore: any; // Simplify type for session store
@@ -453,6 +463,40 @@ export class DatabaseStorage implements IStorage {
       .delete(faqs)
       .where(eq(faqs.id, id))
       .returning({ id: faqs.id });
+    
+    return result.length > 0;
+  }
+  
+  // Appointment methods
+  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
+    const result = await db.insert(appointments).values(appointment).returning();
+    return result[0];
+  }
+  
+  async getAllAppointments(): Promise<Appointment[]> {
+    return db.select().from(appointments).orderBy(desc(appointments.createdAt));
+  }
+  
+  async getAppointmentById(id: number): Promise<Appointment | undefined> {
+    const result = await db.select().from(appointments).where(eq(appointments.id, id));
+    return result[0];
+  }
+  
+  async updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined> {
+    const result = await db
+      .update(appointments)
+      .set({ status })
+      .where(eq(appointments.id, id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async deleteAppointment(id: number): Promise<boolean> {
+    const result = await db
+      .delete(appointments)
+      .where(eq(appointments.id, id))
+      .returning({ id: appointments.id });
     
     return result.length > 0;
   }
