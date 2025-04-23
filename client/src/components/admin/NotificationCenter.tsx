@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest, getQueryFn } from '@/lib/queryClient';
-import { Bell, Check, X, MessageSquare, Calendar, Info, Volume2, VolumeX } from 'lucide-react';
+import { Bell, Check, X, MessageSquare, Calendar, Info } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { audioManager } from '@/lib/AudioManager';
+import NotificationSound from './NotificationSound';
 
 // Notification type from API
 interface Notification {
@@ -96,14 +96,6 @@ export function NotificationCenter({
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [notificationSound, setNotificationSound] = useState<boolean>(audioManager.isSoundEnabled()); // Get initial state from audio manager
-  
-  // Initialize audio manager on component mount and sync states
-  useEffect(() => {
-    // Ensure audio manager has the same state as our component
-    audioManager.toggleSound(notificationSound);
-    console.log('Notification sound system ready:', audioManager.isReady());
-  }, [notificationSound]);
   
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
@@ -191,36 +183,6 @@ export function NotificationCenter({
     setIsOpen(false);
   };
   
-  // Handle sound toggle with user feedback
-  const toggleSound = () => {
-    // Use AudioManager to toggle sound
-    const newSoundState = audioManager.toggleSound();
-    
-    // Update local state to match
-    setNotificationSound(newSoundState);
-    
-    // Try to play a test sound if enabling
-    if (newSoundState) {
-      audioManager.playSound().catch((error) => {
-        console.error('Failed to play test sound:', error);
-        toast({
-          title: 'Sound Permission',
-          description: 'Please interact with the page and try again',
-          variant: 'destructive',
-        });
-      });
-    }
-    
-    // Show toast notification
-    toast({
-      title: newSoundState ? 'Sound Enabled' : 'Sound Disabled',
-      description: newSoundState 
-        ? 'Notification sounds are now turned on' 
-        : 'Notification sounds are now turned off',
-      variant: 'default',
-    });
-  };
-  
   // Simplified WebSocket connection and notification handling
   useEffect(() => {
     if (!user) return;
@@ -247,20 +209,9 @@ export function NotificationCenter({
         const data = JSON.parse(event.data);
         
         if (data.type === 'notification') {
-          // Only play notification sound if enabled
-          if (notificationSound) {
-            audioManager.playSound().catch(error => {
-              console.error('Error playing notification sound:', error);
-              
-              // Show a toast to inform user about sound issue
-              toast({
-                title: 'Notification Sound',
-                description: 'Click the Sound button to enable sounds',
-                variant: 'default',
-              });
-            });
-          } else {
-            console.log('Notification sound is disabled');
+          // Play notification sound using the global function set by NotificationSound component
+          if (typeof window !== 'undefined' && (window as any).playNotificationSound) {
+            (window as any).playNotificationSound();
           }
           
           // Show toast notification
@@ -294,23 +245,12 @@ export function NotificationCenter({
         socket.close();
       }
     };
-  }, [user, queryClient, toast, notificationSound]);
+  }, [user, queryClient, toast]);
   
   return (
     <div className="flex items-center gap-2">
-      {/* Sound toggle button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSound}
-        title={notificationSound ? 'Turn notification sound off' : 'Turn notification sound on'}
-      >
-        {notificationSound ? (
-          <Volume2 className="h-5 w-5 text-green-500" />
-        ) : (
-          <VolumeX className="h-5 w-5 text-muted-foreground" />
-        )}
-      </Button>
+      {/* Sound toggle control */}
+      <NotificationSound />
     
       {/* Notifications panel trigger */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -328,17 +268,9 @@ export function NotificationCenter({
           <SheetHeader className="flex flex-row items-center justify-between">
             <SheetTitle>Notifications</SheetTitle>
             <div className="flex items-center gap-2">
-              {/* Sound toggle button - inside panel */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleSound}
-                title={notificationSound ? 'Disable notification sound' : 'Enable notification sound'}
-              >
-                {notificationSound ? 'Sound: On' : 'Sound: Off'}
-              </Button>
+              {/* Sound toggle control in the panel */}
+              <NotificationSound />
               
-              {/* Mark all as read button */}
               {notifications.length > 0 && (
                 <Button 
                   variant="ghost" 
