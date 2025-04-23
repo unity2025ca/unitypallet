@@ -30,10 +30,14 @@ import AdminUsers from "@/pages/admin/users";
 import AdminVisitorStats from "@/pages/admin/visitor-stats";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
+import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 
 function Router() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith("/admin");
+  
+  // استخدام هوك تتبع الزيارات
+  useVisitorTracking();
   
   return (
     <>
