@@ -220,7 +220,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
                                 }`}
                                 onClick={() => {
                                   handleNavClick();
-                                  navigate(item.href);
+                                  window.location.href = item.href;
                                 }}
                               >
                                 <i className={`${item.icon} w-4 mr-3`}></i>
@@ -267,7 +267,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
                 if (isMobile && toggleMobile) {
                   toggleMobile();
                 }
-                navigate("/");
+                window.location.href = "/";
               }}
             >
               <i className="fas fa-home w-5 mr-3"></i>
