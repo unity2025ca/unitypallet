@@ -190,3 +190,24 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+
+// إضافة جدول لمتابعة الزوار
+export const visitorStats = pgTable("visitor_stats", {
+  id: serial("id").primaryKey(),
+  visitDate: timestamp("visit_date").notNull().defaultNow(),
+  pageUrl: text("page_url").notNull(),
+  visitorIp: text("visitor_ip").notNull(),
+  userAgent: text("user_agent"),
+  referrer: text("referrer"),
+  countryCode: text("country_code"),
+  deviceType: text("device_type"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertVisitorStatsSchema = createInsertSchema(visitorStats, {
+  id: undefined,
+  createdAt: undefined,
+});
+
+export type VisitorStat = typeof visitorStats.$inferSelect;
+export type InsertVisitorStat = z.infer<typeof insertVisitorStatsSchema>;

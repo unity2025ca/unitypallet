@@ -15,6 +15,8 @@ import {
   type InsertFaq,
   type Appointment,
   type InsertAppointment,
+  type VisitorStat,
+  type InsertVisitorStat,
   users,
   products,
   contacts,
@@ -22,10 +24,11 @@ import {
   settings,
   productImages,
   faqs,
-  appointments
+  appointments,
+  visitorStats
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, and, desc } from "drizzle-orm";
+import { eq, asc, and, desc, sql } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { pool } from "./db";
@@ -85,6 +88,15 @@ export interface IStorage {
   getAppointmentById(id: number): Promise<Appointment | undefined>;
   updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
   deleteAppointment(id: number): Promise<boolean>;
+  
+  // Visitor stats methods
+  addVisitorStat(stat: InsertVisitorStat): Promise<VisitorStat>;
+  getVisitorStatsByDate(startDate: Date, endDate: Date): Promise<VisitorStat[]>;
+  getVisitorStatsCount(): Promise<number>;
+  getPageViewsByUrl(): Promise<{ url: string; count: number }[]>;
+  getVisitorStatsByDateRange(days: number): Promise<{ date: string; count: number }[]>;
+  getVisitorStatsByCountry(): Promise<{ country: string; count: number }[]>;
+  getVisitorStatsByDevice(): Promise<{ device: string; count: number }[]>;
   
   // Session store
   sessionStore: any; // Simplify type for session store
@@ -711,6 +723,96 @@ export class DatabaseStorage implements IStorage {
     for (const product of sampleProducts) {
       await this.createProduct(product);
     }
+  }
+  // Visitor Stats Methods
+  async addVisitorStat(stat: InsertVisitorStat): Promise<VisitorStat> {
+    const result = await db.insert(visitorStats).values(stat).returning();
+    return result[0];
+  }
+
+  async getVisitorStatsByDate(startDate: Date, endDate: Date): Promise<VisitorStat[]> {
+    return db
+      .select()
+      .from(visitorStats)
+      .where(
+        and(
+          // Using >= for start date and < for end date to get inclusive start, exclusive end
+          sql`${visitorStats.visitDate} >= ${startDate.toISOString()}`,
+          sql`${visitorStats.visitDate} < ${endDate.toISOString()}`
+        )
+      )
+      .orderBy(desc(visitorStats.visitDate));
+  }
+
+  async getVisitorStatsCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(visitorStats);
+    return result[0]?.count || 0;
+  }
+
+  async getPageViewsByUrl(): Promise<{ url: string; count: number }[]> {
+    const result = await db
+      .select({
+        url: visitorStats.pageUrl,
+        count: sql<number>`count(*)`
+      })
+      .from(visitorStats)
+      .groupBy(visitorStats.pageUrl)
+      .orderBy(desc(sql<number>`count(*)`));
+    
+    return result;
+  }
+
+  async getVisitorStatsByDateRange(days: number): Promise<{ date: string; count: number }[]> {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const result = await db
+      .select({
+        date: sql<string>`to_char(${visitorStats.visitDate}, 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)`
+      })
+      .from(visitorStats)
+      .where(
+        and(
+          sql`${visitorStats.visitDate} >= ${startDate.toISOString()}`,
+          sql`${visitorStats.visitDate} <= ${endDate.toISOString()}`
+        )
+      )
+      .groupBy(sql`to_char(${visitorStats.visitDate}, 'YYYY-MM-DD')`)
+      .orderBy(asc(sql`to_char(${visitorStats.visitDate}, 'YYYY-MM-DD')`));
+    
+    return result;
+  }
+
+  async getVisitorStatsByCountry(): Promise<{ country: string; count: number }[]> {
+    const result = await db
+      .select({
+        country: visitorStats.countryCode,
+        count: sql<number>`count(*)`
+      })
+      .from(visitorStats)
+      .where(sql`${visitorStats.countryCode} IS NOT NULL`)
+      .groupBy(visitorStats.countryCode)
+      .orderBy(desc(sql<number>`count(*)`));
+    
+    return result;
+  }
+
+  async getVisitorStatsByDevice(): Promise<{ device: string; count: number }[]> {
+    const result = await db
+      .select({
+        device: visitorStats.deviceType,
+        count: sql<number>`count(*)`
+      })
+      .from(visitorStats)
+      .where(sql`${visitorStats.deviceType} IS NOT NULL`)
+      .groupBy(visitorStats.deviceType)
+      .orderBy(desc(sql<number>`count(*)`));
+    
+    return result;
   }
 }
 
