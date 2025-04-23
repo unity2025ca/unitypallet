@@ -119,12 +119,22 @@ const setupAuth = (app: Express) => {
     next();
   };
   
-  return { requireAdmin, requirePublisher, canManageProducts, canViewContacts };
+  // Check if user can manage appointments (admin or publisher)
+  const canManageAppointments = (req: Request, res: Response, next: any) => {
+    const user = req.user as any;
+    if (!req.isAuthenticated() || 
+        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
+      return res.status(401).json({ message: "Unauthorized - Cannot manage appointments" });
+    }
+    next();
+  };
+  
+  return { requireAdmin, requirePublisher, canManageProducts, canViewContacts, canManageAppointments };
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication and get permission checkers
-  const { requireAdmin, requirePublisher, canManageProducts, canViewContacts } = setupAuth(app);
+  const { requireAdmin, requirePublisher, canManageProducts, canViewContacts, canManageAppointments } = setupAuth(app);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {
@@ -1197,7 +1207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/admin/appointments', requireAdmin, async (req: Request, res: Response) => {
+  // Publishers can view and manage appointments
+  app.get('/api/admin/appointments', canManageAppointments, async (req: Request, res: Response) => {
     try {
       const appointments = await storage.getAllAppointments();
       res.status(200).json(appointments);
@@ -1207,7 +1218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/admin/appointments/:id', requireAdmin, async (req: Request, res: Response) => {
+  app.get('/api/admin/appointments/:id', canManageAppointments, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -1227,7 +1238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.patch('/api/admin/appointments/:id/status', requireAdmin, async (req: Request, res: Response) => {
+  app.patch('/api/admin/appointments/:id/status', canManageAppointments, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -1253,7 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete('/api/admin/appointments/:id', requireAdmin, async (req: Request, res: Response) => {
+  app.delete('/api/admin/appointments/:id', canManageAppointments, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
