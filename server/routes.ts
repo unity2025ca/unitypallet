@@ -10,6 +10,9 @@ import {
   insertVisitorStatsSchema
 } from "@shared/schema";
 import visitorStatsRouter from "./routes/visitor-stats";
+import notificationsRouter from "./routes/notifications";
+import { setupWebSocket } from "./websocket";
+import { createContactNotification, createAppointmentNotification, createAppointmentStatusNotification } from "./notifications";
 import { z } from "zod";
 import { sendBulkEmails } from "./email";
 import { sendSMS, sendBulkSMS } from "./sms";
@@ -26,8 +29,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication and get permission checkers
   const { requireAdmin, requirePublisher, canManageProducts, canViewContacts, canManageAppointments } = setupAuth(app);
   
-  // Use visitor stats router
+  // Create HTTP server
+  const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  setupWebSocket(httpServer);
+  
+  // Use routers
   app.use(visitorStatsRouter);
+  app.use(notificationsRouter);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {
@@ -158,6 +168,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertContactSchema.parse(req.body);
       const contact = await storage.createContact(validatedData);
+      
+      // Create notification for admins about the new contact message
+      await createContactNotification(contact.id, contact.name, contact.message);
+      
       res.status(201).json(contact);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1323,6 +1337,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
   return httpServer;
 }
+

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, ShieldAlert } from 'lucide-react';
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface SidebarProps {
   isMobileOpen?: boolean;
