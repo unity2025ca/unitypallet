@@ -1,16 +1,19 @@
 import { Menu, BellRing } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from './NotificationCenter';
-import { useAdminAuth } from '@/hooks/use-admin-auth';
 
 interface HeaderProps {
   title: string;
   toggleMobileMenu: () => void;
+  user: {
+    id: number;
+    username: string;
+    isAdmin: boolean;
+    roleType?: string;
+  } | null;
 }
 
-export function Header({ title, toggleMobileMenu }: HeaderProps) {
-  const { user } = useAdminAuth();
-  
+export function Header({ title, toggleMobileMenu, user }: HeaderProps) {
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center">

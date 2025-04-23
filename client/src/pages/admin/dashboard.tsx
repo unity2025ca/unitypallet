@@ -81,7 +81,7 @@ const AdminDashboard = () => {
       
       <div className="flex-1 md:ml-64 p-4 md:p-8">
         {/* Header with admin info and notifications */}
-        <Header title={translations.admin.dashboard.title} toggleMobileMenu={toggleMobileMenu} />
+        <Header title={translations.admin.dashboard.title} toggleMobileMenu={toggleMobileMenu} user={user} />
         
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-lg shadow-lg mb-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
