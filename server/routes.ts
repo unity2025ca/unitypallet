@@ -18,6 +18,7 @@ import { sendSMS, sendBulkSMS } from "./sms";
 import { upload, handleUploadError } from "./upload";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
 
 // Setup authentication
@@ -49,9 +50,13 @@ const setupAuth = (app: Express) => {
       if (!user) {
         return done(null, false, { message: "Invalid username" });
       }
-      if (user.password !== password) { // In a real app, use bcrypt.compare
+      
+      // Verify password using secure hash comparison
+      const isValidPassword = await verifyPassword(password, user.password);
+      if (!isValidPassword) {
         return done(null, false, { message: "Invalid password" });
       }
+      
       return done(null, user);
     } catch (error) {
       return done(error);
@@ -1268,6 +1273,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Function to hash passwords for user security
+  async function hashPassword(password: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Generate a random salt
+      crypto.randomBytes(16, (err, salt) => {
+        if (err) return reject(err);
+        
+        // Hash the password with the salt
+        crypto.pbkdf2(password, salt, 310000, 32, 'sha256', (err, derivedKey) => {
+          if (err) return reject(err);
+          
+          // Return the hashed password in the format: [hash].[salt]
+          resolve(derivedKey.toString('hex') + '.' + salt.toString('hex'));
+        });
+      });
+    });
+  }
+  
+  // Function to verify a password against a stored hash
+  async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      try {
+        // Split the stored hash into the hash and salt
+        const [hashedPassword, salt] = storedHash.split('.');
+        const saltBuffer = Buffer.from(salt, 'hex');
+        
+        // Hash the input password with the same salt
+        crypto.pbkdf2(password, saltBuffer, 310000, 32, 'sha256', (err, derivedKey) => {
+          if (err) return reject(err);
+          
+          // Compare the hashed input with the stored hash
+          resolve(derivedKey.toString('hex') === hashedPassword);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+  
   // Users management endpoints
   app.get("/api/admin/users", requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -1296,9 +1340,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set isAdmin based on roleType (for backwards compatibility)
       const isAdmin = roleType === 'admin';
       
+      // Hash the password before storing
+      const hashedPassword = await hashPassword(password);
+      
       const newUser = await storage.createUser({
         username,
-        password, // This will be hashed in the storage implementation
+        password: hashedPassword,
         isAdmin,
         roleType
       });
@@ -1348,13 +1395,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set isAdmin based on roleType (for backwards compatibility)
       const isAdmin = roleType === 'admin';
       
-      // Update user
-      const updatedUser = await storage.updateUser(userId, {
+      // Create update object
+      const updateData: any = {
         username,
-        password, // This will be hashed in the storage implementation if provided
         isAdmin,
         roleType
-      });
+      };
+      
+      // If password is provided, hash it before storing
+      if (password) {
+        updateData.password = await hashPassword(password);
+      }
+      
+      // Update user
+      const updatedUser = await storage.updateUser(userId, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
