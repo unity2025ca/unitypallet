@@ -913,7 +913,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order methods
-  async createOrder(orderData: InsertOrder): Promise<Order> {
+  async createOrder(orderData: any): Promise<Order> {
     try {
       // Use a direct SQL query with only the columns we know exist
       const result = await pool.query(
@@ -995,7 +995,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order Item methods
-  async createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem> {
+  async createOrderItem(orderItemData: any): Promise<OrderItem> {
     try {
       // Use a direct SQL query with only the columns we know exist
       const result = await pool.query(

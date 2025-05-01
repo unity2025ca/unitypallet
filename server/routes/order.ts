@@ -66,17 +66,18 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     const fullAddress = `${address}, ${city}, ${province}, ${postalCode}, ${country}`;
     const contactInfo = `Contact: ${fullName}, ${email}, ${phone}`;
     
+    // Create order with only the fields we know exist in the database - don't use InsertOrder type
     const orderData = {
       userId: customerId,
       total: cart.total || 0,
-      status: 'pending' as const,
-      paymentStatus: 'pending' as const,
+      status: 'pending',
+      paymentStatus: 'pending',
       shippingAddress: `${fullAddress}. ${contactInfo}`,
       shippingCity: city,
       shippingPostalCode: postalCode,
       shippingCountry: country,
       notes: notes ? `${notes}. Payment: ${paymentMethod || 'cash_on_delivery'}` : `Payment: ${paymentMethod || 'cash_on_delivery'}`
-    } as InsertOrder;
+    };
     
     const order = await storage.createOrder(orderData);
     
@@ -84,7 +85,8 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     const cartItems = Array.isArray(cart.items) ? cart.items : [];
     for (const item of cartItems) {
       if (item && item.productId && item.quantity && item.product && item.product.price) {
-        const orderItem: InsertOrderItem = {
+        // Don't use InsertOrderItem type to avoid schema issues
+        const orderItem = {
           orderId: order.id,
           productId: item.productId,
           quantity: item.quantity,
