@@ -18,6 +18,10 @@ import {
   type VisitorStat,
   type InsertVisitorStat,
   type Notification,
+  type Order,
+  type InsertOrder,
+  type OrderItem,
+  type InsertOrderItem,
   type InsertNotification,
   users,
   products,
@@ -28,7 +32,9 @@ import {
   faqs,
   appointments,
   visitorStats,
-  notifications
+  notifications,
+  orders,
+  orderItems
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc, sql } from "drizzle-orm";
@@ -108,6 +114,17 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<boolean>;
   markAllNotificationsAsRead(userId: number): Promise<boolean>;
   deleteNotification(id: number): Promise<boolean>;
+  
+  // Order methods
+  createOrder(orderData: InsertOrder): Promise<Order>;
+  getOrderById(id: number): Promise<Order | undefined>;
+  getOrdersByCustomerId(userId: number): Promise<Order[]>;
+  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
+  updateOrderPaymentStatus(id: number, paymentStatus: string): Promise<Order | undefined>;
+  
+  // Order Item methods
+  createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem>;
+  getOrderItemsByOrderId(orderId: number): Promise<OrderItem[]>;
   
   // Session store
   sessionStore: any; // Simplify type for session store
@@ -893,6 +910,93 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: notifications.id });
     
     return result.length > 0;
+  }
+
+  // Order methods
+  async createOrder(orderData: InsertOrder): Promise<Order> {
+    try {
+      const [order] = await db.insert(orders)
+        .values(orderData)
+        .returning();
+      return order;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error;
+    }
+  }
+
+  async getOrderById(id: number): Promise<Order | undefined> {
+    try {
+      const [order] = await db.select()
+        .from(orders)
+        .where(eq(orders.id, id));
+      return order;
+    } catch (error) {
+      console.error('Error getting order by ID:', error);
+      throw error;
+    }
+  }
+
+  async getOrdersByCustomerId(userId: number): Promise<Order[]> {
+    try {
+      return await db.select()
+        .from(orders)
+        .where(eq(orders.userId, userId))
+        .orderBy(desc(orders.orderDate));
+    } catch (error) {
+      console.error('Error getting orders by customer ID:', error);
+      throw error;
+    }
+  }
+
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    try {
+      const [updatedOrder] = await db.update(orders)
+        .set({ status })
+        .where(eq(orders.id, id))
+        .returning();
+      return updatedOrder;
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      throw error;
+    }
+  }
+
+  async updateOrderPaymentStatus(id: number, paymentStatus: string): Promise<Order | undefined> {
+    try {
+      const [updatedOrder] = await db.update(orders)
+        .set({ paymentStatus })
+        .where(eq(orders.id, id))
+        .returning();
+      return updatedOrder;
+    } catch (error) {
+      console.error('Error updating order payment status:', error);
+      throw error;
+    }
+  }
+
+  // Order Item methods
+  async createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem> {
+    try {
+      const [orderItem] = await db.insert(orderItems)
+        .values(orderItemData)
+        .returning();
+      return orderItem;
+    } catch (error) {
+      console.error('Error creating order item:', error);
+      throw error;
+    }
+  }
+
+  async getOrderItemsByOrderId(orderId: number): Promise<OrderItem[]> {
+    try {
+      return await db.select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId));
+    } catch (error) {
+      console.error('Error getting order items by order ID:', error);
+      throw error;
+    }
   }
 }
 

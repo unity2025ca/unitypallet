@@ -1,55 +1,61 @@
 import { Request, Response, NextFunction } from 'express';
+import { storage } from '../storage';
 
-// Interface for authenticated request
-export interface AuthenticatedRequest extends Request {
-  user?: any; // User information will be attached by Passport
+/**
+ * Middleware to require admin access
+ */
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated() || !req.user.isAdmin) {
+    return res.status(403).json({ error: 'Access denied. Admin role required.' });
+  }
+  next();
 }
 
-// Middleware to check if user is authenticated
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated()) {
-    return next();
+/**
+ * Middleware to check if user has publisher role or is an admin
+ */
+export function requirePublisher(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated() || (req.user.roleType !== 'publisher' && !req.user.isAdmin)) {
+    return res.status(403).json({ error: 'Access denied. Publisher role required.' });
   }
-  res.status(401).json({ error: 'Not authenticated' });
-};
+  next();
+}
 
-// Middleware to check if user is an admin
-export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user && req.user.isAdmin) {
-    return next();
+/**
+ * Middleware to check if user can manage products (admin or publisher)
+ */
+export function canManageProducts(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated() || (req.user.roleType !== 'publisher' && !req.user.isAdmin)) {
+    return res.status(403).json({ error: 'Access denied. Cannot manage products.' });
   }
-  res.status(403).json({ error: 'Requires admin privileges' });
-};
+  next();
+}
 
-// Middleware to check if user is a customer
-export const authenticateCustomer = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user) {
-    // In our system, anyone who is not an admin is considered a customer
-    return next();
+/**
+ * Middleware to check if user can manage appointments (admin or publisher)
+ */
+export function canManageAppointments(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated() || (req.user.roleType !== 'publisher' && !req.user.isAdmin)) {
+    return res.status(403).json({ error: 'Access denied. Cannot manage appointments.' });
   }
-  res.status(401).json({ error: 'Not authenticated as customer' });
-};
+  next();
+}
 
-// Check if user can manage products (admin or publisher with proper role)
-export const canManageProducts = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user && (req.user.isAdmin || (req.user.roleType === 'publisher'))) {
-    return next();
+/**
+ * Middleware to authenticate customers
+ */
+export function authenticateCustomer(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated as customer' });
   }
-  res.status(403).json({ error: 'Not authorized to manage products' });
-};
+  next();
+}
 
-// Check if user can manage appointments (admin or staff with proper role)
-export const canManageAppointments = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user && (req.user.isAdmin || (req.user.roleType === 'publisher'))) {
-    return next();
+// Type augmentation for Express Request
+declare global {
+  namespace Express {
+    interface Request {
+      cartId?: number;
+    }
   }
-  res.status(403).json({ error: 'Not authorized to manage appointments' });
-};
-
-// Check if user can manage orders (admin or staff with proper role)
-export const canManageOrders = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user && (req.user.isAdmin || (req.user.roleType === 'publisher'))) {
-    return next();
-  }
-  res.status(403).json({ error: 'Not authorized to manage orders' });
-};
+}
