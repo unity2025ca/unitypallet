@@ -162,13 +162,15 @@ const CheckoutPage = () => {
     console.log('Calculating final shipping cost for order:', {
       city: data.city,
       province: data.province,
-      country: data.country
+      country: data.country,
+      postalCode: data.postalCode
     });
     
     apiRequest('POST', '/api/shipping/calculate', {
       city: data.city,
       province: data.province,
-      country: data.country
+      country: data.country,
+      postalCode: data.postalCode
     })
     .then(response => {
       if (!response.ok) {
@@ -541,6 +543,7 @@ const OrderSummary = ({
     city: string;
     province: string;
     country: string;
+    postalCode?: string;
   } | null;
 }) => {
   const [calculatingShipping, setCalculatingShipping] = useState(false);
@@ -562,7 +565,8 @@ const OrderSummary = ({
       apiRequest('POST', '/api/shipping/calculate', {
         city: shippingAddress.city,
         province: shippingAddress.province,
-        country: shippingAddress.country
+        country: shippingAddress.country,
+        postalCode: shippingAddress.postalCode || ''
       })
       .then(response => {
         if (!response.ok) {
@@ -592,7 +596,7 @@ const OrderSummary = ({
       // Clear shipping cost if no address
       setCalculatedShippingCost(null);
     }
-  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country]);
+  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country, shippingAddress?.postalCode]);
   
   // Use provided shipping cost from parent, or calculated cost
   const finalShippingCost = shippingCost || calculatedShippingCost || 0;

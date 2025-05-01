@@ -76,7 +76,8 @@ router.post('/calculate', async (req: Request, res: Response) => {
           latitude: referenceWarehouse.latitude,
           longitude: referenceWarehouse.longitude,
           isWarehouse: false,
-          zoneId: referenceWarehouse.zoneId
+          zoneId: referenceWarehouse.zoneId,
+          createdAt: new Date() // Required by the type
         };
         
         // Return fixed shipping cost plus a distance premium
