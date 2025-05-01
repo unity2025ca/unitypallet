@@ -117,7 +117,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   return (
     <CustomerAuthContext.Provider
       value={{
-        customer,
+        customer: customer ?? null,
         isLoading,
         error,
         loginMutation,

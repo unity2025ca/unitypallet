@@ -18,6 +18,7 @@ import HowItWorksPage from "@/pages/how-it-works";
 import FaqPage from "@/pages/faq";
 import ContactPage from "@/pages/contact";
 import AuthPage from "@/pages/auth";
+import AccountPage from "@/pages/account";
 import AdminIndex from "@/pages/admin/index";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
@@ -57,7 +58,7 @@ function Router() {
         <Route path="/auth" component={AuthPage} />
         
         {/* Customer Protected Routes */}
-        <CustomerProtectedRoute path="/account" component={() => <div>Account Page</div>} />
+        <CustomerProtectedRoute path="/account" component={AccountPage} />
         <CustomerProtectedRoute path="/orders" component={() => <div>Orders Page</div>} />
         <CustomerProtectedRoute path="/checkout" component={() => <div>Checkout Page</div>} />
         
