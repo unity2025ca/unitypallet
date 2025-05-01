@@ -311,7 +311,7 @@ const ShippingManagement = () => {
 
   // Mutation for locations
   const createLocationMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof locationSchema>) => {
+    mutationFn: async (data: LocationFormData) => {
       const response = await apiRequest("POST", "/api/admin/shipping/locations", data);
       return await response.json();
     },
@@ -334,7 +334,7 @@ const ShippingManagement = () => {
   });
 
   const updateLocationMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof locationSchema> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: LocationFormData }) => {
       const response = await apiRequest("PUT", `/api/admin/shipping/locations/${id}`, data);
       return await response.json();
     },
