@@ -144,8 +144,7 @@ router.get("/orders", async (req, res) => {
     try {
       // Use raw SQL directly to avoid schema issues
       const result = await db.execute(
-        `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
-        [req.user.id]
+        `SELECT * FROM orders WHERE user_id = ${req.user.id} ORDER BY created_at DESC`
       );
       
       const orders = result.rows || [];
@@ -158,8 +157,7 @@ router.get("/orders", async (req, res) => {
             const itemsResult = await db.execute(
               `SELECT oi.*, p.title, p.price FROM order_items oi 
                JOIN products p ON oi.product_id = p.id 
-               WHERE oi.order_id = $1`,
-              [order.id]
+               WHERE oi.order_id = ${order.id}`
             );
             order.items = itemsResult.rows || [];
           } catch (itemError) {

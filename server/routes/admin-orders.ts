@@ -23,8 +23,7 @@ router.get("/", async (req: Request, res: Response) => {
           const { rows: orderItems } = await db.execute(
             `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
              JOIN products p ON oi.product_id = p.id 
-             WHERE oi.order_id = $1`,
-            [order.id]
+             WHERE oi.order_id = ${order.id}`
           );
           order.items = orderItems || [];
         } catch (error) {
@@ -54,8 +53,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       `SELECT o.*, u.email, u.full_name, u.phone
        FROM orders o
        LEFT JOIN users u ON o.user_id = u.id
-       WHERE o.id = $1`,
-      [orderId]
+       WHERE o.id = ${orderId}`
     );
     
     if (!rows || rows.length === 0) {
@@ -68,8 +66,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     const { rows: orderItems } = await db.execute(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = $1`,
-      [orderId]
+       WHERE oi.order_id = ${orderId}`
     );
     
     order.items = orderItems || [];
@@ -110,8 +107,7 @@ router.patch("/:id/status", async (req: Request, res: Response) => {
     const { rows: orderItems } = await db.execute(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = $1`,
-      [orderId]
+       WHERE oi.order_id = ${orderId}`
     );
     
     const updatedOrder = rows[0];
