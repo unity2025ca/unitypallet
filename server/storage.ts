@@ -942,7 +942,7 @@ export class DatabaseStorage implements IStorage {
       return await db.select()
         .from(orders)
         .where(eq(orders.userId, userId))
-        .orderBy(desc(orders.orderDate));
+        .orderBy(desc(orders.createdAt));
     } catch (error) {
       console.error('Error getting orders by customer ID:', error);
       throw error;

@@ -44,7 +44,7 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     
     const cart = await response.json();
     
-    if (!cart || !cart.items || cart.items.length === 0) {
+    if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
     
@@ -63,11 +63,11 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     } = req.body;
     
     // Create order
-    const orderData: InsertOrder = {
+    const orderData = {
       userId: customerId,
-      total: cart.total,
-      status: 'pending',
-      paymentStatus: 'pending',
+      total: cart.total || 0,
+      status: 'pending' as const,
+      paymentStatus: 'pending' as const,
       shippingAddress: `${address}, ${city}, ${province}, ${postalCode}, ${country}`,
       shippingCity: city,
       shippingProvince: province,
@@ -78,7 +78,7 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       contactName: fullName,
       notes: notes || null,
       paymentMethod: paymentMethod || 'cash_on_delivery'
-    };
+    } as InsertOrder;
     
     const order = await storage.createOrder(orderData);
     
