@@ -11,6 +11,10 @@ import {
 } from "@shared/schema";
 import visitorStatsRouter from "./routes/visitor-stats";
 import notificationsRouter from "./routes/notifications";
+import customerRouter from "./routes/customer";
+import stripeRouter from "./routes/stripe";
+import cartRouter from "./routes/cart";
+import orderRouter from "./routes/order";
 import { setupWebSocket } from "./websocket";
 import { createContactNotification, createAppointmentNotification, createAppointmentStatusNotification } from "./notifications";
 import { z } from "zod";
@@ -38,6 +42,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Use routers
   app.use(visitorStatsRouter);
   app.use(notificationsRouter);
+  app.use('/api/customer', customerRouter);
+  app.use('/api/stripe', stripeRouter);
+  app.use('/api/cart', cartRouter);
+  app.use('/api/orders', orderRouter);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {

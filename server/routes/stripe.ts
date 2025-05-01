@@ -1,0 +1,136 @@
+import { Request, Response, Router } from "express";
+import Stripe from "stripe";
+import { storage } from "../storage";
+
+// Initialize Stripe with API key
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("Missing required environment variable: STRIPE_SECRET_KEY");
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
+
+const router = Router();
+
+// Customer authentication middleware
+function requireCustomer(req: Request, res: Response, next: Function) {
+  if (req.isAuthenticated() && req.user.roleType === "customer") {
+    return next();
+  }
+  return res.status(401).json({ error: "Authentication required" });
+}
+
+// Create a payment intent for checkout
+router.post("/create-payment-intent", requireCustomer, async (req, res) => {
+  try {
+    const { amount, orderId } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+    
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: "cad", // Canadian dollars
+      metadata: {
+        orderId: orderId || "manual_checkout", // You can store order ID for reference
+        userId: req.user.id.toString(),
+      },
+    });
+    
+    // Return the client secret
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error: any) {
+    console.error("Error creating payment intent:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Stripe webhook for handling events
+router.post("/webhook", async (req, res) => {
+  const signature = req.headers["stripe-signature"] as string;
+  
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.warn("STRIPE_WEBHOOK_SECRET is not set. Webhook verification is disabled.");
+    return res.status(400).json({ error: "Webhook secret is not configured" });
+  }
+  
+  let event;
+  
+  try {
+    // Verify webhook signature
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error: any) {
+    console.error("Webhook signature verification failed:", error.message);
+    return res.status(400).send(`Webhook Error: ${error.message}`);
+  }
+  
+  // Handle different events
+  switch (event.type) {
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      
+      // Process successful payment
+      // Update order status in the database
+      if (paymentIntent.metadata.orderId && paymentIntent.metadata.orderId !== "manual_checkout") {
+        try {
+          const orderId = parseInt(paymentIntent.metadata.orderId);
+          // TODO: Update order status
+          console.log(`Payment for order ${orderId} succeeded. Payment ID: ${paymentIntent.id}`);
+        } catch (error) {
+          console.error("Error processing successful payment:", error);
+        }
+      }
+      break;
+      
+    case "payment_intent.payment_failed":
+      const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
+      console.log(`Payment failed: ${failedPaymentIntent.id}`);
+      // TODO: Handle failed payment
+      break;
+      
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
+  }
+  
+  res.json({ received: true });
+});
+
+// Create a new customer in Stripe
+router.post("/create-stripe-customer", requireCustomer, async (req, res) => {
+  try {
+    // Check if user already has a Stripe customer ID
+    if (req.user.stripeCustomerId) {
+      return res.status(400).json({ error: "Customer already exists in Stripe" });
+    }
+    
+    // Create a new customer in Stripe
+    const customer = await stripe.customers.create({
+      email: req.user.email || undefined,
+      name: req.user.fullName || req.user.username,
+      metadata: {
+        userId: req.user.id.toString(),
+      },
+    });
+    
+    // Update user with Stripe customer ID
+    await storage.updateUser(req.user.id, {
+      stripeCustomerId: customer.id,
+    });
+    
+    res.json({ success: true, customerId: customer.id });
+  } catch (error: any) {
+    console.error("Error creating Stripe customer:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+export default router;

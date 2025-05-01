@@ -1,99 +1,110 @@
 import { createContext, ReactNode, useContext } from "react";
-import { 
-  useQuery, 
+import {
+  useQuery,
   useMutation,
-  UseMutationResult
+  UseMutationResult,
 } from "@tanstack/react-query";
-import { CustomerRegistration, LoginCredentials, User } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
+import { customerRegistrationSchema, Customer, CustomerLoginData } from "@shared/schema";
+import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+export type CustomerLoginData = z.infer<typeof customerRegistrationSchema>;
 
 type CustomerAuthContextType = {
-  user: User | null;
+  customer: Customer | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<User, Error, LoginCredentials>;
+  loginMutation: UseMutationResult<Customer, Error, CustomerLoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, CustomerRegistration>;
+  registerMutation: UseMutationResult<Customer, Error, z.infer<typeof customerRegistrationSchema>>;
 };
 
 export const CustomerAuthContext = createContext<CustomerAuthContextType | null>(null);
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Query current customer
   const {
-    data: user,
+    data: customer,
     error,
     isLoading,
-  } = useQuery<User | null, Error>({
-    queryKey: ['/api/customer'],
+  } = useQuery<Customer | null, Error>({
+    queryKey: ["/api/customer"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
+  // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
+    mutationFn: async (credentials: CustomerLoginData) => {
       const res = await apiRequest("POST", "/api/customer/login", credentials);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Login failed");
+      }
       return await res.json();
     },
-    onSuccess: (user: User) => {
-      queryClient.setQueryData(['/api/customer'], user);
+    onSuccess: (data: Customer) => {
+      queryClient.setQueryData(["/api/customer"], data);
       toast({
         title: "تم تسجيل الدخول بنجاح",
-        description: `مرحبًا، ${user.fullName || user.username}!`,
-        variant: "default",
+        description: `مرحباً بعودتك ${data.fullName || data.username}`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ في تسجيل الدخول",
-        description: error.message || "فشل تسجيل الدخول، يرجى التحقق من اسم المستخدم وكلمة المرور",
+        title: "فشل تسجيل الدخول",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  // Registration mutation
   const registerMutation = useMutation({
-    mutationFn: async (data: CustomerRegistration) => {
-      // Validate password match
-      if (data.password !== data.confirmPassword) {
-        throw new Error("كلمات المرور غير متطابقة");
-      }
-      
+    mutationFn: async (data: z.infer<typeof customerRegistrationSchema>) => {
       const res = await apiRequest("POST", "/api/customer/register", data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Registration failed");
+      }
       return await res.json();
     },
-    onSuccess: (user: User) => {
-      queryClient.setQueryData(['/api/customer'], user);
+    onSuccess: (data: Customer) => {
+      queryClient.setQueryData(["/api/customer"], data);
       toast({
-        title: "تم إنشاء الحساب بنجاح",
-        description: "مرحبًا بك في موقعنا!",
-        variant: "default",
+        title: "تم التسجيل بنجاح",
+        description: "مرحباً بك في منصتنا!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ في إنشاء الحساب",
-        description: error.message || "فشل إنشاء الحساب، يرجى المحاولة مرة أخرى",
+        title: "فشل التسجيل",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/customer/logout");
+      const res = await apiRequest("POST", "/api/customer/logout");
+      if (!res.ok) {
+        throw new Error("Logout failed");
+      }
     },
     onSuccess: () => {
-      queryClient.setQueryData(['/api/customer'], null);
+      queryClient.setQueryData(["/api/customer"], null);
       toast({
         title: "تم تسجيل الخروج",
-        description: "نراك قريبًا!",
-        variant: "default",
+        description: "تم تسجيل خروجك بنجاح",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ في تسجيل الخروج",
+        title: "فشل تسجيل الخروج",
         description: error.message,
         variant: "destructive",
       });
@@ -103,7 +114,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   return (
     <CustomerAuthContext.Provider
       value={{
-        user: user || null,
+        customer,
         isLoading,
         error,
         loginMutation,
