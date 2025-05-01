@@ -292,11 +292,14 @@ export const orders = pgTable("orders", {
   status: orderStatusEnum("status").default("pending"),
   paymentStatus: paymentStatusEnum("payment_status").default("pending"),
   paymentIntentId: text("payment_intent_id"),
-  total: integer("total").notNull(),
+  subtotal: integer("subtotal").notNull().default(0), // Subtotal without shipping
+  shippingCost: integer("shipping_cost").notNull().default(0), // Shipping cost
+  total: integer("total").notNull(), // Total including shipping
   shippingAddress: text("shipping_address"),
   shippingCity: text("shipping_city"), 
   shippingPostalCode: text("shipping_postal_code"),
   shippingCountry: text("shipping_country"),
+  shippingProvince: text("shipping_province"), // Added province field
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
