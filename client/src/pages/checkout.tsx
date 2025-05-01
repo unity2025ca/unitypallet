@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, CreditCard, CheckCircle2, Truck, ShoppingBag, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -41,11 +40,19 @@ const checkoutSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  address: z.string().min(5, "Address must be at least 5 characters"),
-  city: z.string().min(2, "City must be at least 2 characters"),
-  province: z.string().min(2, "Province/State must be at least 2 characters"),
-  postalCode: z.string().min(5, "Please enter a valid postal code"),
-  country: z.string().min(2, "Country must be at least 2 characters"),
+  deliveryMethod: z.enum(["delivery", "pickup"], {
+    required_error: "Please select a delivery method",
+  }),
+  address: z.string().min(5, "Address must be at least 5 characters").optional()
+    .or(z.string().min(5, "Address must be at least 5 characters")),
+  city: z.string().min(2, "City must be at least 2 characters").optional()
+    .or(z.string().min(2, "City must be at least 2 characters")),
+  province: z.string().min(2, "Province/State must be at least 2 characters").optional()
+    .or(z.string().min(2, "Province/State must be at least 2 characters")),
+  postalCode: z.string().min(5, "Please enter a valid postal code").optional()
+    .or(z.string().min(5, "Please enter a valid postal code")),
+  country: z.string().min(2, "Country must be at least 2 characters").optional()
+    .or(z.string().min(2, "Country must be at least 2 characters")),
   notes: z.string().optional(),
   shippingCost: z.number().optional(),
 });
@@ -72,6 +79,7 @@ const CheckoutPage = () => {
       fullName: customer?.fullName || "",
       email: customer?.email || "",
       phone: customer?.phone || "",
+      deliveryMethod: "delivery", // Default to delivery
       address: customer?.address || "",
       city: customer?.city || "",
       province: "",
@@ -173,7 +181,26 @@ const CheckoutPage = () => {
     // Show processing message
     toast({
       title: "Processing Order",
-      description: "We're calculating your shipping cost and preparing your order...",
+      description: "Preparing your order...",
+      duration: 3000,
+    });
+
+    // If pickup is selected, skip shipping cost calculation
+    if (data.deliveryMethod === 'pickup') {
+      console.log('Pickup selected, skipping shipping calculation');
+      
+      // Use 0 shipping cost for pickup
+      placeOrderMutation.mutate({
+        ...data,
+        shippingCost: 0
+      });
+      return;
+    }
+    
+    // For delivery, calculate shipping cost
+    toast({
+      title: "Calculating Shipping",
+      description: "We're calculating your shipping cost...",
       duration: 3000,
     });
 
@@ -404,80 +431,128 @@ const CheckoutPage = () => {
               </div>
               
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold border-b pb-2">Shipping Information</h2>
+                <h2 className="text-xl font-semibold border-b pb-2">Delivery Method</h2>
                 
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="deliveryMethod"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Street Address" {...field} />
-                      </FormControl>
+                    <FormItem className="space-y-3">
+                      <FormLabel>Select how you'd like to receive your order</FormLabel>
+                      <div className="flex flex-col gap-4 sm:flex-row">
+                        <label className={`flex items-center border rounded-lg p-4 cursor-pointer transition-colors ${field.value === 'delivery' ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                          <input
+                            type="radio"
+                            value="delivery"
+                            className="sr-only"
+                            checked={field.value === 'delivery'}
+                            onChange={() => field.onChange('delivery')}
+                          />
+                          <Truck className={`h-5 w-5 mr-3 ${field.value === 'delivery' ? 'text-red-600' : 'text-gray-500'}`} />
+                          <div>
+                            <span className="font-medium block">Delivery</span>
+                            <span className="text-sm text-gray-500">We'll ship to your address</span>
+                          </div>
+                        </label>
+
+                        <label className={`flex items-center border rounded-lg p-4 cursor-pointer transition-colors ${field.value === 'pickup' ? 'border-red-600 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                          <input
+                            type="radio"
+                            value="pickup"
+                            className="sr-only"
+                            checked={field.value === 'pickup'}
+                            onChange={() => field.onChange('pickup')}
+                          />
+                          <CheckCircle2 className={`h-5 w-5 mr-3 ${field.value === 'pickup' ? 'text-red-600' : 'text-gray-500'}`} />
+                          <div>
+                            <span className="font-medium block">Pickup</span>
+                            <span className="text-sm text-gray-500">Pick up at our warehouse</span>
+                          </div>
+                        </label>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input placeholder="City" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="province"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Province/State</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Province/State" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="postalCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Postal/ZIP Code</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Postal/ZIP Code" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="country"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Country" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
+              
+              {form.watch('deliveryMethod') === 'delivery' && (
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold border-b pb-2">Shipping Information</h2>
+                  
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Street Address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input placeholder="City" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="province"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Province/State</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Province/State" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="postalCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postal/ZIP Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Postal/ZIP Code" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Country" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
               
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold border-b pb-2">Additional Information</h2>
@@ -506,12 +581,15 @@ const CheckoutPage = () => {
                   cart={cart} 
                   shippingCost={shippingCost}
                   onShippingCostCalculated={setShippingCost}
-                  shippingAddress={{
-                    city: form.watch('city'),
-                    province: form.watch('province'),
-                    country: form.watch('country'),
-                    postalCode: form.watch('postalCode')
-                  }}
+                  deliveryMethod={form.watch('deliveryMethod')}
+                  shippingAddress={
+                    form.watch('deliveryMethod') === 'delivery' ? {
+                      city: form.watch('city') || "",
+                      province: form.watch('province') || "",
+                      country: form.watch('country') || "",
+                      postalCode: form.watch('postalCode')
+                    } : null
+                  }
                 />
               </div>
               
@@ -541,12 +619,15 @@ const CheckoutPage = () => {
             cart={cart} 
             shippingCost={shippingCost}
             onShippingCostCalculated={setShippingCost}
-            shippingAddress={{
-              city: form.watch('city'),
-              province: form.watch('province'),
-              country: form.watch('country'),
-              postalCode: form.watch('postalCode')
-            }}
+            deliveryMethod={form.watch('deliveryMethod')}
+            shippingAddress={
+              form.watch('deliveryMethod') === 'delivery' ? {
+                city: form.watch('city') || "",
+                province: form.watch('province') || "",
+                country: form.watch('country') || "",
+                postalCode: form.watch('postalCode')
+              } : null
+            }
           />
         </div>
       </div>
@@ -559,7 +640,8 @@ const OrderSummary = ({
   cart, 
   shippingCost = 0, 
   shippingAddress = null,
-  onShippingCostCalculated
+  onShippingCostCalculated,
+  deliveryMethod = 'delivery'
 }: { 
   cart: CartResponse; 
   shippingCost?: number;
@@ -570,14 +652,16 @@ const OrderSummary = ({
     country: string;
     postalCode?: string;
   } | null;
+  deliveryMethod?: string;
 }) => {
   const [calculatingShipping, setCalculatingShipping] = useState(false);
   const [calculatedShippingCost, setCalculatedShippingCost] = useState<number | null>(null);
   
-  // Calculate shipping when address changes
+  // Calculate shipping when address changes and delivery method is 'delivery'
   useEffect(() => {
-    // Only calculate if we have a shipping address
-    if (shippingAddress && shippingAddress.city && shippingAddress.province && shippingAddress.country) {
+    // Only calculate if delivery method is 'delivery' and we have a shipping address
+    if (deliveryMethod === 'delivery' && shippingAddress && 
+        shippingAddress.city && shippingAddress.province && shippingAddress.country) {
       setCalculatingShipping(true);
       
       console.log('Calculating shipping for address:', {
@@ -633,14 +717,27 @@ const OrderSummary = ({
       .finally(() => {
         setCalculatingShipping(false);
       });
+    } else if (deliveryMethod === 'pickup') {
+      // If pickup is selected, set shipping cost to 0
+      setCalculatedShippingCost(0);
+      if (onShippingCostCalculated) {
+        onShippingCostCalculated(0);
+      }
     } else {
       // Clear shipping cost if no address
       setCalculatedShippingCost(null);
     }
-  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country, shippingAddress?.postalCode, onShippingCostCalculated]);
+  }, [
+    deliveryMethod,
+    shippingAddress?.city, 
+    shippingAddress?.province, 
+    shippingAddress?.country, 
+    shippingAddress?.postalCode, 
+    onShippingCostCalculated
+  ]);
   
   // Use provided shipping cost from parent, or calculated cost
-  const finalShippingCost = shippingCost || calculatedShippingCost || 0;
+  const finalShippingCost = deliveryMethod === 'pickup' ? 0 : (shippingCost || calculatedShippingCost || 0);
   
   // Calculate total
   const total = cart.total + finalShippingCost;
@@ -685,6 +782,8 @@ const OrderSummary = ({
               <Loader2 className="h-3 w-3 mr-2 animate-spin" />
               Calculating...
             </span>
+          ) : deliveryMethod === 'pickup' ? (
+            <span>Free (Pickup)</span>
           ) : finalShippingCost > 0 ? (
             <span>C${(finalShippingCost / 100).toFixed(2)}</span>
           ) : (
