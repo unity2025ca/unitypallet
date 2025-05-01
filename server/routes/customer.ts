@@ -202,8 +202,7 @@ router.get("/orders/:id", async (req, res) => {
 
     // Get specific order with items - using raw SQL to ensure it works
     const orderResults = await db.execute(
-      `SELECT * FROM orders WHERE id = $1 AND user_id = $2`,
-      [orderId, req.user.id]
+      `SELECT * FROM orders WHERE id = ${orderId} AND user_id = ${req.user.id}`
     );
 
     if (!orderResults.rows || orderResults.rows.length === 0) {
@@ -216,8 +215,7 @@ router.get("/orders/:id", async (req, res) => {
     const orderItemsResults = await db.execute(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = $1`,
-      [orderId]
+       WHERE oi.order_id = ${orderId}`
     );
 
     order.items = orderItemsResults.rows || [];
