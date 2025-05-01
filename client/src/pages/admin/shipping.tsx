@@ -69,6 +69,19 @@ const rateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+// Define a type that includes both null and undefined for zoneId
+// to solve database compatibility issues
+type LocationFormData = {
+  city: string;
+  province: string;
+  country: string;
+  postalCode?: string;
+  latitude: string;
+  longitude: string;
+  isWarehouse: boolean;
+  zoneId?: number | null;
+};
+
 const locationSchema = z.object({
   city: z.string().min(1, "City is required"),
   province: z.string().min(1, "Province is required"),
@@ -77,7 +90,7 @@ const locationSchema = z.object({
   latitude: z.string().min(1, "Latitude is required"),
   longitude: z.string().min(1, "Longitude is required"),
   isWarehouse: z.boolean().default(false),
-  zoneId: z.number().optional(),
+  zoneId: z.number().nullable().optional(),
 });
 
 // Helper function to format currency
@@ -395,10 +408,19 @@ const ShippingManagement = () => {
   };
 
   const onLocationSubmit = async (values: z.infer<typeof locationSchema>) => {
+    // Ensure zoneId is properly handled (null instead of undefined for database)
+    const formattedValues = {
+      ...values,
+      zoneId: values.zoneId === undefined ? null : values.zoneId
+    };
+    
     if (editingLocation) {
-      await updateLocationMutation.mutateAsync({ id: editingLocation.id, data: values });
+      await updateLocationMutation.mutateAsync({ 
+        id: editingLocation.id, 
+        data: formattedValues 
+      });
     } else {
-      await createLocationMutation.mutateAsync(values);
+      await createLocationMutation.mutateAsync(formattedValues);
     }
   };
 
@@ -438,7 +460,7 @@ const ShippingManagement = () => {
       latitude: location.latitude,
       longitude: location.longitude,
       isWarehouse: location.isWarehouse,
-      zoneId: location.zoneId,
+      zoneId: location.zoneId || undefined, // Convert null to undefined for the form
     });
     setOpenLocationDialog(true);
   };
