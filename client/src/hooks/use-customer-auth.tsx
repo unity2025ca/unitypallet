@@ -51,13 +51,13 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (data: User) => {
       queryClient.setQueryData(["/api/customer"], data);
       toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: `مرحباً بعودتك ${data.fullName || data.username}`,
+        title: "Login Successful",
+        description: `Welcome back, ${data.fullName || data.username}!`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "فشل تسجيل الدخول",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -77,13 +77,13 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (data: User) => {
       queryClient.setQueryData(["/api/customer"], data);
       toast({
-        title: "تم التسجيل بنجاح",
-        description: "مرحباً بك في منصتنا!",
+        title: "Registration Successful",
+        description: "Welcome to our platform!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "فشل التسجيل",
+        title: "Registration Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -101,13 +101,13 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/customer"], null);
       toast({
-        title: "تم تسجيل الخروج",
-        description: "تم تسجيل خروجك بنجاح",
+        title: "Logged Out",
+        description: "You have been successfully logged out",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "فشل تسجيل الخروج",
+        title: "Logout Failed",
         description: error.message,
         variant: "destructive",
       });
