@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import { storage } from '../storage';
-import { getAddressCoordinates } from '../utils/geocoding';
 
 const router = express.Router();
 
@@ -8,7 +7,6 @@ const router = express.Router();
 router.post('/calculate', async (req: Request, res: Response) => {
   try {
     const { 
-      address,
       city,
       province,
       postalCode,
@@ -27,27 +25,33 @@ router.post('/calculate', async (req: Request, res: Response) => {
       return res.json({ shippingCost: 2000 }); // $20 default shipping in cents
     }
 
-    // Combine the address parts
-    const fullAddress = `${address}, ${city}, ${province}, ${postalCode}, ${country}`;
+    // For now, use Toronto as the base location for shipping
+    // This is a simplified approach until we have geocoding integrated
+    const defaultLocation = await storage.getAllLocations();
+    let customerLocation = defaultLocation.find(loc => 
+      loc.city.toLowerCase() === city.toLowerCase() && 
+      loc.province.toLowerCase() === province.toLowerCase()
+    );
     
-    // Get coordinates for the customer address
-    const destinationCoordinates = await getAddressCoordinates(fullAddress);
-    
-    if (!destinationCoordinates) {
-      // Could not geocode the address, return default shipping cost
-      return res.json({ shippingCost: 2000 }); // $20 default shipping
+    // If we don't have the exact location, find a location in the same province
+    if (!customerLocation) {
+      customerLocation = defaultLocation.find(loc => 
+        loc.province.toLowerCase() === province.toLowerCase()
+      );
     }
 
-    // Find the closest warehouse
+    // If still no location found, use first warehouse as default
+    if (!customerLocation) {
+      // Fallback to fixed shipping cost
+      return res.json({ shippingCost: 3000 }); // $30 default for unknown locations
+    }
+
+    // Find the lowest shipping cost from any warehouse to the customer's location
     const shippingCosts = await Promise.all(
       warehouses.map(async (warehouse) => {
-        // Calculate shipping cost from this warehouse to customer address
-        return storage.calculateShippingCostByCoordinates(
-          parseFloat(warehouse.latitude),
-          parseFloat(warehouse.longitude),
-          destinationCoordinates.lat,
-          destinationCoordinates.lng,
-          warehouse.zoneId || undefined
+        return storage.calculateShippingCost(
+          warehouse.id,
+          customerLocation!.id
         );
       })
     );

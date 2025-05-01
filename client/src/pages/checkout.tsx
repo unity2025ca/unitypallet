@@ -136,6 +136,9 @@ const CheckoutPage = () => {
     }
   });
 
+  // State for shipping cost
+  const [shippingCost, setShippingCost] = useState<number>(0);
+
   // Handle form submission
   const onSubmit = (data: CheckoutFormValues) => {
     if (!cart || cart.items.length === 0) {
@@ -146,8 +149,41 @@ const CheckoutPage = () => {
       });
       return;
     }
-    
-    placeOrderMutation.mutate(data);
+
+    // Calculate shipping cost right before submitting
+    apiRequest('POST', '/api/shipping/calculate', {
+      city: data.city,
+      province: data.province,
+      country: data.country
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.shippingCost !== undefined) {
+        setShippingCost(result.shippingCost);
+        
+        // Add shipping cost to the order data
+        placeOrderMutation.mutate({
+          ...data,
+          shippingCost: result.shippingCost
+        });
+      } else {
+        throw new Error("No shipping cost returned from API");
+      }
+    })
+    .catch(error => {
+      console.error("Error calculating shipping cost:", error);
+      toast({
+        title: "Shipping Calculation Error",
+        description: "Could not calculate shipping cost. Using default cost.",
+        variant: "destructive",
+      });
+      
+      // Use a default shipping cost if calculation fails
+      placeOrderMutation.mutate({
+        ...data,
+        shippingCost: 2000 // Default $20.00 in cents
+      });
+    });
   };
 
   // Handle authentication issues
@@ -454,7 +490,60 @@ const CheckoutPage = () => {
 };
 
 // Order Summary Component
-const OrderSummary = ({ cart }: { cart: CartResponse }) => {
+const OrderSummary = ({ 
+  cart, 
+  shippingCost = 0, 
+  shippingAddress = null 
+}: { 
+  cart: CartResponse; 
+  shippingCost?: number; 
+  shippingAddress?: {
+    city: string;
+    province: string;
+    country: string;
+  } | null;
+}) => {
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
+  const [calculatedShippingCost, setCalculatedShippingCost] = useState<number | null>(null);
+  
+  // Calculate shipping when address changes
+  useEffect(() => {
+    // Only calculate if we have a shipping address
+    if (shippingAddress && shippingAddress.city && shippingAddress.province && shippingAddress.country) {
+      setCalculatingShipping(true);
+      
+      // Call the shipping calculation API
+      apiRequest('POST', '/api/shipping/calculate', {
+        city: shippingAddress.city,
+        province: shippingAddress.province,
+        country: shippingAddress.country
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.shippingCost !== undefined) {
+          setCalculatedShippingCost(data.shippingCost);
+        }
+      })
+      .catch(error => {
+        console.error('Error calculating shipping:', error);
+        // Set to null on error
+        setCalculatedShippingCost(null);
+      })
+      .finally(() => {
+        setCalculatingShipping(false);
+      });
+    } else {
+      // Clear shipping cost if no address
+      setCalculatedShippingCost(null);
+    }
+  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country]);
+  
+  // Use provided shipping cost from parent, or calculated cost
+  const finalShippingCost = shippingCost || calculatedShippingCost || 0;
+  
+  // Calculate total
+  const total = cart.total + finalShippingCost;
+
   return (
     <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 sticky top-6">
       <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
@@ -475,7 +564,7 @@ const OrderSummary = ({ cart }: { cart: CartResponse }) => {
             <div className="flex-1">
               <h3 className="text-sm font-medium">{item.product.title}</h3>
               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-              <p className="text-sm font-medium">C${(item.product.price * item.quantity).toFixed(2)}</p>
+              <p className="text-sm font-medium">C${(item.product.price * item.quantity / 100).toFixed(2)}</p>
             </div>
           </div>
         ))}
@@ -486,11 +575,20 @@ const OrderSummary = ({ cart }: { cart: CartResponse }) => {
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-gray-600">Subtotal</span>
-          <span>C${cart.total.toFixed(2)}</span>
+          <span>C${(cart.total / 100).toFixed(2)}</span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <span className="text-gray-600">Shipping</span>
-          <span>Calculated at next step</span>
+          {calculatingShipping ? (
+            <span className="flex items-center">
+              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+              Calculating...
+            </span>
+          ) : finalShippingCost > 0 ? (
+            <span>C${(finalShippingCost / 100).toFixed(2)}</span>
+          ) : (
+            <span>{shippingAddress ? "Free" : "Enter shipping address"}</span>
+          )}
         </div>
       </div>
       
@@ -498,11 +596,11 @@ const OrderSummary = ({ cart }: { cart: CartResponse }) => {
       
       <div className="flex justify-between font-bold text-lg">
         <span>Total</span>
-        <span>C${cart.total.toFixed(2)}</span>
+        <span>C${(total / 100).toFixed(2)}</span>
       </div>
       
       <div className="mt-6 text-sm text-gray-500">
-        <p>Payment will be collected upon delivery (Cash on Delivery).</p>
+        <p>Secure payment via credit card processed by Stripe.</p>
       </div>
     </div>
   );
