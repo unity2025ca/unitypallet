@@ -353,6 +353,62 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({
   createdAt: true,
 });
 
+// Shipping Zones schema
+export const shippingZones = pgTable("shipping_zones", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertShippingZoneSchema = createInsertSchema(shippingZones).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Shipping Rates schema
+export const shippingRates = pgTable("shipping_rates", {
+  id: serial("id").primaryKey(),
+  zoneId: integer("zone_id").notNull().references(() => shippingZones.id, { onDelete: 'cascade' }),
+  minDistance: integer("min_distance").notNull(), // in kilometers
+  maxDistance: integer("max_distance").notNull(), // in kilometers
+  baseRate: integer("base_rate").notNull(), // Base shipping rate in cents
+  additionalRatePerKm: integer("additional_rate_per_km").notNull(), // Additional rate per km in cents
+  minWeight: integer("min_weight"), // in grams, optional
+  maxWeight: integer("max_weight"), // in grams, optional
+  additionalRatePerKg: integer("additional_rate_per_kg").default(0), // Additional rate per kg in cents
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertShippingRateSchema = createInsertSchema(shippingRates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Cities/Locations for shipping distance calculation
+export const locations = pgTable("locations", {
+  id: serial("id").primaryKey(),
+  city: text("city").notNull(),
+  province: text("province").notNull(),
+  country: text("country").notNull().default("Canada"),
+  postalCode: text("postal_code"),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  isWarehouse: boolean("is_warehouse").default(false), // Is this a warehouse/fulfillment center
+  zoneId: integer("zone_id").references(() => shippingZones.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertLocationSchema = createInsertSchema(locations).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types for orders and carts
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
@@ -362,3 +418,11 @@ export type Cart = typeof carts.$inferSelect;
 export type InsertCart = z.infer<typeof insertCartSchema>;
 export type CartItem = typeof cartItems.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+
+// Export types for shipping
+export type ShippingZone = typeof shippingZones.$inferSelect;
+export type InsertShippingZone = z.infer<typeof insertShippingZoneSchema>;
+export type ShippingRate = typeof shippingRates.$inferSelect;
+export type InsertShippingRate = z.infer<typeof insertShippingRateSchema>;
+export type Location = typeof locations.$inferSelect;
+export type InsertLocation = z.infer<typeof insertLocationSchema>;

@@ -126,6 +126,33 @@ export interface IStorage {
   createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem>;
   getOrderItemsByOrderId(orderId: number): Promise<OrderItem[]>;
   
+  // Shipping Zone methods
+  createShippingZone(zoneData: InsertShippingZone): Promise<ShippingZone>;
+  getShippingZoneById(id: number): Promise<ShippingZone | undefined>;
+  getAllShippingZones(): Promise<ShippingZone[]>;
+  updateShippingZone(id: number, zoneData: Partial<InsertShippingZone>): Promise<ShippingZone | undefined>;
+  deleteShippingZone(id: number): Promise<boolean>;
+  
+  // Shipping Rate methods
+  createShippingRate(rateData: InsertShippingRate): Promise<ShippingRate>;
+  getShippingRateById(id: number): Promise<ShippingRate | undefined>;
+  getShippingRatesByZoneId(zoneId: number): Promise<ShippingRate[]>;
+  getAllShippingRates(): Promise<ShippingRate[]>;
+  updateShippingRate(id: number, rateData: Partial<InsertShippingRate>): Promise<ShippingRate | undefined>;
+  deleteShippingRate(id: number): Promise<boolean>;
+  
+  // Location methods
+  createLocation(locationData: InsertLocation): Promise<Location>;
+  getLocationById(id: number): Promise<Location | undefined>;
+  getAllLocations(): Promise<Location[]>;
+  getWarehouseLocations(): Promise<Location[]>;
+  updateLocation(id: number, locationData: Partial<InsertLocation>): Promise<Location | undefined>;
+  deleteLocation(id: number): Promise<boolean>;
+  
+  // Shipping calculation
+  calculateShippingCost(fromLocationId: number, toLocationId: number, weight?: number): Promise<number>;
+  calculateShippingCostByCoordinates(fromLat: number, fromLng: number, toLat: number, toLng: number, zoneId?: number, weight?: number): Promise<number>;
+  
   // Session store
   sessionStore: any; // Simplify type for session store
 }
@@ -1034,6 +1061,252 @@ export class DatabaseStorage implements IStorage {
       console.error('Error getting order items by order ID:', error);
       throw error;
     }
+  }
+
+  // Shipping Zone methods
+  async createShippingZone(zoneData: InsertShippingZone): Promise<ShippingZone> {
+    const result = await db.insert(shippingZones).values(zoneData).returning();
+    return result[0];
+  }
+
+  async getShippingZoneById(id: number): Promise<ShippingZone | undefined> {
+    const result = await db.select().from(shippingZones).where(eq(shippingZones.id, id));
+    return result[0];
+  }
+
+  async getAllShippingZones(): Promise<ShippingZone[]> {
+    return db.select().from(shippingZones).orderBy(asc(shippingZones.name));
+  }
+
+  async updateShippingZone(id: number, zoneData: Partial<InsertShippingZone>): Promise<ShippingZone | undefined> {
+    const result = await db
+      .update(shippingZones)
+      .set({
+        ...zoneData,
+        updatedAt: new Date()
+      })
+      .where(eq(shippingZones.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteShippingZone(id: number): Promise<boolean> {
+    const result = await db
+      .delete(shippingZones)
+      .where(eq(shippingZones.id, id))
+      .returning({ id: shippingZones.id });
+    
+    return result.length > 0;
+  }
+
+  // Shipping Rate methods
+  async createShippingRate(rateData: InsertShippingRate): Promise<ShippingRate> {
+    const result = await db.insert(shippingRates).values(rateData).returning();
+    return result[0];
+  }
+
+  async getShippingRateById(id: number): Promise<ShippingRate | undefined> {
+    const result = await db.select().from(shippingRates).where(eq(shippingRates.id, id));
+    return result[0];
+  }
+
+  async getShippingRatesByZoneId(zoneId: number): Promise<ShippingRate[]> {
+    return db
+      .select()
+      .from(shippingRates)
+      .where(eq(shippingRates.zoneId, zoneId))
+      .orderBy(asc(shippingRates.minDistance));
+  }
+
+  async getAllShippingRates(): Promise<ShippingRate[]> {
+    return db
+      .select()
+      .from(shippingRates)
+      .orderBy(asc(shippingRates.zoneId), asc(shippingRates.minDistance));
+  }
+
+  async updateShippingRate(id: number, rateData: Partial<InsertShippingRate>): Promise<ShippingRate | undefined> {
+    const result = await db
+      .update(shippingRates)
+      .set({
+        ...rateData,
+        updatedAt: new Date()
+      })
+      .where(eq(shippingRates.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteShippingRate(id: number): Promise<boolean> {
+    const result = await db
+      .delete(shippingRates)
+      .where(eq(shippingRates.id, id))
+      .returning({ id: shippingRates.id });
+    
+    return result.length > 0;
+  }
+
+  // Location methods
+  async createLocation(locationData: InsertLocation): Promise<Location> {
+    const result = await db.insert(locations).values(locationData).returning();
+    return result[0];
+  }
+
+  async getLocationById(id: number): Promise<Location | undefined> {
+    const result = await db.select().from(locations).where(eq(locations.id, id));
+    return result[0];
+  }
+
+  async getAllLocations(): Promise<Location[]> {
+    return db
+      .select()
+      .from(locations)
+      .orderBy(asc(locations.city), asc(locations.province));
+  }
+
+  async getWarehouseLocations(): Promise<Location[]> {
+    return db
+      .select()
+      .from(locations)
+      .where(eq(locations.isWarehouse, true))
+      .orderBy(asc(locations.city));
+  }
+
+  async updateLocation(id: number, locationData: Partial<InsertLocation>): Promise<Location | undefined> {
+    const result = await db
+      .update(locations)
+      .set(locationData)
+      .where(eq(locations.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteLocation(id: number): Promise<boolean> {
+    const result = await db
+      .delete(locations)
+      .where(eq(locations.id, id))
+      .returning({ id: locations.id });
+    
+    return result.length > 0;
+  }
+
+  // Calculate shipping cost based on distance
+  async calculateShippingCost(fromLocationId: number, toLocationId: number, weight: number = 0): Promise<number> {
+    // Get location coordinates
+    const fromLocation = await this.getLocationById(fromLocationId);
+    const toLocation = await this.getLocationById(toLocationId);
+    
+    if (!fromLocation || !toLocation) {
+      throw new Error("One or both locations not found");
+    }
+    
+    // If locations are in the same zone, use that zone for calculation
+    let zoneId = null;
+    if (fromLocation.zoneId && toLocation.zoneId && fromLocation.zoneId === toLocation.zoneId) {
+      zoneId = fromLocation.zoneId;
+    }
+    
+    // Calculate distance using Haversine formula
+    return this.calculateShippingCostByCoordinates(
+      parseFloat(fromLocation.latitude),
+      parseFloat(fromLocation.longitude),
+      parseFloat(toLocation.latitude),
+      parseFloat(toLocation.longitude),
+      zoneId,
+      weight
+    );
+  }
+
+  async calculateShippingCostByCoordinates(
+    fromLat: number, 
+    fromLng: number, 
+    toLat: number, 
+    toLng: number, 
+    zoneId?: number,
+    weight: number = 0
+  ): Promise<number> {
+    // Calculate distance using Haversine formula
+    const R = 6371; // Earth radius in kilometers
+    const dLat = this.deg2rad(toLat - fromLat);
+    const dLng = this.deg2rad(toLng - fromLng);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(fromLat)) * Math.cos(this.deg2rad(toLat)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    
+    // Find applicable shipping rate
+    let applicableRates: ShippingRate[] = [];
+    
+    if (zoneId) {
+      // If zone is provided, get rates for that zone
+      applicableRates = await db
+        .select()
+        .from(shippingRates)
+        .where(
+          and(
+            eq(shippingRates.zoneId, zoneId),
+            eq(shippingRates.isActive, true),
+            lte(shippingRates.minDistance, distance),
+            gte(shippingRates.maxDistance, distance)
+          )
+        );
+    }
+    
+    // If no rates found or no zone provided, find a rate based on distance from any zone
+    if (applicableRates.length === 0) {
+      applicableRates = await db
+        .select()
+        .from(shippingRates)
+        .where(
+          and(
+            eq(shippingRates.isActive, true),
+            lte(shippingRates.minDistance, distance),
+            gte(shippingRates.maxDistance, distance)
+          )
+        );
+    }
+    
+    // If still no rates, use the rate with the highest max distance
+    if (applicableRates.length === 0) {
+      applicableRates = await db
+        .select()
+        .from(shippingRates)
+        .where(eq(shippingRates.isActive, true))
+        .orderBy(desc(shippingRates.maxDistance))
+        .limit(1);
+    }
+    
+    if (applicableRates.length === 0) {
+      // No shipping rates defined, return a default cost
+      return 2000; // $20.00 in cents
+    }
+    
+    const rate = applicableRates[0];
+    
+    // Calculate base cost based on distance
+    let shippingCost = rate.baseRate;
+    
+    // Add distance-based cost
+    const additionalDistance = Math.max(0, distance - rate.minDistance);
+    shippingCost += Math.round(additionalDistance * rate.additionalRatePerKm);
+    
+    // Add weight-based cost if applicable
+    if (weight > 0 && rate.additionalRatePerKg && rate.additionalRatePerKg > 0) {
+      const weightInKg = weight / 1000; // Convert grams to kg
+      shippingCost += Math.round(weightInKg * rate.additionalRatePerKg);
+    }
+    
+    return shippingCost;
+  }
+  
+  // Helper method to convert degrees to radians
+  private deg2rad(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 }
 
