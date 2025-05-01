@@ -30,22 +30,39 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
       return res.status(400).json({ error: "Invalid amount" });
     }
     
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: "cad", // Canadian dollars
+    // Create a checkout session instead of a payment intent
+    // This will redirect the user to Stripe's hosted checkout page
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              name: `Order #${orderId}`,
+              description: 'Purchase from Unity Pallets',
+            },
+            unit_amount: Math.round(amount * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${req.headers.origin}/account?order_success=true&order_id=${orderId}`,
+      cancel_url: `${req.headers.origin}/checkout?canceled=true`,
       metadata: {
-        orderId: orderId || "manual_checkout", // You can store order ID for reference
-        userId: req.user.id.toString(),
+        orderId: orderId || "manual_checkout",
+        userId: req.user ? req.user.id.toString() : "",
       },
     });
     
-    // Return the client secret
+    // Return the session ID
     res.json({
-      clientSecret: paymentIntent.client_secret,
+      sessionId: session.id,
+      url: session.url,
     });
   } catch (error: any) {
-    console.error("Error creating payment intent:", error);
+    console.error("Error creating payment session:", error);
     res.status(500).json({ error: error.message });
   }
 });

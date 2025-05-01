@@ -80,42 +80,55 @@ const CheckoutPage = () => {
     },
   });
 
-  // Place order mutation
+  // Place order mutation and redirect to Stripe payment
   const placeOrderMutation = useMutation({
     mutationFn: async (data: CheckoutFormValues) => {
-      const res = await apiRequest('POST', '/api/orders', {
+      // First create the order in our system
+      const orderRes = await apiRequest('POST', '/api/orders', {
         ...data,
-        paymentMethod: "cash_on_delivery", // Default payment method
+        paymentMethod: "credit_card", // Changed to credit card for Stripe payment
       });
       
-      if (!res.ok) {
-        const errorData = await res.json();
+      if (!orderRes.ok) {
+        const errorData = await orderRes.json();
         throw new Error(errorData.error || "Failed to place order");
       }
       
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      // Update order status
-      setOrderPlaced(true);
-      setOrderId(data.id);
+      const orderData = await orderRes.json();
       
-      // Clear cart after successful order
-      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
-      
-      // Show success message
-      toast({
-        title: "Order Placed Successfully!",
-        description: `Your order #${data.id} has been placed. We'll contact you soon about delivery.`,
-        duration: 5000,
+      // Next, create a payment session with Stripe
+      const paymentRes = await apiRequest('POST', '/api/stripe/create-payment-intent', {
+        amount: orderData.total,
+        orderId: orderData.id
       });
       
-      // Scroll to top
-      window.scrollTo(0, 0);
+      if (!paymentRes.ok) {
+        const errorData = await paymentRes.json();
+        throw new Error(errorData.error || "Failed to create payment");
+      }
+      
+      const { url } = await paymentRes.json();
+      
+      // Redirect to the Stripe checkout URL directly
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("No checkout URL received from server");
+      }
+      
+      return orderData;
+    },
+    onSuccess: () => {
+      // We won't reach this code since we're redirecting to Stripe's checkout page
+      toast({
+        title: "Redirecting to Payment",
+        description: "You will be redirected to the secure payment page.",
+        duration: 3000,
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to Place Order",
+        title: "Failed to Process Order",
         description: error.message,
         variant: "destructive",
         duration: 5000,

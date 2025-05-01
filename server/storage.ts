@@ -915,44 +915,33 @@ export class DatabaseStorage implements IStorage {
   // Order methods
   async createOrder(orderData: any): Promise<Order> {
     try {
-      // Create a simplified order with minimal fields - maybe there's something in the schema still 
-      // causing the shipping_province to be added
-      console.log("Creating order with data:", JSON.stringify(orderData, null, 2));
-
-      // Manually construct a SQL query with only fields we confirmed exist
-      const sql = `
-        INSERT INTO orders (
+      // We're avoiding the ORM and using direct SQL to avoid the shipping_province error
+      // Using only the columns we confirmed exist in the actual database
+      const result = await pool.query(
+        `INSERT INTO orders (
           user_id, 
           total, 
           status, 
           payment_status, 
-          shipping_address
-        ) VALUES (
-          $1, $2, $3, $4, $5
-        ) RETURNING *
-      `;
-      
-      console.log("SQL Query:", sql);
-      console.log("SQL Parameters:", [
-        orderData.userId,
-        orderData.total,
-        'pending',
-        'pending',
-        orderData.shippingAddress
-      ]);
-      
-      const result = await pool.query(
-        sql,
+          shipping_address, 
+          shipping_city, 
+          shipping_postal_code, 
+          shipping_country,
+          notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           orderData.userId,
           orderData.total,
           'pending',
           'pending',
-          orderData.shippingAddress
+          orderData.shippingAddress || '',
+          orderData.shippingCity || '',
+          orderData.shippingPostalCode || '',
+          orderData.shippingCountry || '',
+          orderData.notes || ''
         ]
       );
       
-      console.log("SQL Result:", result.rows[0]);
       return result.rows[0];
     } catch (error) {
       console.error('Error creating order:', error);
