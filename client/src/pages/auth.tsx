@@ -75,12 +75,12 @@ export default function AuthPage() {
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center">
-              {activeTab === "login" ? "تسجيل الدخول" : "إنشاء حساب جديد"}
+              {activeTab === "login" ? "Login" : "Create New Account"}
             </CardTitle>
             <CardDescription className="text-center">
               {activeTab === "login" 
-                ? "مرحبًا بعودتك! يرجى إدخال بيانات تسجيل الدخول للوصول إلى حسابك."
-                : "نحن سعداء لانضمامك إلينا! أنشئ حسابك الآن للاستمتاع بتجربة تسوق مميزة."}
+                ? "Welcome back! Please enter your login details to access your account."
+                : "We're glad you're joining us! Create your account now to enjoy a premium shopping experience."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -91,8 +91,8 @@ export default function AuthPage() {
               className="w-full"
             >
               <TabsList className="grid grid-cols-2 w-full mb-6">
-                <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
-                <TabsTrigger value="register">حساب جديد</TabsTrigger>
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
               
               {/* Login Form */}
@@ -104,9 +104,9 @@ export default function AuthPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>اسم المستخدم</FormLabel>
+                          <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="أدخل اسم المستخدم" {...field} />
+                            <Input placeholder="Enter username" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -118,9 +118,9 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>كلمة المرور</FormLabel>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="أدخل كلمة المرور" {...field} />
+                            <Input type="password" placeholder="Enter password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -135,9 +135,9 @@ export default function AuthPage() {
                       {loginMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          جارِ تسجيل الدخول...
+                          Logging in...
                         </>
-                      ) : "تسجيل الدخول"}
+                      ) : "Login"}
                     </Button>
                   </form>
                 </Form>
@@ -152,9 +152,9 @@ export default function AuthPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>اسم المستخدم</FormLabel>
+                          <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="أدخل اسم المستخدم" {...field} />
+                            <Input placeholder="Enter username" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -166,9 +166,9 @@ export default function AuthPage() {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>الاسم الكامل</FormLabel>
+                          <FormLabel>Full Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="أدخل الاسم الكامل" {...safeInputProps(field)} />
+                            <Input placeholder="Enter your full name" {...safeInputProps(field)} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -180,7 +180,7 @@ export default function AuthPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>البريد الإلكتروني</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="your@email.com" {...safeInputProps(field)} />
                           </FormControl>
@@ -194,7 +194,7 @@ export default function AuthPage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>رقم الهاتف</FormLabel>
+                          <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <Input placeholder="+123456789" {...safeInputProps(field)} />
                           </FormControl>
@@ -208,9 +208,9 @@ export default function AuthPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>كلمة المرور</FormLabel>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="أدخل كلمة المرور" {...field} />
+                            <Input type="password" placeholder="Enter password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -222,9 +222,9 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>تأكيد كلمة المرور</FormLabel>
+                          <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="أعد إدخال كلمة المرور" {...field} />
+                            <Input type="password" placeholder="Re-enter password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -239,9 +239,9 @@ export default function AuthPage() {
                       {registerMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          جارِ إنشاء الحساب...
+                          Creating account...
                         </>
-                      ) : "إنشاء حساب"}
+                      ) : "Create Account"}
                     </Button>
                   </form>
                 </Form>
@@ -251,32 +251,32 @@ export default function AuthPage() {
         </Card>
         
         {/* Right Column: Hero/Information */}
-        <div className="flex flex-col space-y-6 justify-center text-center md:text-right">
+        <div className="flex flex-col space-y-6 justify-center text-center md:text-left">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-            وحدة للكترونيات والمنتجات
+            Unity Electronics & Products
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl max-w-[600px] mx-auto md:mx-0">
-            أنشئ حسابك الآن واستمتع بالوصول إلى جميع المنتجات المتميزة والعروض الحصرية.
-            تسوق بسهولة وأمان من خلال منصتنا المتطورة.
+            Create your account now and enjoy access to all our premium products and exclusive offers.
+            Shop easily and securely through our advanced platform.
           </p>
           <div className="flex flex-col space-y-3">
             <div className="flex items-center justify-center md:justify-start">
               <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                 1
               </div>
-              <p className="mr-4 text-lg font-medium">سهولة التسوق والطلب مباشرة عبر الموقع</p>
+              <p className="ml-4 text-lg font-medium">Easy shopping and ordering directly through the website</p>
             </div>
             <div className="flex items-center justify-center md:justify-start">
               <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                 2
               </div>
-              <p className="mr-4 text-lg font-medium">متابعة حالة الطلبات بسهولة وأمان</p>
+              <p className="ml-4 text-lg font-medium">Track order status easily and securely</p>
             </div>
             <div className="flex items-center justify-center md:justify-start">
               <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                 3
               </div>
-              <p className="mr-4 text-lg font-medium">الدفع الآمن والسريع عبر بوابة دفع متكاملة</p>
+              <p className="ml-4 text-lg font-medium">Secure and fast payment through an integrated payment gateway</p>
             </div>
           </div>
         </div>
