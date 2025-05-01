@@ -33,8 +33,8 @@ export default function AccountPage() {
 
   // Format date to locale string
   const formatDate = (date: string | Date | null) => {
-    if (!date) return "غير محدد";
-    return new Date(date).toLocaleDateString("ar-SA", {
+    if (!date) return "Not specified";
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
