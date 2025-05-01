@@ -505,10 +505,12 @@ const CheckoutPage = () => {
                 <OrderSummary 
                   cart={cart} 
                   shippingCost={shippingCost}
+                  onShippingCostCalculated={setShippingCost}
                   shippingAddress={{
                     city: form.watch('city'),
                     province: form.watch('province'),
-                    country: form.watch('country')
+                    country: form.watch('country'),
+                    postalCode: form.watch('postalCode')
                   }}
                 />
               </div>
@@ -541,7 +543,8 @@ const CheckoutPage = () => {
             shippingAddress={{
               city: form.watch('city'),
               province: form.watch('province'),
-              country: form.watch('country')
+              country: form.watch('country'),
+              postalCode: form.watch('postalCode')
             }}
           />
         </div>
@@ -554,10 +557,12 @@ const CheckoutPage = () => {
 const OrderSummary = ({ 
   cart, 
   shippingCost = 0, 
-  shippingAddress = null 
+  shippingAddress = null,
+  onShippingCostCalculated
 }: { 
   cart: CartResponse; 
-  shippingCost?: number; 
+  shippingCost?: number;
+  onShippingCostCalculated?: (cost: number) => void;
   shippingAddress?: {
     city: string;
     province: string;
@@ -577,7 +582,8 @@ const OrderSummary = ({
       console.log('Calculating shipping for address:', {
         city: shippingAddress.city,
         province: shippingAddress.province,
-        country: shippingAddress.country
+        country: shippingAddress.country,
+        postalCode: shippingAddress.postalCode || ''
       });
       
       // Call the shipping calculation API
@@ -596,17 +602,32 @@ const OrderSummary = ({
       .then(data => {
         console.log('Shipping calculation response:', data);
         if (data.shippingCost !== undefined) {
-          setCalculatedShippingCost(data.shippingCost);
+          const cost = data.shippingCost;
+          setCalculatedShippingCost(cost);
+          // Notify parent component about the calculated cost
+          if (onShippingCostCalculated) {
+            onShippingCostCalculated(cost);
+          }
         } else {
           console.error('Invalid shipping cost response:', data);
           // Use a default cost when the response is invalid
-          setCalculatedShippingCost(3000); // $30 default
+          const defaultCost = 3000; // $30 default
+          setCalculatedShippingCost(defaultCost);
+          // Notify parent component about the default cost
+          if (onShippingCostCalculated) {
+            onShippingCostCalculated(defaultCost);
+          }
         }
       })
       .catch(error => {
         console.error('Error calculating shipping:', error);
         // Set a default cost on error instead of null
-        setCalculatedShippingCost(3000); // $30 default
+        const defaultCost = 3000; // $30 default
+        setCalculatedShippingCost(defaultCost);
+        // Notify parent component about the default cost
+        if (onShippingCostCalculated) {
+          onShippingCostCalculated(defaultCost);
+        }
       })
       .finally(() => {
         setCalculatingShipping(false);
@@ -615,7 +636,7 @@ const OrderSummary = ({
       // Clear shipping cost if no address
       setCalculatedShippingCost(null);
     }
-  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country, shippingAddress?.postalCode]);
+  }, [shippingAddress?.city, shippingAddress?.province, shippingAddress?.country, shippingAddress?.postalCode, onShippingCostCalculated]);
   
   // Use provided shipping cost from parent, or calculated cost
   const finalShippingCost = shippingCost || calculatedShippingCost || 0;
