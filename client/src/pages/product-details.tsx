@@ -187,6 +187,9 @@ const ProductDetailsPage = () => {
                     size="lg" 
                     className="w-full text-xl py-6 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg"
                     disabled={product.status === "soldout"}
+                    onClick={() => {
+                      window.open(`https://wa.me/12892166500?text=I'm interested in purchasing: ${product.title} (C$${product.price})`, '_blank');
+                    }}
                   >
                     {product.status === "soldout" ? (
                       "Sold Out"
