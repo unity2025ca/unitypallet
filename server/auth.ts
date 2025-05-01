@@ -15,19 +15,19 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-// هاش كلمة المرور
+// Hash password
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
-// المقارنة بين كلمات المرور
+// Compare passwords
 async function comparePasswords(supplied: string, stored: string) {
   try {
     console.log('Comparing passwords, stored format:', stored ? stored.substring(0, 10) + '...' : 'null');
     
-    // تحقق من أن كلمة المرور المخزنة بالشكل الصحيح
+    // Check if stored password is in valid format
     if (!stored || !stored.includes('.')) {
       console.error('Invalid stored password format, missing salt separator');
       return false;
@@ -35,7 +35,7 @@ async function comparePasswords(supplied: string, stored: string) {
     
     const [hashed, salt] = stored.split(".");
     
-    // تحقق من وجود الهاش والملح
+    // Check if hash and salt are present
     if (!hashed || !salt) {
       console.error('Invalid stored password, missing hash or salt');
       return false;
@@ -51,7 +51,7 @@ async function comparePasswords(supplied: string, stored: string) {
     const hashedBuf = Buffer.from(hashed, "hex");
     const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
     
-    // تحقق من أن الأطوال متساوية قبل المقارنة
+    // Check if lengths match before comparison
     if (hashedBuf.length !== suppliedBuf.length) {
       console.error('Hash length mismatch', { 
         hashedLength: hashedBuf.length, 

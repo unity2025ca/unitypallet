@@ -185,7 +185,7 @@ export const translations = {
       username: "Username",
       password: "Password",
       submit: "Login",
-      error: "Error in username or password"
+      error: "Invalid username or password"
     },
     dashboard: {
       title: "Dashboard",
