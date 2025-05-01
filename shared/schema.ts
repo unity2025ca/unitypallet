@@ -2,22 +2,44 @@ import { pgTable, text, serial, integer, varchar, boolean, timestamp, pgEnum } f
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema for authentication
+// User schema for authentication - keep backward compatibility for now
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email"),
+  fullName: text("full_name"),
+  phone: text("phone"),
   isAdmin: boolean("is_admin").default(false),
   roleType: text("role_type").default("user"),
-  // Note: role enum field will be added later via migration
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  address: text("address"),
+  city: text("city"),
+  postalCode: text("postal_code"),
+  country: text("country"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  isAdmin: true,
-  roleType: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
 });
+
+// Customer registration schema (simplified for public registration)
+export const customerRegistrationSchema = createInsertSchema(users)
+  .pick({
+    username: true,
+    password: true,
+    email: true,
+    fullName: true,
+    phone: true,
+  })
+  .extend({
+    confirmPassword: z.string(),
+  });
 
 // Category enum for product categories
 export const categoryEnum = pgEnum("category", [
@@ -115,8 +137,16 @@ export const insertFaqSchema = createInsertSchema(faqs).omit({
 });
 
 // Types export
+// Authentication schema
+export const loginSchema = z.object({
+  username: z.string().min(3, "اسم المستخدم مطلوب"),
+  password: z.string().min(6, "كلمة المرور مطلوبة"),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type CustomerRegistration = z.infer<typeof customerRegistrationSchema>;
+export type LoginCredentials = z.infer<typeof loginSchema>;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -237,3 +267,98 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Order status enum
+export const orderStatusEnum = pgEnum("order_status", [
+  "pending",
+  "processing",
+  "completed",
+  "cancelled",
+  "refunded",
+]);
+
+// Payment status enum
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending", 
+  "paid",
+  "failed",
+  "refunded",
+]);
+
+// Orders schema
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  status: orderStatusEnum("status").default("pending"),
+  paymentStatus: paymentStatusEnum("payment_status").default("pending"),
+  paymentIntentId: text("payment_intent_id"),
+  total: integer("total").notNull(),
+  shippingAddress: text("shipping_address"),
+  shippingCity: text("shipping_city"),
+  shippingPostalCode: text("shipping_postal_code"),
+  shippingCountry: text("shipping_country"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  paymentIntentId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Order Items schema
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  quantity: integer("quantity").notNull(),
+  pricePerUnit: integer("price_per_unit").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Cart schema (for shopping cart functionality)
+export const carts = pgTable("carts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  sessionId: text("session_id"), // For non-logged-in users
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCartSchema = createInsertSchema(carts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Cart Items schema
+export const cartItems = pgTable("cart_items", {
+  id: serial("id").primaryKey(),
+  cartId: integer("cart_id").notNull().references(() => carts.id, { onDelete: 'cascade' }),
+  productId: integer("product_id").notNull().references(() => products.id),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCartItemSchema = createInsertSchema(cartItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Export types for orders and carts
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type Cart = typeof carts.$inferSelect;
+export type InsertCart = z.infer<typeof insertCartSchema>;
+export type CartItem = typeof cartItems.$inferSelect;
+export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
