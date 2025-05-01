@@ -19,13 +19,18 @@ router.get("/", async (req: Request, res: Response) => {
     // For each order, get its items
     if (orders && orders.length > 0) {
       for (const order of orders) {
-        const { rows: orderItems } = await db.execute(
-          `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
-           JOIN products p ON oi.product_id = p.id 
-           WHERE oi.order_id = $1`,
-          [order.id]
-        );
-        order.items = orderItems || [];
+        try {
+          const { rows: orderItems } = await db.execute(
+            `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
+             JOIN products p ON oi.product_id = p.id 
+             WHERE oi.order_id = $1`,
+            [order.id]
+          );
+          order.items = orderItems || [];
+        } catch (error) {
+          console.error(`Error fetching items for order ${order.id}:`, error);
+          order.items = [];
+        }
       }
     }
     

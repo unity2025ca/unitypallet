@@ -141,28 +141,48 @@ router.get("/orders", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated as customer" });
     }
 
-    // Use raw SQL directly to avoid schema issues
-    const { rows: orders } = await db.execute(
-      `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
-      [req.user.id]
-    );
-    
-    // If we have orders, get the items for each order
-    if (orders && orders.length > 0) {
-      // Fetch order items for each order
-      for (const order of orders) {
-        const { rows: orderItems } = await db.execute(
-          `SELECT oi.*, p.title, p.price FROM order_items oi 
-           JOIN products p ON oi.product_id = p.id 
-           WHERE oi.order_id = $1`,
-          [order.id]
-        );
-        order.items = orderItems || [];
+    try {
+      // Use raw SQL directly to avoid schema issues
+      const result = await db.execute(
+        `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
+        [req.user.id]
+      );
+      
+      const orders = result.rows || [];
+      
+      // If we have orders, get the items for each order
+      if (orders.length > 0) {
+        // Fetch order items for each order
+        for (const order of orders) {
+          try {
+            const itemsResult = await db.execute(
+              `SELECT oi.*, p.title, p.price FROM order_items oi 
+               JOIN products p ON oi.product_id = p.id 
+               WHERE oi.order_id = $1`,
+              [order.id]
+            );
+            order.items = itemsResult.rows || [];
+          } catch (itemError) {
+            console.error(`Error fetching items for order ${order.id}:`, itemError);
+            order.items = [];
+          }
+        }
+      }
+      
+      // Return orders
+      return res.json(orders);
+    } catch (sqlError) {
+      console.error("Database query error:", sqlError);
+      
+      // Fallback to direct DB storage method
+      try {
+        const userOrders = await storage.getOrdersByCustomerId(req.user.id);
+        return res.json(userOrders || []);
+      } catch (storageError) {
+        console.error("Storage fallback error:", storageError);
+        return res.status(500).json({ error: "Failed to fetch orders" });
       }
     }
-
-    // Return the orders (even if empty)
-    return res.json(orders || []);
   } catch (error) {
     console.error("Error fetching customer orders:", error);
     return res.status(500).json({ error: "Failed to fetch orders" });
