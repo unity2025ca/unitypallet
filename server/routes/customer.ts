@@ -3,7 +3,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "../storage";
 import { customerRegistrationSchema, loginSchema } from "@shared/schema";
-import { db } from "../db";
+import { db, pool } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
@@ -200,9 +200,10 @@ router.get("/orders/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid order ID" });
     }
 
-    // Get specific order with items - using raw SQL to ensure it works
-    const orderResults = await db.execute(
-      `SELECT * FROM orders WHERE id = ${orderId} AND user_id = ${req.user.id}`
+    // Get specific order with items - using raw SQL with proper parameterized queries
+    const orderResults = await pool.query(
+      `SELECT * FROM orders WHERE id = $1 AND user_id = $2`,
+      [orderId, req.user.id]
     );
 
     if (!orderResults.rows || orderResults.rows.length === 0) {
@@ -212,10 +213,11 @@ router.get("/orders/:id", async (req, res) => {
     const order = orderResults.rows[0];
 
     // Get order items
-    const orderItemsResults = await db.execute(
+    const orderItemsResults = await pool.query(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = ${orderId}`
+       WHERE oi.order_id = $1`,
+      [orderId]
     );
 
     order.items = orderItemsResults.rows || [];
