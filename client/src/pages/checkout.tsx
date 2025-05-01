@@ -73,7 +73,7 @@ const CheckoutPage = () => {
       phone: customer?.phone || "",
       address: customer?.address || "",
       city: customer?.city || "",
-      province: customer?.province || "",
+      province: "",
       postalCode: customer?.postalCode || "",
       country: customer?.country || "Canada",
       notes: "",

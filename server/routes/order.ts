@@ -83,15 +83,18 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     const order = await storage.createOrder(orderData);
     
     // Create order items
-    for (const item of cart.items) {
-      const orderItem: InsertOrderItem = {
-        orderId: order.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        pricePerUnit: item.product.price
-      };
-      
-      await storage.createOrderItem(orderItem);
+    const cartItems = Array.isArray(cart.items) ? cart.items : [];
+    for (const item of cartItems) {
+      if (item && item.productId && item.quantity && item.product && item.product.price) {
+        const orderItem: InsertOrderItem = {
+          orderId: order.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          pricePerUnit: item.product.price
+        };
+        
+        await storage.createOrderItem(orderItem);
+      }
     }
     
     // Clear the cart by calling the cart DELETE endpoint
