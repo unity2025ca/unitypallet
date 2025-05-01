@@ -42,7 +42,8 @@ const CartBubble = () => {
     setIsVisible(!location.startsWith('/admin') && !location.includes('/cart'));
   }, [location]);
 
-  if (!isVisible || !cart || cart.itemCount === 0) {
+  // Always show the bubble even if cart is empty
+  if (!isVisible || !cart) {
     return null;
   }
 
