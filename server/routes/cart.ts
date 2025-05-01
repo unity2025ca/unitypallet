@@ -315,4 +315,48 @@ router.post("/transfer", async (req, res) => {
   }
 });
 
+// Clear the cart completely
+router.delete('/clear', ensureCartExists, async (req: Request, res: Response) => {
+  try {
+    // For authenticated users, clear by user ID
+    if (req.isAuthenticated() && req.user) {
+      const userId = req.user.id;
+      
+      // Get the cart ID
+      const [cart] = await db.select()
+        .from(carts)
+        .where(eq(carts.userId, userId));
+      
+      if (cart) {
+        // Delete all cart items
+        await db.delete(cartItems)
+          .where(eq(cartItems.cartId, cart.id));
+        
+        res.status(200).json({ success: true, message: 'Cart cleared successfully' });
+        return;
+      }
+    }
+    
+    // For non-authenticated users, use session-based cart
+    if (req.session.cartSessionId) {
+      const sessionId = req.session.cartSessionId;
+      
+      const [cart] = await db.select()
+        .from(carts)
+        .where(eq(carts.sessionId, sessionId));
+      
+      if (cart) {
+        // Delete all cart items
+        await db.delete(cartItems)
+          .where(eq(cartItems.cartId, cart.id));
+      }
+    }
+    
+    res.status(200).json({ success: true, message: 'Cart cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    res.status(500).json({ error: 'Failed to clear cart' });
+  }
+});
+
 export default router;

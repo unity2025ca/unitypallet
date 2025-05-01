@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { storage } from '../storage';
 import { InsertOrder, InsertOrderItem } from '@shared/schema';
 import { authenticateCustomer } from '../middleware/auth';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
@@ -30,7 +31,18 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     }
     
     const customerId = req.user.id;
-    const cart = await storage.getCartByCustomerId(customerId);
+    // Get the cart from the cart API endpoint
+    const response = await fetch(`http://localhost:5000/api/cart`, {
+      headers: {
+        Cookie: req.headers.cookie || ''
+      }
+    });
+    
+    if (!response.ok) {
+      return res.status(400).json({ error: 'Failed to fetch cart' });
+    }
+    
+    const cart = await response.json();
     
     if (!cart || !cart.items || cart.items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
@@ -52,11 +64,15 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     
     // Create order
     const orderData: InsertOrder = {
-      customerId,
+      userId: customerId,
+      total: cart.total,
       orderDate: new Date(),
       status: 'pending',
-      totalAmount: cart.total,
       shippingAddress: `${address}, ${city}, ${province}, ${postalCode}, ${country}`,
+      shippingCity: city,
+      shippingProvince: province,
+      shippingPostalCode: postalCode,
+      shippingCountry: country,
       contactEmail: email,
       contactPhone: phone,
       contactName: fullName,
@@ -73,15 +89,21 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity,
-        price: item.product.price,
+        pricePerUnit: item.product.price,
         totalPrice: item.product.price * item.quantity
       };
       
       await storage.createOrderItem(orderItem);
     }
     
-    // Clear the cart
-    await storage.clearCart(cart.id);
+    // Clear the cart by calling the cart DELETE endpoint
+    await fetch(`http://localhost:5000/api/cart/clear`, {
+      method: 'DELETE',
+      headers: {
+        Cookie: req.headers.cookie || '',
+        'Content-Type': 'application/json'
+      }
+    });
     
     res.status(201).json(order);
   } catch (error) {
