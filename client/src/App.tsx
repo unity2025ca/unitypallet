@@ -34,6 +34,7 @@ import AdminUsers from "@/pages/admin/users";
 import AdminVisitorStats from "@/pages/admin/visitor-stats";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
+import CartBubble from "@/components/shared/CartBubble";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
 
@@ -83,6 +84,7 @@ function Router() {
       </Switch>
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <AppointmentBubble />}
+      {!isAdminRoute && <CartBubble />}
     </>
   );
 }
