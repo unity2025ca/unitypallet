@@ -11,7 +11,7 @@ router.get('/zones', async (req, res) => {
   try {
     const zones = await storage.getAllShippingZones();
     res.json(zones);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting shipping zones:', error);
     res.status(500).json({ error: 'Failed to get shipping zones' });
   }
@@ -27,7 +27,7 @@ router.get('/zones/:id', async (req, res) => {
     }
     
     res.json(zone);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting shipping zone:', error);
     res.status(500).json({ error: 'Failed to get shipping zone' });
   }
@@ -38,7 +38,7 @@ router.post('/zones', async (req, res) => {
     const zoneData = insertShippingZoneSchema.parse(req.body);
     const newZone = await storage.createShippingZone(zoneData);
     res.status(201).json(newZone);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating shipping zone:', error);
     res.status(400).json({ error: 'Failed to create shipping zone', details: error.toString() });
   }
@@ -56,7 +56,7 @@ router.put('/zones/:id', async (req, res) => {
     }
     
     res.json(updatedZone);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating shipping zone:', error);
     res.status(400).json({ error: 'Failed to update shipping zone', details: error.toString() });
   }
@@ -72,7 +72,7 @@ router.delete('/zones/:id', async (req, res) => {
     }
     
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting shipping zone:', error);
     res.status(500).json({ error: 'Failed to delete shipping zone' });
   }
@@ -83,7 +83,7 @@ router.get('/rates', async (req, res) => {
   try {
     const rates = await storage.getAllShippingRates();
     res.json(rates);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting shipping rates:', error);
     res.status(500).json({ error: 'Failed to get shipping rates' });
   }
@@ -94,7 +94,7 @@ router.get('/zones/:zoneId/rates', async (req, res) => {
     const zoneId = parseInt(req.params.zoneId);
     const rates = await storage.getShippingRatesByZoneId(zoneId);
     res.json(rates);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting shipping rates for zone:', error);
     res.status(500).json({ error: 'Failed to get shipping rates for zone' });
   }
@@ -110,7 +110,7 @@ router.get('/rates/:id', async (req, res) => {
     }
     
     res.json(rate);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting shipping rate:', error);
     res.status(500).json({ error: 'Failed to get shipping rate' });
   }
@@ -121,7 +121,7 @@ router.post('/rates', async (req, res) => {
     const rateData = insertShippingRateSchema.parse(req.body);
     const newRate = await storage.createShippingRate(rateData);
     res.status(201).json(newRate);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating shipping rate:', error);
     res.status(400).json({ error: 'Failed to create shipping rate', details: error.toString() });
   }
@@ -139,7 +139,7 @@ router.put('/rates/:id', async (req, res) => {
     }
     
     res.json(updatedRate);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating shipping rate:', error);
     res.status(400).json({ error: 'Failed to update shipping rate', details: error.toString() });
   }
@@ -155,7 +155,7 @@ router.delete('/rates/:id', async (req, res) => {
     }
     
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting shipping rate:', error);
     res.status(500).json({ error: 'Failed to delete shipping rate' });
   }
@@ -166,7 +166,7 @@ router.get('/locations', async (req, res) => {
   try {
     const locations = await storage.getAllLocations();
     res.json(locations);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting locations:', error);
     res.status(500).json({ error: 'Failed to get locations' });
   }
@@ -176,7 +176,7 @@ router.get('/locations/warehouses', async (req, res) => {
   try {
     const warehouses = await storage.getWarehouseLocations();
     res.json(warehouses);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting warehouse locations:', error);
     res.status(500).json({ error: 'Failed to get warehouse locations' });
   }
@@ -192,7 +192,7 @@ router.get('/locations/:id', async (req, res) => {
     }
     
     res.json(location);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting location:', error);
     res.status(500).json({ error: 'Failed to get location' });
   }
@@ -203,7 +203,7 @@ router.post('/locations', async (req, res) => {
     const locationData = insertLocationSchema.parse(req.body);
     const newLocation = await storage.createLocation(locationData);
     res.status(201).json(newLocation);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating location:', error);
     res.status(400).json({ error: 'Failed to create location', details: error.toString() });
   }
@@ -221,7 +221,7 @@ router.put('/locations/:id', async (req, res) => {
     }
     
     res.json(updatedLocation);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating location:', error);
     res.status(400).json({ error: 'Failed to update location', details: error.toString() });
   }
@@ -237,7 +237,7 @@ router.delete('/locations/:id', async (req, res) => {
     }
     
     res.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting location:', error);
     res.status(500).json({ error: 'Failed to delete location' });
   }
@@ -259,7 +259,7 @@ router.post('/calculate-shipping', async (req, res) => {
     );
     
     res.json({ cost: shippingCost });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error calculating shipping cost:', error);
     res.status(500).json({ error: 'Failed to calculate shipping cost', details: error.toString() });
   }
