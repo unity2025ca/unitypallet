@@ -1,0 +1,498 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronLeft, CreditCard, CheckCircle2, Truck, ShoppingBag } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useCustomerAuth } from "@/hooks/use-customer-auth";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+interface CartItem {
+  id: number;
+  productId: number;
+  quantity: number;
+  product: {
+    id: number;
+    title: string;
+    price: number;
+    imageUrl: string;
+    status: string;
+  };
+}
+
+interface CartResponse {
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+}
+
+// Form schema for checkout
+const checkoutSchema = z.object({
+  fullName: z.string().min(3, "Full name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  city: z.string().min(2, "City must be at least 2 characters"),
+  province: z.string().min(2, "Province/State must be at least 2 characters"),
+  postalCode: z.string().min(5, "Please enter a valid postal code"),
+  country: z.string().min(2, "Country must be at least 2 characters"),
+  notes: z.string().optional(),
+});
+
+type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+const CheckoutPage = () => {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { customer } = useCustomerAuth();
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
+
+  // Get cart data
+  const { data: cart, isLoading: isLoadingCart } = useQuery<CartResponse>({
+    queryKey: ['/api/cart'],
+    staleTime: 1000 * 30, // 30 seconds
+  });
+
+  // Form setup
+  const form = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      fullName: customer?.fullName || "",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+      address: customer?.address || "",
+      city: customer?.city || "",
+      province: customer?.province || "",
+      postalCode: customer?.postalCode || "",
+      country: customer?.country || "Canada",
+      notes: "",
+    },
+  });
+
+  // Place order mutation
+  const placeOrderMutation = useMutation({
+    mutationFn: async (data: CheckoutFormValues) => {
+      const res = await apiRequest('POST', '/api/orders', {
+        ...data,
+        paymentMethod: "cash_on_delivery", // Default payment method
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to place order");
+      }
+      
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      // Update order status
+      setOrderPlaced(true);
+      setOrderId(data.id);
+      
+      // Clear cart after successful order
+      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      
+      // Show success message
+      toast({
+        title: "Order Placed Successfully!",
+        description: `Your order #${data.id} has been placed. We'll contact you soon about delivery.`,
+        duration: 5000,
+      });
+      
+      // Scroll to top
+      window.scrollTo(0, 0);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Place Order",
+        description: error.message,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+
+  // Handle form submission
+  const onSubmit = (data: CheckoutFormValues) => {
+    if (!cart || cart.items.length === 0) {
+      toast({
+        title: "Cart is Empty",
+        description: "Please add items to your cart before checkout",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    placeOrderMutation.mutate(data);
+  };
+
+  // Handle authentication issues
+  if (!customer) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+          <div className="text-amber-500 mb-4">
+            <CreditCard className="h-12 w-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-amber-700 mb-2">Login Required</h2>
+          <p className="text-amber-600 mb-4">Please login or create an account to proceed with checkout.</p>
+          <Button onClick={() => setLocation("/auth?redirect=/checkout")}>
+            Login / Register
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Order success screen
+  if (orderPlaced && orderId) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6 pb-8">
+            <div className="text-center">
+              <div className="text-green-500 mb-4">
+                <CheckCircle2 className="h-16 w-16 mx-auto" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
+              <p className="text-gray-600 mb-6">
+                Thank you for your order. Your order number is <strong>#{orderId}</strong>.
+              </p>
+              
+              <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                <h3 className="text-lg font-medium mb-3">What happens next?</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <span>We'll review your order and contact you shortly to confirm.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <span>You'll receive an email with your order details.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Truck className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <span>We'll coordinate with you for delivery or pickup.</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button onClick={() => setLocation("/account")} variant="outline">
+                  View My Account
+                </Button>
+                <Button onClick={() => setLocation("/")}>
+                  Continue Shopping
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoadingCart) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <Skeleton className="h-12 w-48 mb-6" />
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          </div>
+          <div>
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No items in cart
+  if (!cart || cart.items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-10 text-center">
+          <div className="text-gray-400 mb-4">
+            <ShoppingBag className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
+          <p className="text-gray-500 mb-8">Add items to your cart before proceeding to checkout.</p>
+          <Button asChild size="lg">
+            <a href="/products">Browse Products</a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-16">
+      <div className="flex items-center mb-8">
+        <Button variant="ghost" onClick={() => setLocation("/cart")} className="mr-4">
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Cart
+        </Button>
+        <h1 className="text-3xl font-bold">Checkout</h1>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        {/* Checkout Form */}
+        <div className="md:col-span-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold border-b pb-2">Contact Information</h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Full Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Email" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Phone Number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold border-b pb-2">Shipping Information</h2>
+                
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Street Address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="province"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Province/State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Province/State" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="postalCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Postal/ZIP Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Postal/ZIP Code" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold border-b pb-2">Additional Information</h2>
+                
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Notes (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Special instructions for delivery or any other notes" 
+                          className="min-h-[100px]"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="md:hidden">
+                <OrderSummary cart={cart} />
+              </div>
+              
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  className="w-full py-6 text-xl bg-red-600 hover:bg-red-700" 
+                  disabled={placeOrderMutation.isPending}
+                >
+                  {placeOrderMutation.isPending ? (
+                    <>
+                      <div className="h-5 w-5 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Place Order"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+        
+        {/* Order Summary */}
+        <div className="hidden md:block">
+          <OrderSummary cart={cart} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Order Summary Component
+const OrderSummary = ({ cart }: { cart: CartResponse }) => {
+  return (
+    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 sticky top-6">
+      <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+      
+      <div className="space-y-4 mb-4">
+        {cart.items.map((item) => (
+          <div key={item.id} className="flex gap-4">
+            <div className="h-16 w-16 flex-shrink-0 rounded-md border border-gray-200 overflow-hidden">
+              <img
+                src={item.product.imageUrl}
+                alt={item.product.title}
+                className="h-full w-full object-cover object-center"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Image+Not+Available";
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium">{item.product.title}</h3>
+              <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+              <p className="text-sm font-medium">C${(item.product.price * item.quantity).toFixed(2)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <Separator className="my-4" />
+      
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <span className="text-gray-600">Subtotal</span>
+          <span>C${cart.total.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">Shipping</span>
+          <span>Calculated at next step</span>
+        </div>
+      </div>
+      
+      <Separator className="my-4" />
+      
+      <div className="flex justify-between font-bold text-lg">
+        <span>Total</span>
+        <span>C${cart.total.toFixed(2)}</span>
+      </div>
+      
+      <div className="mt-6 text-sm text-gray-500">
+        <p>Payment will be collected upon delivery (Cash on Delivery).</p>
+      </div>
+    </div>
+  );
+};
+
+export default CheckoutPage;
