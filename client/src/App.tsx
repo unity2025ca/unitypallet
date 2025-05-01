@@ -59,8 +59,8 @@ function Router() {
         
         {/* Customer Protected Routes */}
         <CustomerProtectedRoute path="/account" component={AccountPage} />
-        <CustomerProtectedRoute path="/orders" component={() => <div>Orders Page</div>} />
-        <CustomerProtectedRoute path="/checkout" component={() => <div>Checkout Page</div>} />
+        <CustomerProtectedRoute path="/orders" component={() => <div>Orders Page</div> as React.JSX.Element} />
+        <CustomerProtectedRoute path="/checkout" component={() => <div>Checkout Page</div> as React.JSX.Element} />
         
         {/* Admin Routes */}
         <Route path="/admin" component={AdminIndex} />

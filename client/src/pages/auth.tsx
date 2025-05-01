@@ -182,7 +182,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>البريد الإلكتروني</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="your@email.com" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} name={field.name} />
+                            <Input type="email" placeholder="your@email.com" {...safeInputProps(field)} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -196,7 +196,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>رقم الهاتف</FormLabel>
                           <FormControl>
-                            <Input placeholder="+123456789" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} name={field.name} />
+                            <Input placeholder="+123456789" {...safeInputProps(field)} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

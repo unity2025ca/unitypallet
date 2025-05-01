@@ -21,7 +21,7 @@ export default function AccountPage() {
     isLoading: ordersLoading 
   } = useQuery<Order[]>({
     queryKey: ["/api/customer/orders"],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!customer,
   });
 
