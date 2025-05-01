@@ -7,7 +7,11 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("Missing required environment variable: STRIPE_SECRET_KEY");
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+// Make sure to use the secret key (should start with 'sk_')
+const secretKey = process.env.STRIPE_SECRET_KEY;
+console.log("Initializing Stripe with key type:", secretKey.startsWith('sk_') ? 'Secret Key' : 'Wrong Key Type');
+
+const stripe = new Stripe(secretKey, {
   apiVersion: "2023-10-16",
 });
 
