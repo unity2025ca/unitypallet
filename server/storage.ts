@@ -915,23 +915,27 @@ export class DatabaseStorage implements IStorage {
   // Order methods
   async createOrder(orderData: InsertOrder): Promise<Order> {
     try {
-      // Extract only the fields that actually exist in the database
-      const safeOrderData = {
-        userId: orderData.userId,
-        total: orderData.total,
-        status: orderData.status,
-        paymentStatus: orderData.paymentStatus,
-        shippingAddress: orderData.shippingAddress,
-        shippingCity: orderData.shippingCity,
-        shippingPostalCode: orderData.shippingPostalCode,
-        shippingCountry: orderData.shippingCountry,
-        notes: orderData.notes
-      };
+      // Use a direct SQL query with only the columns we know exist
+      const result = await pool.query(
+        `INSERT INTO orders 
+         (user_id, total, status, payment_status, shipping_address, shipping_city, 
+          shipping_postal_code, shipping_country, notes) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+         RETURNING *`,
+        [
+          orderData.userId,
+          orderData.total,
+          orderData.status || 'pending',
+          orderData.paymentStatus || 'pending',
+          orderData.shippingAddress,
+          orderData.shippingCity,
+          orderData.shippingPostalCode,
+          orderData.shippingCountry,
+          orderData.notes
+        ]
+      );
       
-      const [order] = await db.insert(orders)
-        .values(safeOrderData)
-        .returning();
-      return order;
+      return result.rows[0];
     } catch (error) {
       console.error('Error creating order:', error);
       throw error;
@@ -993,10 +997,21 @@ export class DatabaseStorage implements IStorage {
   // Order Item methods
   async createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem> {
     try {
-      const [orderItem] = await db.insert(orderItems)
-        .values(orderItemData)
-        .returning();
-      return orderItem;
+      // Use a direct SQL query with only the columns we know exist
+      const result = await pool.query(
+        `INSERT INTO order_items 
+         (order_id, product_id, quantity, price_per_unit) 
+         VALUES ($1, $2, $3, $4) 
+         RETURNING *`,
+        [
+          orderItemData.orderId,
+          orderItemData.productId,
+          orderItemData.quantity,
+          orderItemData.pricePerUnit
+        ]
+      );
+      
+      return result.rows[0];
     } catch (error) {
       console.error('Error creating order item:', error);
       throw error;
