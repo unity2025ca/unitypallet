@@ -59,7 +59,8 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       postalCode, 
       country,
       notes,
-      paymentMethod
+      paymentMethod,
+      shippingCost
     } = req.body;
     
     // Create order - store province and contact info in the address field to maintain compatibility
@@ -76,6 +77,7 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       shippingCity: city,
       shippingPostalCode: postalCode,
       shippingCountry: country,
+      shippingCost: shippingCost || 0,
       notes: notes ? `${notes}. Payment: ${paymentMethod || 'cash_on_delivery'}` : `Payment: ${paymentMethod || 'cash_on_delivery'}`
     };
     

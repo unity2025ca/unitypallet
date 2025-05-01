@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, CreditCard, CheckCircle2, Truck, ShoppingBag } from "lucide-react";
+import { ChevronLeft, CreditCard, CheckCircle2, Truck, ShoppingBag, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
@@ -47,6 +47,7 @@ const checkoutSchema = z.object({
   postalCode: z.string().min(5, "Please enter a valid postal code"),
   country: z.string().min(2, "Country must be at least 2 characters"),
   notes: z.string().optional(),
+  shippingCost: z.number().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -457,7 +458,15 @@ const CheckoutPage = () => {
               </div>
               
               <div className="md:hidden">
-                <OrderSummary cart={cart} />
+                <OrderSummary 
+                  cart={cart} 
+                  shippingCost={shippingCost}
+                  shippingAddress={{
+                    city: form.watch('city'),
+                    province: form.watch('province'),
+                    country: form.watch('country')
+                  }}
+                />
               </div>
               
               <div className="pt-4">
@@ -482,7 +491,15 @@ const CheckoutPage = () => {
         
         {/* Order Summary */}
         <div className="hidden md:block">
-          <OrderSummary cart={cart} />
+          <OrderSummary 
+            cart={cart} 
+            shippingCost={shippingCost}
+            shippingAddress={{
+              city: form.watch('city'),
+              province: form.watch('province'),
+              country: form.watch('country')
+            }}
+          />
         </div>
       </div>
     </div>
