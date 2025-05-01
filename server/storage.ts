@@ -1231,7 +1231,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // If locations are in the same zone, use that zone for calculation
-      let zoneId = null;
+      let zoneId: number | undefined = undefined;
       if (fromLocation.zoneId && toLocation.zoneId && fromLocation.zoneId === toLocation.zoneId) {
         zoneId = fromLocation.zoneId;
       }

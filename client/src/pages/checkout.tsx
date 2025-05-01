@@ -151,21 +151,42 @@ const CheckoutPage = () => {
       return;
     }
 
+    // Show processing message
+    toast({
+      title: "Processing Order",
+      description: "We're calculating your shipping cost and preparing your order...",
+      duration: 3000,
+    });
+
     // Calculate shipping cost right before submitting
+    console.log('Calculating final shipping cost for order:', {
+      city: data.city,
+      province: data.province,
+      country: data.country
+    });
+    
     apiRequest('POST', '/api/shipping/calculate', {
       city: data.city,
       province: data.province,
       country: data.country
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Shipping calculation failed: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(result => {
+      console.log('Final shipping calculation result:', result);
       if (result.shippingCost !== undefined) {
-        setShippingCost(result.shippingCost);
+        const calculatedShippingCost = result.shippingCost;
+        setShippingCost(calculatedShippingCost);
         
         // Add shipping cost to the order data
+        console.log('Placing order with calculated shipping cost:', calculatedShippingCost);
         placeOrderMutation.mutate({
           ...data,
-          shippingCost: result.shippingCost
+          shippingCost: calculatedShippingCost
         });
       } else {
         throw new Error("No shipping cost returned from API");
@@ -180,9 +201,11 @@ const CheckoutPage = () => {
       });
       
       // Use a default shipping cost if calculation fails
+      const defaultShippingCost = 3000; // Default $30.00 in cents
+      console.log('Using default shipping cost:', defaultShippingCost);
       placeOrderMutation.mutate({
         ...data,
-        shippingCost: 2000 // Default $20.00 in cents
+        shippingCost: defaultShippingCost
       });
     });
   };
@@ -529,22 +552,38 @@ const OrderSummary = ({
     if (shippingAddress && shippingAddress.city && shippingAddress.province && shippingAddress.country) {
       setCalculatingShipping(true);
       
+      console.log('Calculating shipping for address:', {
+        city: shippingAddress.city,
+        province: shippingAddress.province,
+        country: shippingAddress.country
+      });
+      
       // Call the shipping calculation API
       apiRequest('POST', '/api/shipping/calculate', {
         city: shippingAddress.city,
         province: shippingAddress.province,
         country: shippingAddress.country
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Shipping calculation failed: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
+        console.log('Shipping calculation response:', data);
         if (data.shippingCost !== undefined) {
           setCalculatedShippingCost(data.shippingCost);
+        } else {
+          console.error('Invalid shipping cost response:', data);
+          // Use a default cost when the response is invalid
+          setCalculatedShippingCost(3000); // $30 default
         }
       })
       .catch(error => {
         console.error('Error calculating shipping:', error);
-        // Set to null on error
-        setCalculatedShippingCost(null);
+        // Set a default cost on error instead of null
+        setCalculatedShippingCost(3000); // $30 default
       })
       .finally(() => {
         setCalculatingShipping(false);
