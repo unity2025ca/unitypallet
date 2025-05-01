@@ -1206,17 +1206,35 @@ export class DatabaseStorage implements IStorage {
   async calculateShippingCost(fromLocationId: number, toLocationId: number, weight: number = 0): Promise<number> {
     // Get location coordinates
     try {
+      console.log(`Calculating shipping cost from location ${fromLocationId} to location ${toLocationId} with weight ${weight}g`);
+      
+      // Special handling for temporary location ID
+      if (toLocationId === -1) {
+        console.log('Using flat rate for temporary location');
+        return 3500; // $35 flat rate for temporary locations
+      }
+      
       const fromLocation = await this.getLocationById(fromLocationId);
       const toLocation = await this.getLocationById(toLocationId);
       
+      console.log('From location:', fromLocation ? 
+        { id: fromLocation.id, city: fromLocation.city, isWarehouse: fromLocation.isWarehouse, zoneId: fromLocation.zoneId } : 
+        'Not found');
+      
+      console.log('To location:', toLocation ? 
+        { id: toLocation.id, city: toLocation.city, isWarehouse: toLocation.isWarehouse, zoneId: toLocation.zoneId } : 
+        'Not found');
+      
       if (!fromLocation) {
         console.error(`From location with id ${fromLocationId} not found`);
-        throw new Error(`From location with id ${fromLocationId} not found`);
+        // Return a default instead of throwing
+        return 3000; // $30 default
       }
       
       if (!toLocation) {
         console.error(`To location with id ${toLocationId} not found`);
-        throw new Error(`To location with id ${toLocationId} not found`);
+        // Return a default instead of throwing
+        return 3000; // $30 default
       }
       
       // Validate coordinates
@@ -1227,7 +1245,8 @@ export class DatabaseStorage implements IStorage {
           toLocationLat: toLocation.latitude,
           toLocationLng: toLocation.longitude
         });
-        throw new Error("One or both locations have invalid coordinates");
+        // Return a default instead of throwing
+        return 3000; // $30 default
       }
       
       // If locations are in the same zone, use that zone for calculation

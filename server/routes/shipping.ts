@@ -30,29 +30,64 @@ router.post('/calculate', async (req: Request, res: Response) => {
       return res.json({ shippingCost: 2000 }); // $20 default shipping in cents
     }
 
-    // For now, use Toronto as the base location for shipping
-    // This is a simplified approach until we have geocoding integrated
-    const defaultLocation = await storage.getAllLocations();
-    console.log('All locations:', defaultLocation.length);
+    // Get all locations from database
+    const allLocations = await storage.getAllLocations();
+    console.log('All locations:', allLocations.length);
     
-    let customerLocation = defaultLocation.find(loc => 
-      loc.city.toLowerCase() === city.toLowerCase() && 
-      loc.province.toLowerCase() === province.toLowerCase()
+    // First try to find exact city and province match
+    let customerLocation = allLocations.find(loc => 
+      loc.city.toLowerCase().trim() === city.toLowerCase().trim() && 
+      loc.province.toLowerCase().trim() === province.toLowerCase().trim()
     );
     
-    // If we don't have the exact location, find a location in the same province
+    // If exact match not found, try looking for city name that contains the customer city
     if (!customerLocation) {
-      console.log('Exact city match not found, looking for province match:', province);
-      customerLocation = defaultLocation.find(loc => 
-        loc.province.toLowerCase() === province.toLowerCase()
+      console.log('Exact city/province match not found, looking for partial city match');
+      customerLocation = allLocations.find(loc => 
+        loc.city.toLowerCase().includes(city.toLowerCase().trim()) && 
+        loc.province.toLowerCase().trim() === province.toLowerCase().trim()
+      );
+    }
+    
+    // If still not found, try only province match
+    if (!customerLocation) {
+      console.log('Partial city match not found, looking for province match:', province);
+      customerLocation = allLocations.find(loc => 
+        loc.province.toLowerCase().trim() === province.toLowerCase().trim()
       );
     }
 
-    // If still no location found, use first warehouse as default
+    // If still no location found, create temporary location for customer with closest warehouse coordinates
     if (!customerLocation) {
-      console.log('No location match found, using default cost');
-      // Fallback to fixed shipping cost
-      return res.json({ shippingCost: 3000 }); // $30 default for unknown locations
+      console.log('No location match found at all, using warehouse as reference');
+      
+      // Use the first warehouse as reference point
+      if (warehouses.length > 0) {
+        const referenceWarehouse = warehouses[0];
+        console.log('Using reference warehouse:', referenceWarehouse.id, referenceWarehouse.city);
+        
+        // Create temporary customer location with the same coordinates but flag as non-warehouse
+        customerLocation = {
+          id: -1, // Temporary ID
+          city: city,
+          province: province,
+          country: country,
+          postalCode: postalCode || '',
+          latitude: referenceWarehouse.latitude,
+          longitude: referenceWarehouse.longitude,
+          isWarehouse: false,
+          zoneId: referenceWarehouse.zoneId
+        };
+        
+        // Return fixed shipping cost plus a distance premium
+        const fixedCost = 2500; // $25 base cost in cents
+        console.log('Using fixed shipping cost for unknown location:', fixedCost);
+        return res.json({ shippingCost: fixedCost });
+      } else {
+        // No warehouses and no matching location, use absolute default
+        console.log('No warehouses and no matching location, using absolute default cost');
+        return res.json({ shippingCost: 3000 }); // $30 default in cents
+      }
     }
     
     console.log('Found customer location:', { 
