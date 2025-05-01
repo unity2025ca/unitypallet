@@ -915,8 +915,21 @@ export class DatabaseStorage implements IStorage {
   // Order methods
   async createOrder(orderData: InsertOrder): Promise<Order> {
     try {
+      // Extract only the fields that actually exist in the database
+      const safeOrderData = {
+        userId: orderData.userId,
+        total: orderData.total,
+        status: orderData.status,
+        paymentStatus: orderData.paymentStatus,
+        shippingAddress: orderData.shippingAddress,
+        shippingCity: orderData.shippingCity,
+        shippingPostalCode: orderData.shippingPostalCode,
+        shippingCountry: orderData.shippingCountry,
+        notes: orderData.notes
+      };
+      
       const [order] = await db.insert(orders)
-        .values(orderData)
+        .values(safeOrderData)
         .returning();
       return order;
     } catch (error) {
