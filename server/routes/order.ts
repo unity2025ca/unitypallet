@@ -62,22 +62,20 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       paymentMethod
     } = req.body;
     
-    // Create order
+    // Create order - store province and contact info in the address field to maintain compatibility
+    const fullAddress = `${address}, ${city}, ${province}, ${postalCode}, ${country}`;
+    const contactInfo = `Contact: ${fullName}, ${email}, ${phone}`;
+    
     const orderData = {
       userId: customerId,
       total: cart.total || 0,
       status: 'pending' as const,
       paymentStatus: 'pending' as const,
-      shippingAddress: `${address}, ${city}, ${province}, ${postalCode}, ${country}`,
+      shippingAddress: `${fullAddress}. ${contactInfo}`,
       shippingCity: city,
-      shippingProvince: province,
       shippingPostalCode: postalCode,
       shippingCountry: country,
-      contactEmail: email,
-      contactPhone: phone,
-      contactName: fullName,
-      notes: notes || null,
-      paymentMethod: paymentMethod || 'cash_on_delivery'
+      notes: notes ? `${notes}. Payment: ${paymentMethod || 'cash_on_delivery'}` : `Payment: ${paymentMethod || 'cash_on_delivery'}`
     } as InsertOrder;
     
     const order = await storage.createOrder(orderData);
