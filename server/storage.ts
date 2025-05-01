@@ -1205,28 +1205,61 @@ export class DatabaseStorage implements IStorage {
   // Calculate shipping cost based on distance
   async calculateShippingCost(fromLocationId: number, toLocationId: number, weight: number = 0): Promise<number> {
     // Get location coordinates
-    const fromLocation = await this.getLocationById(fromLocationId);
-    const toLocation = await this.getLocationById(toLocationId);
-    
-    if (!fromLocation || !toLocation) {
-      throw new Error("One or both locations not found");
+    try {
+      const fromLocation = await this.getLocationById(fromLocationId);
+      const toLocation = await this.getLocationById(toLocationId);
+      
+      if (!fromLocation) {
+        console.error(`From location with id ${fromLocationId} not found`);
+        throw new Error(`From location with id ${fromLocationId} not found`);
+      }
+      
+      if (!toLocation) {
+        console.error(`To location with id ${toLocationId} not found`);
+        throw new Error(`To location with id ${toLocationId} not found`);
+      }
+      
+      // Validate coordinates
+      if (!fromLocation.latitude || !fromLocation.longitude || !toLocation.latitude || !toLocation.longitude) {
+        console.error('Invalid coordinates', { 
+          fromLocationLat: fromLocation.latitude, 
+          fromLocationLng: fromLocation.longitude,
+          toLocationLat: toLocation.latitude,
+          toLocationLng: toLocation.longitude
+        });
+        throw new Error("One or both locations have invalid coordinates");
+      }
+      
+      // If locations are in the same zone, use that zone for calculation
+      let zoneId = null;
+      if (fromLocation.zoneId && toLocation.zoneId && fromLocation.zoneId === toLocation.zoneId) {
+        zoneId = fromLocation.zoneId;
+      }
+      
+      console.log('Calculating shipping cost between locations:', {
+        fromId: fromLocationId,
+        fromCity: fromLocation.city,
+        fromCoords: [fromLocation.latitude, fromLocation.longitude],
+        toId: toLocationId,
+        toCity: toLocation.city,
+        toCoords: [toLocation.latitude, toLocation.longitude],
+        zoneId,
+        weight
+      });
+      
+      // Calculate distance using Haversine formula
+      return this.calculateShippingCostByCoordinates(
+        parseFloat(fromLocation.latitude),
+        parseFloat(fromLocation.longitude),
+        parseFloat(toLocation.latitude),
+        parseFloat(toLocation.longitude),
+        zoneId,
+        weight
+      );
+    } catch (error) {
+      console.error('Error in calculateShippingCost:', error);
+      throw error;
     }
-    
-    // If locations are in the same zone, use that zone for calculation
-    let zoneId = null;
-    if (fromLocation.zoneId && toLocation.zoneId && fromLocation.zoneId === toLocation.zoneId) {
-      zoneId = fromLocation.zoneId;
-    }
-    
-    // Calculate distance using Haversine formula
-    return this.calculateShippingCostByCoordinates(
-      parseFloat(fromLocation.latitude),
-      parseFloat(fromLocation.longitude),
-      parseFloat(toLocation.latitude),
-      parseFloat(toLocation.longitude),
-      zoneId,
-      weight
-    );
   }
 
   async calculateShippingCostByCoordinates(
@@ -1237,80 +1270,123 @@ export class DatabaseStorage implements IStorage {
     zoneId?: number,
     weight: number = 0
   ): Promise<number> {
-    // Calculate distance using Haversine formula
-    const R = 6371; // Earth radius in kilometers
-    const dLat = this.deg2rad(toLat - fromLat);
-    const dLng = this.deg2rad(toLng - fromLng);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(fromLat)) * Math.cos(this.deg2rad(toLat)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in kilometers
-    
-    // Find applicable shipping rate
-    let applicableRates: ShippingRate[] = [];
-    
-    if (zoneId) {
-      // If zone is provided, get rates for that zone
-      applicableRates = await db
-        .select()
-        .from(shippingRates)
-        .where(
-          and(
-            eq(shippingRates.zoneId, zoneId),
-            eq(shippingRates.isActive, true),
-            lte(shippingRates.minDistance, distance),
-            gte(shippingRates.maxDistance, distance)
-          )
-        );
+    try {
+      // Validate inputs
+      if (isNaN(fromLat) || isNaN(fromLng) || isNaN(toLat) || isNaN(toLng)) {
+        console.error('Invalid coordinate values:', { fromLat, fromLng, toLat, toLng });
+        throw new Error("Invalid coordinate values");
+      }
+      
+      // Calculate distance using Haversine formula
+      const R = 6371; // Earth radius in kilometers
+      const dLat = this.deg2rad(toLat - fromLat);
+      const dLng = this.deg2rad(toLng - fromLng);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(this.deg2rad(fromLat)) * Math.cos(this.deg2rad(toLat)) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in kilometers
+      
+      console.log('Calculated distance:', distance, 'km');
+      
+      // Find applicable shipping rate
+      let applicableRates: ShippingRate[] = [];
+      
+      if (zoneId) {
+        // If zone is provided, get rates for that zone
+        console.log('Looking for rates in zone:', zoneId, 'for distance:', distance);
+        applicableRates = await db
+          .select()
+          .from(shippingRates)
+          .where(
+            and(
+              eq(shippingRates.zoneId, zoneId),
+              eq(shippingRates.isActive, true),
+              lte(shippingRates.minDistance, distance),
+              gte(shippingRates.maxDistance, distance)
+            )
+          );
+      }
+      
+      // If no rates found or no zone provided, find a rate based on distance from any zone
+      if (applicableRates.length === 0) {
+        console.log('No zone-specific rates found, looking for any rate for distance:', distance);
+        applicableRates = await db
+          .select()
+          .from(shippingRates)
+          .where(
+            and(
+              eq(shippingRates.isActive, true),
+              lte(shippingRates.minDistance, distance),
+              gte(shippingRates.maxDistance, distance)
+            )
+          );
+      }
+      
+      // If still no rates, use the rate with the highest max distance
+      if (applicableRates.length === 0) {
+        console.log('No distance-specific rates found, looking for highest maxDistance rate');
+        applicableRates = await db
+          .select()
+          .from(shippingRates)
+          .where(eq(shippingRates.isActive, true))
+          .orderBy(desc(shippingRates.maxDistance))
+          .limit(1);
+      }
+      
+      if (applicableRates.length === 0) {
+        // No shipping rates defined, return a default cost
+        console.log('No shipping rates found at all, using default cost');
+        return 2000; // $20.00 in cents
+      }
+      
+      const rate = applicableRates[0];
+      console.log('Using shipping rate:', {
+        id: rate.id,
+        zoneId: rate.zoneId,
+        minDistance: rate.minDistance,
+        maxDistance: rate.maxDistance,
+        baseRate: rate.baseRate,
+        additionalRatePerKm: rate.additionalRatePerKm
+      });
+      
+      // Calculate base cost based on distance
+      let shippingCost = rate.baseRate;
+      
+      // Add distance-based cost
+      const additionalDistance = Math.max(0, distance - rate.minDistance);
+      const distanceCost = Math.round(additionalDistance * rate.additionalRatePerKm);
+      shippingCost += distanceCost;
+      
+      console.log('Distance-based cost calculation:', {
+        baseRate: rate.baseRate,
+        additionalDistance,
+        distanceCost,
+        subtotal: shippingCost
+      });
+      
+      // Add weight-based cost if applicable
+      if (weight > 0 && rate.additionalRatePerKg && rate.additionalRatePerKg > 0) {
+        const weightInKg = weight / 1000; // Convert grams to kg
+        const weightCost = Math.round(weightInKg * rate.additionalRatePerKg);
+        shippingCost += weightCost;
+        
+        console.log('Weight-based cost calculation:', {
+          weight,
+          weightInKg,
+          additionalRatePerKg: rate.additionalRatePerKg,
+          weightCost,
+          total: shippingCost
+        });
+      }
+      
+      return shippingCost;
+    } catch (error) {
+      console.error('Error calculating shipping cost by coordinates:', error);
+      // Return a default cost in case of error instead of throwing
+      return 2500; // $25 default in case of calculation error
     }
-    
-    // If no rates found or no zone provided, find a rate based on distance from any zone
-    if (applicableRates.length === 0) {
-      applicableRates = await db
-        .select()
-        .from(shippingRates)
-        .where(
-          and(
-            eq(shippingRates.isActive, true),
-            lte(shippingRates.minDistance, distance),
-            gte(shippingRates.maxDistance, distance)
-          )
-        );
-    }
-    
-    // If still no rates, use the rate with the highest max distance
-    if (applicableRates.length === 0) {
-      applicableRates = await db
-        .select()
-        .from(shippingRates)
-        .where(eq(shippingRates.isActive, true))
-        .orderBy(desc(shippingRates.maxDistance))
-        .limit(1);
-    }
-    
-    if (applicableRates.length === 0) {
-      // No shipping rates defined, return a default cost
-      return 2000; // $20.00 in cents
-    }
-    
-    const rate = applicableRates[0];
-    
-    // Calculate base cost based on distance
-    let shippingCost = rate.baseRate;
-    
-    // Add distance-based cost
-    const additionalDistance = Math.max(0, distance - rate.minDistance);
-    shippingCost += Math.round(additionalDistance * rate.additionalRatePerKm);
-    
-    // Add weight-based cost if applicable
-    if (weight > 0 && rate.additionalRatePerKg && rate.additionalRatePerKg > 0) {
-      const weightInKg = weight / 1000; // Convert grams to kg
-      shippingCost += Math.round(weightInKg * rate.additionalRatePerKg);
-    }
-    
-    return shippingCost;
   }
   
   // Helper method to convert degrees to radians
