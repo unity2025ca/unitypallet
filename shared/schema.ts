@@ -139,8 +139,8 @@ export const insertFaqSchema = createInsertSchema(faqs).omit({
 // Types export
 // Authentication schema
 export const loginSchema = z.object({
-  username: z.string().min(3, "اسم المستخدم مطلوب"),
-  password: z.string().min(6, "كلمة المرور مطلوبة"),
+  username: z.string().min(3, "Username is required"),
+  password: z.string().min(6, "Password is required"),
 });
 
 export type User = typeof users.$inferSelect;
