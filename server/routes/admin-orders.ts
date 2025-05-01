@@ -65,11 +65,12 @@ router.get("/:id", async (req: Request, res: Response) => {
     const order = rows[0];
     
     // Get order items
-    const { rows: orderItems } = await db.execute(
+    const orderItems = await pool.query(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = ${orderId}`
-    );
+       WHERE oi.order_id = $1`,
+      [orderId]
+    ).then(result => result.rows);
     
     order.items = orderItems || [];
     
@@ -97,20 +98,22 @@ router.patch("/:id/status", async (req: Request, res: Response) => {
     }
     
     // Update with direct SQL to avoid schema issues
-    const { rows } = await db.execute(
-      `UPDATE orders SET status = '${status}', updated_at = NOW() WHERE id = ${orderId} RETURNING *`
-    );
+    const rows = await pool.query(
+      `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [status, orderId]
+    ).then(result => result.rows);
     
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Order not found" });
     }
     
     // Get order items
-    const { rows: orderItems } = await db.execute(
+    const orderItems = await pool.query(
       `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
        JOIN products p ON oi.product_id = p.id 
-       WHERE oi.order_id = ${orderId}`
-    );
+       WHERE oi.order_id = $1`,
+      [orderId]
+    ).then(result => result.rows);
     
     const updatedOrder = rows[0];
     updatedOrder.items = orderItems || [];
@@ -141,9 +144,10 @@ router.patch("/:id/payment-status", async (req: Request, res: Response) => {
     }
     
     // Update with direct SQL to avoid schema issues
-    const { rows } = await db.execute(
-      `UPDATE orders SET payment_status = '${paymentStatus}', updated_at = NOW() WHERE id = ${orderId} RETURNING *`
-    );
+    const rows = await pool.query(
+      `UPDATE orders SET payment_status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [paymentStatus, orderId]
+    ).then(result => result.rows);
     
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Order not found" });
