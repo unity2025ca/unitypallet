@@ -97,6 +97,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           icon: "fas fa-calendar-alt",
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
+        { 
+          name: "Shipping", 
+          href: "/admin/shipping", 
+          icon: "fas fa-truck",
+          roles: ["admin"] // Only admin can access
+        },
       ]
     },
     {

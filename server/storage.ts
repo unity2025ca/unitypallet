@@ -23,6 +23,12 @@ import {
   type OrderItem,
   type InsertOrderItem,
   type InsertNotification,
+  type ShippingZone,
+  type InsertShippingZone,
+  type ShippingRate,
+  type InsertShippingRate,
+  type Location,
+  type InsertLocation,
   users,
   products,
   contacts,
@@ -34,10 +40,13 @@ import {
   visitorStats,
   notifications,
   orders,
-  orderItems
+  orderItems,
+  shippingZones,
+  shippingRates,
+  locations
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, asc, and, desc, sql } from "drizzle-orm";
+import { eq, asc, and, desc, sql, lte, gte } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { pool } from "./db";
