@@ -951,8 +951,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
     try {
+      const validStatus = status as "pending" | "processing" | "completed" | "cancelled" | "refunded";
       const [updatedOrder] = await db.update(orders)
-        .set({ status })
+        .set({ status: validStatus })
         .where(eq(orders.id, id))
         .returning();
       return updatedOrder;
@@ -964,8 +965,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateOrderPaymentStatus(id: number, paymentStatus: string): Promise<Order | undefined> {
     try {
+      const validPaymentStatus = paymentStatus as "pending" | "paid" | "failed" | "refunded";
       const [updatedOrder] = await db.update(orders)
-        .set({ paymentStatus })
+        .set({ paymentStatus: validPaymentStatus })
         .where(eq(orders.id, id))
         .returning();
       return updatedOrder;

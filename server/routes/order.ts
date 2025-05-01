@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { storage } from '../storage';
 import { InsertOrder, InsertOrderItem } from '@shared/schema';
-import { authenticateCustomer } from '../middleware/auth';
+import { authenticateCustomer } from '../middleware/auth.js';
 import fetch from 'node-fetch';
 
 const router = express.Router();
@@ -66,8 +66,8 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     const orderData: InsertOrder = {
       userId: customerId,
       total: cart.total,
-      orderDate: new Date(),
       status: 'pending',
+      paymentStatus: 'pending',
       shippingAddress: `${address}, ${city}, ${province}, ${postalCode}, ${country}`,
       shippingCity: city,
       shippingProvince: province,
@@ -77,8 +77,7 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       contactPhone: phone,
       contactName: fullName,
       notes: notes || null,
-      paymentMethod: paymentMethod || 'cash_on_delivery',
-      paymentStatus: 'pending'
+      paymentMethod: paymentMethod || 'cash_on_delivery'
     };
     
     const order = await storage.createOrder(orderData);
@@ -89,8 +88,7 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
         orderId: order.id,
         productId: item.productId,
         quantity: item.quantity,
-        pricePerUnit: item.product.price,
-        totalPrice: item.product.price * item.quantity
+        pricePerUnit: item.product.price
       };
       
       await storage.createOrderItem(orderItem);
@@ -130,7 +128,7 @@ router.get('/:id', authenticateCustomer, async (req: Request, res: Response) => 
     }
     
     // Check if this order belongs to the authenticated customer
-    if (order.customerId !== customerId) {
+    if (order.userId !== customerId) {
       return res.status(403).json({ error: 'Not authorized to view this order' });
     }
     
@@ -166,7 +164,7 @@ router.get('/:id/items', authenticateCustomer, async (req: Request, res: Respons
     }
     
     // Check if this order belongs to the authenticated customer
-    if (order.customerId !== customerId) {
+    if (order.userId !== customerId) {
       return res.status(403).json({ error: 'Not authorized to view this order' });
     }
     
