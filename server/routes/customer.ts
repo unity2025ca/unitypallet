@@ -142,9 +142,10 @@ router.get("/orders", async (req, res) => {
     }
 
     try {
-      // Use raw SQL directly to avoid schema issues
-      const result = await db.execute(
-        `SELECT * FROM orders WHERE user_id = ${req.user.id} ORDER BY created_at DESC`
+      // Use raw SQL directly with parameterized query to avoid schema issues and SQL injection
+      const result = await pool.query(
+        `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
+        [req.user.id]
       );
       
       const orders = result.rows || [];
@@ -154,10 +155,11 @@ router.get("/orders", async (req, res) => {
         // Fetch order items for each order
         for (const order of orders) {
           try {
-            const itemsResult = await db.execute(
+            const itemsResult = await pool.query(
               `SELECT oi.*, p.title, p.price FROM order_items oi 
                JOIN products p ON oi.product_id = p.id 
-               WHERE oi.order_id = ${order.id}`
+               WHERE oi.order_id = $1`,
+              [order.id]
             );
             order.items = itemsResult.rows || [];
           } catch (itemError) {

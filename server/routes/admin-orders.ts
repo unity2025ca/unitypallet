@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { storage } from "../storage";
-import { db } from "../db";
+import { db, pool } from "../db";
 import { sql } from "drizzle-orm";
 
 const router = Router();
@@ -9,22 +9,23 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
   try {
     // Get all orders with direct SQL to avoid schema issues
-    const { rows: orders } = await db.execute(
+    const orders = await pool.query(
       `SELECT o.*, u.email, u.full_name, u.phone
        FROM orders o
        LEFT JOIN users u ON o.user_id = u.id
        ORDER BY o.created_at DESC`
-    );
+    ).then(result => result.rows);
     
     // For each order, get its items
     if (orders && orders.length > 0) {
       for (const order of orders) {
         try {
-          const { rows: orderItems } = await db.execute(
+          const orderItems = await pool.query(
             `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
              JOIN products p ON oi.product_id = p.id 
-             WHERE oi.order_id = ${order.id}`
-          );
+             WHERE oi.order_id = $1`,
+            [order.id]
+          ).then(result => result.rows);
           order.items = orderItems || [];
         } catch (error) {
           console.error(`Error fetching items for order ${order.id}:`, error);
@@ -49,12 +50,13 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
     
     // Get the order with direct SQL to avoid schema issues
-    const { rows } = await db.execute(
+    const rows = await pool.query(
       `SELECT o.*, u.email, u.full_name, u.phone
        FROM orders o
        LEFT JOIN users u ON o.user_id = u.id
-       WHERE o.id = ${orderId}`
-    );
+       WHERE o.id = $1`,
+      [orderId]
+    ).then(result => result.rows);
     
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Order not found" });
