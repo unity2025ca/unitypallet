@@ -137,8 +137,27 @@ const CheckoutPage = () => {
     }
   });
 
-  // State for shipping cost
+  // State for shipping cost and address
   const [shippingCost, setShippingCost] = useState<number>(0);
+  const [shippingAddress, setShippingAddress] = useState<{
+    city: string;
+    province: string;
+    country: string;
+    postalCode?: string;
+  } | null>(null);
+
+  // Update shipping address when form fields change
+  useEffect(() => {
+    const formValues = form.getValues();
+    if (formValues.city && formValues.province && formValues.country) {
+      setShippingAddress({
+        city: formValues.city,
+        province: formValues.province,
+        country: formValues.country,
+        postalCode: formValues.postalCode
+      });
+    }
+  }, [form.watch('city'), form.watch('province'), form.watch('country'), form.watch('postalCode')]);
 
   // Handle form submission
   const onSubmit = (data: CheckoutFormValues) => {
