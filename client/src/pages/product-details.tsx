@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const ProductDetailsPage = () => {
@@ -184,26 +185,43 @@ const ProductDetailsPage = () => {
                 <div className="space-y-4">
                   <Button 
                     size="lg" 
-                    className="w-full btn-red"
+                    className="w-full text-xl py-6 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg"
                     disabled={product.status === "soldout"}
-                    asChild
                   >
-                    <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
-                      <i className="fab fa-whatsapp mr-2"></i>
-                      Contact via WhatsApp to Order
-                    </a>
+                    {product.status === "soldout" ? (
+                      "Sold Out"
+                    ) : (
+                      <>
+                        <ShoppingBag className="mr-2 h-6 w-6" />
+                        BUY NOW - C${product.price}
+                      </>
+                    )}
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full btn-black"
-                    asChild
-                  >
-                    <Link href="/contact">
-                      Request More Information
-                    </Link>
-                  </Button>
+
+                  <div className="flex gap-4">
+                    <Button 
+                      size="lg" 
+                      className="w-1/2 btn-red"
+                      disabled={product.status === "soldout"}
+                      asChild
+                    >
+                      <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
+                        <i className="fab fa-whatsapp mr-2"></i>
+                        WhatsApp Order
+                      </a>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="w-1/2 btn-black"
+                      asChild
+                    >
+                      <Link href="/contact">
+                        More Information
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">

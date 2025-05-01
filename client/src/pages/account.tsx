@@ -63,19 +63,19 @@ export default function AccountPage() {
 
   // Get human-readable status
   const getStatusText = (status: string | null) => {
-    if (!status) return "غير محدد";
+    if (!status) return "Not specified";
     
     switch (status) {
       case "pending":
-        return "قيد الانتظار";
+        return "Pending";
       case "processing":
-        return "قيد التجهيز";
+        return "Processing";
       case "completed":
-        return "مكتمل";
+        return "Completed";
       case "cancelled":
-        return "ملغي";
+        return "Cancelled";
       case "refunded":
-        return "مسترجع";
+        return "Refunded";
       default:
         return status;
     }
@@ -101,17 +101,17 @@ export default function AccountPage() {
 
   // Get human-readable payment status
   const getPaymentStatusText = (status: string | null) => {
-    if (!status) return "غير محدد";
+    if (!status) return "Not specified";
     
     switch (status) {
       case "pending":
-        return "قيد الانتظار";
+        return "Pending";
       case "paid":
-        return "مدفوع";
+        return "Paid";
       case "failed":
-        return "فشل الدفع";
+        return "Payment Failed";
       case "refunded":
-        return "مسترجع";
+        return "Refunded";
       default:
         return status;
     }
@@ -130,18 +130,18 @@ export default function AccountPage() {
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">حسابي</h1>
+        <h1 className="text-3xl font-bold">My Account</h1>
         <Button 
           variant="outline" 
           onClick={handleLogout} 
           disabled={logoutMutation.isPending}
         >
           {logoutMutation.isPending ? (
-            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <LogOut className="ml-2 h-4 w-4" />
+            <LogOut className="mr-2 h-4 w-4" />
           )}
-          تسجيل الخروج
+          Logout
         </Button>
       </div>
 
@@ -149,11 +149,11 @@ export default function AccountPage() {
         <TabsList className="grid grid-cols-2 mb-8">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            الملف الشخصي
+            Profile
           </TabsTrigger>
           <TabsTrigger value="orders" className="flex items-center gap-2">
             <ShoppingBag className="h-4 w-4" />
-            طلباتي
+            My Orders
           </TabsTrigger>
         </TabsList>
 
@@ -161,65 +161,65 @@ export default function AccountPage() {
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle>معلومات الحساب</CardTitle>
+              <CardTitle>Account Information</CardTitle>
               <CardDescription>
-                مراجعة وتحديث معلومات حسابك الشخصية.
+                Review and update your personal account information.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    اسم المستخدم
+                    Username
                   </div>
                   <div className="text-lg">{customer.username}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    الاسم الكامل
+                    Full Name
                   </div>
-                  <div className="text-lg">{customer.fullName || "غير محدد"}</div>
+                  <div className="text-lg">{customer.fullName || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    البريد الإلكتروني
+                    Email
                   </div>
-                  <div className="text-lg">{customer.email || "غير محدد"}</div>
+                  <div className="text-lg">{customer.email || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    رقم الهاتف
+                    Phone Number
                   </div>
-                  <div className="text-lg">{customer.phone || "غير محدد"}</div>
+                  <div className="text-lg">{customer.phone || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    العنوان
+                    Address
                   </div>
-                  <div className="text-lg">{customer.address || "غير محدد"}</div>
+                  <div className="text-lg">{customer.address || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    المدينة
+                    City
                   </div>
-                  <div className="text-lg">{customer.city || "غير محدد"}</div>
+                  <div className="text-lg">{customer.city || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    الرمز البريدي
+                    Postal Code
                   </div>
-                  <div className="text-lg">{customer.postalCode || "غير محدد"}</div>
+                  <div className="text-lg">{customer.postalCode || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">
-                    البلد
+                    Country
                   </div>
-                  <div className="text-lg">{customer.country || "غير محدد"}</div>
+                  <div className="text-lg">{customer.country || "Not specified"}</div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full md:w-auto">تحديث المعلومات</Button>
+              <Button className="w-full md:w-auto">Update Information</Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -228,9 +228,9 @@ export default function AccountPage() {
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>سجل الطلبات</CardTitle>
+              <CardTitle>Order History</CardTitle>
               <CardDescription>
-                عرض جميع طلباتك السابقة وتتبع حالتها.
+                View all your previous orders and track their status.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -241,12 +241,12 @@ export default function AccountPage() {
               ) : !orders || orders.length === 0 ? (
                 <div className="text-center py-10">
                   <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">لا توجد طلبات بعد</h3>
+                  <h3 className="text-lg font-medium mb-2">No Orders Yet</h3>
                   <p className="text-muted-foreground mb-6">
-                    لم تقم بإجراء أي طلبات حتى الآن. تصفح منتجاتنا وابدأ التسوق!
+                    You haven't placed any orders yet. Browse our products and start shopping!
                   </p>
                   <Button onClick={() => setLocation("/products")}>
-                    تصفح المنتجات
+                    Browse Products
                   </Button>
                 </div>
               ) : (
@@ -256,13 +256,13 @@ export default function AccountPage() {
                       <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <div>
                           <div className="text-sm text-muted-foreground">
-                            رقم الطلب
+                            Order Number
                           </div>
                           <div className="font-medium">#{order.id}</div>
                         </div>
                         <div>
                           <div className="text-sm text-muted-foreground">
-                            التاريخ
+                            Date
                           </div>
                           <div className="font-medium">
                             {formatDate(order.createdAt)}
@@ -270,13 +270,13 @@ export default function AccountPage() {
                         </div>
                         <div>
                           <div className="text-sm text-muted-foreground">
-                            المجموع
+                            Total
                           </div>
                           <div className="font-medium">
                             {formatPrice(order.total)}
                           </div>
                         </div>
-                        <div className="flex space-x-2 rtl:space-x-reverse">
+                        <div className="flex space-x-2">
                           <div className={`px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
                             {getStatusText(order.status)}
                           </div>
@@ -290,7 +290,7 @@ export default function AccountPage() {
                         size="sm" 
                         onClick={() => setLocation(`/orders/${order.id}`)}
                       >
-                        عرض التفاصيل
+                        View Details
                       </Button>
                     </div>
                   ))}
