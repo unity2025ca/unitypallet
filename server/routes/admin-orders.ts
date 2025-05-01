@@ -99,8 +99,7 @@ router.patch("/:id/status", async (req: Request, res: Response) => {
     
     // Update with direct SQL to avoid schema issues
     const { rows } = await db.execute(
-      `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [status, orderId]
+      `UPDATE orders SET status = '${status}', updated_at = NOW() WHERE id = ${orderId} RETURNING *`
     );
     
     if (!rows || rows.length === 0) {
@@ -145,8 +144,7 @@ router.patch("/:id/payment-status", async (req: Request, res: Response) => {
     
     // Update with direct SQL to avoid schema issues
     const { rows } = await db.execute(
-      `UPDATE orders SET payment_status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [paymentStatus, orderId]
+      `UPDATE orders SET payment_status = '${paymentStatus}', updated_at = NOW() WHERE id = ${orderId} RETURNING *`
     );
     
     if (!rows || rows.length === 0) {
