@@ -233,16 +233,10 @@ const ProductDetailsPage = () => {
                     {product.status === "soldout" ? (
                       "Sold Out"
                     ) : addedToCart ? (
-                      <Button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLocation("/cart");
-                        }}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Check className="mr-2 h-6 w-6" />
+                      <div className="w-full" onClick={() => setLocation("/cart")}>
+                        <Check className="mr-2 h-6 w-6 inline-block" />
                         View Cart & Checkout
-                      </Button>
+                      </div>
                     ) : addToCartMutation.isPending ? (
                       <>
                         <div className="h-6 w-6 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />

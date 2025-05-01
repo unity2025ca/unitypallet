@@ -19,6 +19,7 @@ import FaqPage from "@/pages/faq";
 import ContactPage from "@/pages/contact";
 import AuthPage from "@/pages/auth";
 import AccountPage from "@/pages/account";
+import CartPage from "@/pages/cart";
 import AdminIndex from "@/pages/admin/index";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
@@ -56,6 +57,7 @@ function Router() {
         <Route path="/faq" component={FaqPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/cart" component={CartPage} />
         
         {/* Customer Protected Routes */}
         <CustomerProtectedRoute path="/account" component={AccountPage} />
