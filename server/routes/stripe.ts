@@ -104,18 +104,42 @@ router.post("/webhook", async (req, res) => {
       if (paymentIntent.metadata.orderId && paymentIntent.metadata.orderId !== "manual_checkout") {
         try {
           const orderId = parseInt(paymentIntent.metadata.orderId);
-          // TODO: Update order status
+          await storage.updateOrderPaymentStatus(orderId, "paid");
           console.log(`Payment for order ${orderId} succeeded. Payment ID: ${paymentIntent.id}`);
         } catch (error) {
           console.error("Error processing successful payment:", error);
         }
       }
       break;
+    
+    case "checkout.session.completed":
+      const session = event.data.object as Stripe.Checkout.Session;
+      
+      // Process completed checkout session
+      if (session.metadata && session.metadata.orderId && session.metadata.orderId !== "manual_checkout") {
+        try {
+          const orderId = parseInt(session.metadata.orderId);
+          await storage.updateOrderPaymentStatus(orderId, "paid");
+          console.log(`Checkout completed for order ${orderId}. Session ID: ${session.id}`);
+        } catch (error) {
+          console.error("Error processing completed checkout:", error);
+        }
+      }
+      break;
       
     case "payment_intent.payment_failed":
       const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
-      console.log(`Payment failed: ${failedPaymentIntent.id}`);
-      // TODO: Handle failed payment
+      
+      // Handle failed payment
+      if (failedPaymentIntent.metadata.orderId && failedPaymentIntent.metadata.orderId !== "manual_checkout") {
+        try {
+          const orderId = parseInt(failedPaymentIntent.metadata.orderId);
+          await storage.updateOrderPaymentStatus(orderId, "failed");
+          console.log(`Payment failed for order ${orderId}. Payment ID: ${failedPaymentIntent.id}`);
+        } catch (error) {
+          console.error("Error processing failed payment:", error);
+        }
+      }
       break;
       
     default:
