@@ -5,13 +5,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import { customerRegistrationSchema, loginSchema } from "@shared/schema";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+
+// Helper function to handle null/undefined form values
+const safeInputProps = (field: any) => ({
+  value: field.value || "",
+  onChange: field.onChange,
+  onBlur: field.onBlur,
+  ref: field.ref,
+  name: field.name,
+});
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -43,6 +51,10 @@ export default function AuthPage() {
       email: "",
       fullName: "",
       phone: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      country: "",
     } as z.infer<typeof customerRegistrationSchema>,
   });
   
@@ -156,7 +168,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>الاسم الكامل</FormLabel>
                           <FormControl>
-                            <Input placeholder="أدخل الاسم الكامل" {...field} />
+                            <Input placeholder="أدخل الاسم الكامل" {...safeInputProps(field)} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -170,7 +182,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>البريد الإلكتروني</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="your@email.com" {...field} />
+                            <Input type="email" placeholder="your@email.com" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} name={field.name} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -184,7 +196,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>رقم الهاتف</FormLabel>
                           <FormControl>
-                            <Input placeholder="+123456789" {...field} />
+                            <Input placeholder="+123456789" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} name={field.name} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

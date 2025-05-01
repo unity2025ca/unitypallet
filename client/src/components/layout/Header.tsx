@@ -3,12 +3,27 @@ import { Link, useLocation } from "wouter";
 import translations from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
-import { Menu } from "lucide-react";
+import { useCustomerAuth } from "@/hooks/use-customer-auth";
+import { 
+  Menu, 
+  User, 
+  ShoppingBag, 
+  LogOut,
+  LogIn
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { getSettingValue } = useSettings();
+  const { customer, logoutMutation } = useCustomerAuth();
 
   const navItems = [
     { name: translations.navItems.home, href: "/" },
@@ -46,7 +61,7 @@ const Header = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 items-center">
             {navItems.map((item) => (
               <Link 
                 key={item.href} 
@@ -58,18 +73,100 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Customer Account */}
+            {customer ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative" size="sm">
+                    <User className="h-5 w-5 mr-1" />
+                    <span className="max-w-[100px] truncate">{customer.fullName || customer.username}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setLocation("/account")}>
+                    <User className="h-4 w-4 ml-2" />
+                    <span>حسابي</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/orders")}>
+                    <ShoppingBag className="h-4 w-4 ml-2" />
+                    <span>طلباتي</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      logoutMutation.mutate();
+                      setLocation("/");
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 ml-2" />
+                    <span>تسجيل الخروج</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={() => setLocation("/auth")}
+              >
+                <LogIn className="h-4 w-4" />
+                <span>تسجيل الدخول</span>
+              </Button>
+            )}
           </nav>
           
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={toggleMobileMenu}
-            aria-label="Toggle Menu"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
+          <div className="flex items-center gap-2 md:hidden">
+            {customer ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setLocation("/account")}>
+                    <User className="h-4 w-4 ml-2" />
+                    <span>حسابي</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/orders")}>
+                    <ShoppingBag className="h-4 w-4 ml-2" />
+                    <span>طلباتي</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      logoutMutation.mutate();
+                      setLocation("/");
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 ml-2" />
+                    <span>تسجيل الخروج</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setLocation("/auth")}
+              >
+                <LogIn className="h-4 w-4 mr-1" />
+                <span>تسجيل الدخول</span>
+              </Button>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle Menu"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
         
         {/* Mobile Navigation */}
