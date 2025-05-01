@@ -16,10 +16,10 @@ import { Loader2 } from "lucide-react";
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [location, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation } = useCustomerAuth();
+  const { customer, loginMutation, registerMutation } = useCustomerAuth();
   
   // Redirect to home if already logged in
-  if (user) {
+  if (customer) {
     setLocation("/");
     return null;
   }

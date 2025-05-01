@@ -4,20 +4,23 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { customerRegistrationSchema, Customer, CustomerLoginData } from "@shared/schema";
+import { 
+  customerRegistrationSchema, 
+  loginSchema, 
+  User,
+  LoginCredentials
+} from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-export type CustomerLoginData = z.infer<typeof customerRegistrationSchema>;
-
 type CustomerAuthContextType = {
-  customer: Customer | null;
+  customer: User | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<Customer, Error, CustomerLoginData>;
+  loginMutation: UseMutationResult<User, Error, LoginCredentials>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<Customer, Error, z.infer<typeof customerRegistrationSchema>>;
+  registerMutation: UseMutationResult<User, Error, z.infer<typeof customerRegistrationSchema>>;
 };
 
 export const CustomerAuthContext = createContext<CustomerAuthContextType | null>(null);
@@ -30,14 +33,14 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     data: customer,
     error,
     isLoading,
-  } = useQuery<Customer | null, Error>({
+  } = useQuery<User | null, Error>({
     queryKey: ["/api/customer"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: CustomerLoginData) => {
+    mutationFn: async (credentials: LoginCredentials) => {
       const res = await apiRequest("POST", "/api/customer/login", credentials);
       if (!res.ok) {
         const errorData = await res.json();
@@ -45,7 +48,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       }
       return await res.json();
     },
-    onSuccess: (data: Customer) => {
+    onSuccess: (data: User) => {
       queryClient.setQueryData(["/api/customer"], data);
       toast({
         title: "تم تسجيل الدخول بنجاح",
@@ -71,7 +74,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       }
       return await res.json();
     },
-    onSuccess: (data: Customer) => {
+    onSuccess: (data: User) => {
       queryClient.setQueryData(["/api/customer"], data);
       toast({
         title: "تم التسجيل بنجاح",

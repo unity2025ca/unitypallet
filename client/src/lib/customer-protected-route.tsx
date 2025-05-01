@@ -9,7 +9,7 @@ export function CustomerProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  const { customer, isLoading } = useCustomerAuth();
+  const { customer: user, isLoading } = useCustomerAuth();
 
   if (isLoading) {
     return (
@@ -21,7 +21,7 @@ export function CustomerProtectedRoute({
     );
   }
 
-  if (!customer) {
+  if (!user) {
     return (
       <Route path={path}>
         <Redirect to="/auth" />
