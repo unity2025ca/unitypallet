@@ -133,4 +133,82 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// Get customer orders
+router.get("/orders", async (req, res) => {
+  try {
+    // Check if user is authenticated and is a customer
+    if (!req.isAuthenticated() || req.user.roleType !== "customer") {
+      return res.status(401).json({ error: "Not authenticated as customer" });
+    }
+
+    // Use raw SQL directly to avoid schema issues
+    const { rows: orders } = await db.execute(
+      `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+    
+    // If we have orders, get the items for each order
+    if (orders && orders.length > 0) {
+      // Fetch order items for each order
+      for (const order of orders) {
+        const { rows: orderItems } = await db.execute(
+          `SELECT oi.*, p.title, p.price FROM order_items oi 
+           JOIN products p ON oi.product_id = p.id 
+           WHERE oi.order_id = $1`,
+          [order.id]
+        );
+        order.items = orderItems || [];
+      }
+    }
+
+    // Return the orders (even if empty)
+    return res.json(orders || []);
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
+    return res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+// Get specific customer order
+router.get("/orders/:id", async (req, res) => {
+  try {
+    // Check if user is authenticated and is a customer
+    if (!req.isAuthenticated() || req.user.roleType !== "customer") {
+      return res.status(401).json({ error: "Not authenticated as customer" });
+    }
+
+    const orderId = parseInt(req.params.id);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: "Invalid order ID" });
+    }
+
+    // Get specific order with items - using raw SQL to ensure it works
+    const orderResults = await db.execute(
+      `SELECT * FROM orders WHERE id = $1 AND user_id = $2`,
+      [orderId, req.user.id]
+    );
+
+    if (!orderResults.rows || orderResults.rows.length === 0) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    const order = orderResults.rows[0];
+
+    // Get order items
+    const orderItemsResults = await db.execute(
+      `SELECT oi.*, p.title, p.price, p.image_url FROM order_items oi 
+       JOIN products p ON oi.product_id = p.id 
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    order.items = orderItemsResults.rows || [];
+
+    return res.json(order);
+  } catch (error) {
+    console.error("Error fetching customer order:", error);
+    return res.status(500).json({ error: "Failed to fetch order details" });
+  }
+});
+
 export default router;
