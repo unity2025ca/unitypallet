@@ -1,21 +1,60 @@
-import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useRoute, Link, useLocation } from "wouter";
 import translations from "@/lib/i18n";
 import { Product, ProductImage, categoryMap, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Check } from "lucide-react";
 import { useState, useEffect } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const ProductDetailsPage = () => {
   // Get product ID from URL
   const [match, params] = useRoute("/products/:id");
   const id = params?.id;
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   
   // State for selected image
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // State for add to cart feedback
+  const [addedToCart, setAddedToCart] = useState(false);
+  
+  // Add to cart mutation
+  const addToCartMutation = useMutation({
+    mutationFn: async (productId: number) => {
+      const res = await apiRequest('POST', '/api/cart/items', { 
+        productId,
+        quantity: 1
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      // Show success feedback and reset after 2 seconds
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+      
+      // Invalidate cart cache
+      queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      
+      toast({
+        title: "Product added to cart!",
+        description: "You can continue shopping or proceed to checkout.",
+        duration: 3000,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to add to cart",
+        description: error.message,
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
   
   // Fetch product details
   const { data: product, isLoading: isLoadingProduct, error } = useQuery<Product>({
@@ -186,17 +225,33 @@ const ProductDetailsPage = () => {
                   <Button 
                     size="lg" 
                     className="w-full text-xl py-6 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg"
-                    disabled={product.status === "soldout"}
+                    disabled={product.status === "soldout" || addToCartMutation.isPending}
                     onClick={() => {
-                      window.open(`https://wa.me/12892166500?text=I'm interested in purchasing: ${product.title} (C$${product.price})`, '_blank');
+                      addToCartMutation.mutate(product.id);
                     }}
                   >
                     {product.status === "soldout" ? (
                       "Sold Out"
+                    ) : addedToCart ? (
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation("/cart");
+                        }}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Check className="mr-2 h-6 w-6" />
+                        View Cart & Checkout
+                      </Button>
+                    ) : addToCartMutation.isPending ? (
+                      <>
+                        <div className="h-6 w-6 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Adding...
+                      </>
                     ) : (
                       <>
                         <ShoppingBag className="mr-2 h-6 w-6" />
-                        BUY NOW - C${product.price}
+                        ADD TO CART - C${product.price}
                       </>
                     )}
                   </Button>
