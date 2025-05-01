@@ -3,6 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 // Define admin user type that matches what Header component expects
 interface AdminUser {
@@ -56,16 +57,16 @@ export const useAdminAuth = () => {
       }, 300);
       
       toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحبًا بك في لوحة التحكم",
+        title: "Login Successful",
+        description: "Welcome to the Admin Dashboard",
       });
     },
     onError: (error: any) => {
       console.error("Login mutation error:", error);
       
       toast({
-        title: "فشل تسجيل الدخول",
-        description: error?.message || "يرجى التحقق من اسم المستخدم وكلمة المرور",
+        title: "Login Failed",
+        description: error?.message || "Please check your username and password",
         variant: "destructive",
       });
     },
@@ -81,15 +82,17 @@ export const useAdminAuth = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/session"] });
       navigate("/admin/login");
       toast({
-        title: "تم تسجيل الخروج بنجاح",
+        title: "Successfully logged out",
       });
     },
   });
 
-  // Redirect to login if not authenticated and trying to access admin pages
-  if (!isLoading && !session?.authenticated && location.startsWith("/admin") && location !== "/admin/login") {
-    navigate("/admin/login");
-  }
+  // Using useEffect for navigation to avoid React state updates during render
+  useEffect(() => {
+    if (!isLoading && !session?.authenticated && location.startsWith("/admin") && location !== "/admin/login") {
+      navigate("/admin/login");
+    }
+  }, [isLoading, session, location, navigate]);
 
   return {
     user: session?.user,

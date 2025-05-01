@@ -27,7 +27,7 @@ const AdminLogin = () => {
     setError("");
     
     if (!username.trim() || !password.trim()) {
-      setError("يرجى ملء جميع الحقول");
+      setError("Please fill in all fields");
       return;
     }
     
@@ -87,7 +87,7 @@ const AdminLogin = () => {
               {login.isPending ? (
                 <span className="flex items-center gap-2">
                   <i className="fas fa-spinner fa-spin"></i>
-                  جارٍ تسجيل الدخول...
+                  Logging in...
                 </span>
               ) : (
                 translations.admin.login.submit

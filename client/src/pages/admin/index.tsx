@@ -8,12 +8,15 @@ const AdminIndex = () => {
   const { isAuthenticated, isLoading } = useAdminAuth();
   
   useEffect(() => {
+    // Only navigate when loading is complete
     if (!isLoading) {
-      if (isAuthenticated) {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/admin/login");
-      }
+      setTimeout(() => {
+        if (isAuthenticated) {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/admin/login");
+        }
+      }, 0);
     }
   }, [isAuthenticated, isLoading, navigate]);
   
