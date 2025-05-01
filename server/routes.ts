@@ -15,6 +15,7 @@ import customerRouter from "./routes/customer";
 import stripeRouter from "./routes/stripe";
 import cartRouter from "./routes/cart";
 import orderRouter from "./routes/order";
+import adminOrdersRouter from "./routes/admin-orders";
 import { setupWebSocket } from "./websocket";
 import { createContactNotification, createAppointmentNotification, createAppointmentStatusNotification } from "./notifications";
 import { z } from "zod";
@@ -46,6 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/stripe', stripeRouter);
   app.use('/api/cart', cartRouter);
   app.use('/api/orders', orderRouter);
+  app.use('/api/admin/orders', requireAdmin, adminOrdersRouter);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {
