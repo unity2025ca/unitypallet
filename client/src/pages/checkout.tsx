@@ -540,6 +540,7 @@ const CheckoutPage = () => {
           <OrderSummary 
             cart={cart} 
             shippingCost={shippingCost}
+            onShippingCostCalculated={setShippingCost}
             shippingAddress={{
               city: form.watch('city'),
               province: form.watch('province'),
