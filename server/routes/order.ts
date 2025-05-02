@@ -67,17 +67,27 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
     const fullAddress = `${address}, ${city}, ${province}, ${postalCode}, ${country}`;
     const contactInfo = `Contact: ${fullName}, ${email}, ${phone}`;
     
+    // Calculate total including shipping cost
+    const cartTotal = cart.total || 0;
+    const finalShippingCost = shippingCost || 0;
+    const orderTotal = cartTotal + finalShippingCost;
+    
+    console.log('Order creation details:');
+    console.log('Cart total:', cartTotal);
+    console.log('Shipping cost:', finalShippingCost);
+    console.log('Final order total (with shipping):', orderTotal);
+    
     // Create order with only the fields we know exist in the database - don't use InsertOrder type
     const orderData = {
       userId: customerId,
-      total: cart.total || 0,
+      total: orderTotal, // Total now includes shipping cost
       status: 'pending',
       paymentStatus: 'pending',
       shippingAddress: `${fullAddress}. ${contactInfo}`,
       shippingCity: city,
       shippingPostalCode: postalCode,
       shippingCountry: country,
-      shippingCost: shippingCost || 0,
+      shippingCost: finalShippingCost,
       notes: notes ? `${notes}. Payment: ${paymentMethod || 'cash_on_delivery'}` : `Payment: ${paymentMethod || 'cash_on_delivery'}`
     };
     
