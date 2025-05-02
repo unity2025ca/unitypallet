@@ -95,6 +95,8 @@ const getRoleBadge = (roleType: string) => {
       return <Badge className="bg-red-100 text-red-800 border-red-300">Admin</Badge>;
     case 'publisher':
       return <Badge className="bg-blue-100 text-blue-800 border-blue-300">Publisher</Badge>;
+    case 'customer':
+      return <Badge className="bg-green-100 text-green-800 border-green-300">Customer</Badge>;
     default:
       return <Badge className="bg-gray-100 text-gray-800 border-gray-300">User</Badge>;
   }
@@ -272,7 +274,7 @@ const AdminUsersPage: React.FC = () => {
               <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
                 <DialogDescription>
-                  Create a new staff account with specific permissions.
+                  Create a new user account with specific permissions (staff, customer, or admin).
                 </DialogDescription>
               </DialogHeader>
               
@@ -325,6 +327,7 @@ const AdminUsersPage: React.FC = () => {
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="publisher">Publisher</SelectItem>
                             <SelectItem value="user">Basic User</SelectItem>
+                            <SelectItem value="customer">Customer</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -366,7 +369,7 @@ const AdminUsersPage: React.FC = () => {
         ) : users && users.length > 0 ? (
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <Table>
-              <TableCaption>A list of all user accounts with access to the admin panel.</TableCaption>
+              <TableCaption>A list of all user accounts including staff, administrators, and customers.</TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Username</TableHead>
@@ -403,6 +406,7 @@ const AdminUsersPage: React.FC = () => {
                       {user.roleType === 'admin' && 'Full access to all features'}
                       {user.roleType === 'publisher' && 'Can manage products and view messages'}
                       {user.roleType === 'user' && 'Basic access only'}
+                      {user.roleType === 'customer' && 'Can shop, place orders, and view order history'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
@@ -497,6 +501,7 @@ const AdminUsersPage: React.FC = () => {
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="publisher">Publisher</SelectItem>
                         <SelectItem value="user">Basic User</SelectItem>
+                        <SelectItem value="customer">Customer</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
