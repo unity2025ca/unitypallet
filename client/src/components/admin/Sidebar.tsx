@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useTranslations } from "@/App"; // Using translations from App context
+import { useAppTranslations } from "@/App"; // Using translations from App context
 import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, ShieldAlert } from 'lucide-react';
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -28,7 +28,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
   const [location, navigate] = useLocation();
   const { logout, user } = useAdminAuth();
   const [isMobile, setIsMobile] = useState(false);
-  const translations = useTranslations(); // Use translations from context
+  const translations = useAppTranslations(); // Use translations from App context
   
   // Get current user role
   const userRole = user?.isAdmin ? 'admin' : (user?.roleType || 'user');

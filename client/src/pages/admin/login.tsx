@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useTranslations } from "@/App"; // Using translations directly from App context
+import { useAppTranslations } from "@/App"; // Using translations directly from App context
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const { login, isAuthenticated } = useAdminAuth();
   const [_, navigate] = useLocation();
-  const translations = useTranslations(); // Use translations from context
+  const translations = useAppTranslations(); // Use translations from App context
   
   // Log translations to help debug
   useEffect(() => {
