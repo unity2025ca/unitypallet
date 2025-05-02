@@ -1,19 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Order } from "@shared/schema";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, ShoppingBag, User, LogOut } from "lucide-react";
-import { useLocation } from "wouter";
+import { Loader2, Package, ShoppingBag, User, LogOut, CheckCircle2 } from "lucide-react";
+import { useLocation, useSearch } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const { customer, logoutMutation } = useCustomerAuth();
   const [_, setLocation] = useLocation();
+  const searchParams = useSearch();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Check for successful order completion from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    const orderSuccess = params.get('order_success');
+    const orderId = params.get('order_id');
+    
+    if (orderSuccess === 'true' && orderId) {
+      // Show success toast
+      toast({
+        title: "Order Placed Successfully!",
+        description: `Your order #${orderId} has been placed successfully. Thank you for your purchase!`,
+        variant: "success",
+      });
+      
+      // Set active tab to orders to show the new order
+      setActiveTab("orders");
+      
+      // Refresh orders data
+      queryClient.invalidateQueries({ queryKey: ["/api/customer/orders"] });
+      
+      // Clean URL parameters by replacing the current URL without the query params
+      const url = window.location.pathname;
+      window.history.replaceState({}, "", url);
+    }
+  }, [searchParams, toast, queryClient]);
 
   // Fetch customer orders
   const { 
