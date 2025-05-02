@@ -143,6 +143,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           icon: "fas fa-cog",
           roles: ["admin"] // Only admin can access
         },
+        { 
+          name: "Test Notifications", 
+          href: "/admin/test-notifications", 
+          icon: "fas fa-bell",
+          roles: ["admin"] // Only admin can access
+        },
       ]
     }
   ];
