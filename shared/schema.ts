@@ -36,6 +36,10 @@ export const customerRegistrationSchema = createInsertSchema(users)
     email: true,
     fullName: true,
     phone: true,
+    address: true,
+    city: true,
+    postalCode: true,
+    country: true,
   })
   .extend({
     confirmPassword: z.string(),
