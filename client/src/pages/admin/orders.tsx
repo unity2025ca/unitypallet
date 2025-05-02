@@ -8,7 +8,37 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
-import { Order } from "@shared/schema";
+import { Order as SchemaOrder } from "@shared/schema";
+
+// Extended Order type for admin panel with customer information from API
+interface OrderWithCustomer extends SchemaOrder {
+  // Customer information from users table
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  
+  // Shipping information from orders table
+  shipping_address?: string;
+  shipping_city?: string;
+  shipping_postal_code?: string;
+  shipping_country?: string;
+  shipping_province?: string;
+  
+  // Payment information
+  payment_method?: string;
+  
+  // Order items
+  items?: Array<{
+    id: number;
+    product_id: number;
+    order_id: number;
+    quantity: number;
+    price_per_unit: number;
+    title?: string;
+    price?: number;
+    image_url?: string;
+  }>;
+}
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Search, RefreshCw, Eye, Package, Truck, CheckCircle, XCircle, Ban, CreditCard, AlertTriangle } from "lucide-react";
 
@@ -114,7 +144,7 @@ const AdminOrders = () => {
     data: orders, 
     isLoading: isLoadingOrders,
     refetch: refetchOrders
-  } = useQuery<Order[]>({
+  } = useQuery<OrderWithCustomer[]>({
     queryKey: ["/api/admin/orders"],
     enabled: isAuthenticated,
   });
@@ -216,9 +246,9 @@ const AdminOrders = () => {
     const matchesSearch = 
       searchQuery === "" || 
       order.id.toString().includes(searchQuery) ||
-      order.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.phone?.includes(searchQuery);
+      (order.full_name && order.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (order.email && order.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (order.phone && order.phone.includes(searchQuery));
     
     const matchesStatusFilter = 
       statusFilter === "all" || 
@@ -226,7 +256,7 @@ const AdminOrders = () => {
     
     const matchesPaymentStatusFilter = 
       paymentStatusFilter === "all" || 
-      order.paymentStatus?.toLowerCase() === paymentStatusFilter.toLowerCase();
+      (order.payment_status && order.payment_status.toLowerCase() === paymentStatusFilter.toLowerCase());
     
     return matchesSearch && matchesStatusFilter && matchesPaymentStatusFilter;
   });
@@ -269,7 +299,7 @@ const AdminOrders = () => {
   const cancelledOrders = orders?.filter(order => order.status?.toLowerCase() === "cancelled").length || 0;
   
   const totalRevenue = orders?.reduce((sum, order) => {
-    if (order.paymentStatus?.toLowerCase() === "paid") {
+    if (order.payment_status?.toLowerCase() === "paid") {
       return sum + (order.total || 0);
     }
     return sum;
@@ -411,15 +441,15 @@ const AdminOrders = () => {
                           <TableRow key={order.id}>
                             <TableCell className="font-medium">#{order.id}</TableCell>
                             <TableCell>
-                              <div className="font-medium">{order.fullName || "غير محدد"}</div>
+                              <div className="font-medium">{order.full_name || "غير محدد"}</div>
                               <div className="text-sm text-muted-foreground">{order.email || "غير محدد"}</div>
                             </TableCell>
                             <TableCell>{formatDate(order.createdAt)}</TableCell>
                             <TableCell>{formatPrice(order.total)}</TableCell>
                             <TableCell>
-                              {order.paymentMethod === "credit_card" ? "بطاقة ائتمان" : 
-                               order.paymentMethod === "cash_on_delivery" ? "الدفع عند الاستلام" : 
-                               order.paymentMethod || "غير محدد"}
+                              {order.payment_method === "credit_card" ? "بطاقة ائتمان" : 
+                               order.payment_method === "cash_on_delivery" ? "الدفع عند الاستلام" : 
+                               order.payment_method || "غير محدد"}
                             </TableCell>
                             <TableCell>
                               <PaymentStatusBadge status={order.paymentStatus || "pending"} />
