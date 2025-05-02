@@ -59,6 +59,9 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Username already exists" });
     }
     
+    // Extract address fields from request
+    const { address, city, postalCode, country } = req.body;
+    
     // Create the new customer
     const hashedPassword = await hashPassword(password);
     const newUser = await storage.createUser({
@@ -67,6 +70,10 @@ router.post("/register", async (req, res) => {
       email,
       fullName,
       phone,
+      address,
+      city,
+      postalCode,
+      country,
       roleType: "customer",
       isAdmin: false,
     });
