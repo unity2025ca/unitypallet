@@ -120,9 +120,14 @@ const CheckoutPage = () => {
       
       const orderData = await orderRes.json();
       
+      console.log("Order data for payment:", orderData);
+      // Calculate total amount including shipping for Stripe
+      const totalWithShipping = orderData.total + (orderData.shippingCost || 0);
+      console.log("Total with shipping:", totalWithShipping);
+      
       // Next, create a payment session with Stripe
       const paymentRes = await apiRequest('POST', '/api/stripe/create-payment-intent', {
-        amount: orderData.total,
+        amount: totalWithShipping,
         orderId: orderData.id
       });
       

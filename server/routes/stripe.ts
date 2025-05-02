@@ -39,6 +39,18 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
       return res.status(400).json({ error: "Invalid amount" });
     }
     
+    console.log(`Creating Stripe checkout for order #${orderId} with amount: ${amount}`);
+    
+    // Retrieve the order to get detailed information for Stripe
+    const order = await storage.getOrderById(Number(orderId));
+    
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    
+    // Get order items for better product description
+    const orderItems = await storage.getOrderItemsByOrderId(Number(orderId));
+    
     // Create a checkout session instead of a payment intent
     // This will redirect the user to Stripe's hosted checkout page
     const session = await stripe.checkout.sessions.create({
@@ -48,10 +60,10 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
           price_data: {
             currency: 'cad',
             product_data: {
-              name: `Order #${orderId}`,
-              description: 'Purchase from Unity Pallets',
+              name: `Order #${orderId} - ${orderItems.length} items`,
+              description: `Purchase from Unity Pallets${order.shippingCost ? ' (including shipping)' : ''}`,
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            unit_amount: amount, // Amount is already in cents from the client
           },
           quantity: 1,
         },
