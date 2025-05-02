@@ -36,6 +36,7 @@ import AdminAppointments from "@/pages/admin/appointments";
 import AdminUsers from "@/pages/admin/users";
 import AdminVisitorStats from "@/pages/admin/visitor-stats";
 import AdminShipping from "@/pages/admin/shipping";
+import AdminHomepage from "@/pages/admin/homepage";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
@@ -84,6 +85,7 @@ function Router() {
         <Route path="/admin/settings" component={AdminSettings} />
         <Route path="/admin/visitor-stats" component={AdminVisitorStats} />
         <Route path="/admin/shipping" component={AdminShipping} />
+        <Route path="/admin/homepage" component={AdminHomepage} />
         
         {/* Fallback to 404 */}
         <Route component={NotFound} />

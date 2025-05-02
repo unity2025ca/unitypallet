@@ -69,6 +69,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       name: "Content",
       items: [
         { 
+          name: "Homepage", 
+          href: "/admin/homepage", 
+          icon: "fas fa-home",
+          roles: ["admin"] // Only admin can access 
+        },
+        { 
           name: translations.admin.sidebar.products, 
           href: "/admin/products", 
           icon: "fas fa-box",
