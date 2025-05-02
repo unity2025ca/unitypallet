@@ -77,16 +77,16 @@ export default function AdminSettings() {
         
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="overflow-x-auto pb-2">
-              <TabsList className="mb-4 md:mb-8 justify-start">
-                <TabsTrigger value="system">System</TabsTrigger>
-                <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                <TabsTrigger value="appearance">Appearance</TabsTrigger>
-                <TabsTrigger value="content">Content</TabsTrigger>
-                <TabsTrigger value="about">About Us</TabsTrigger>
-                <TabsTrigger value="how_it_works">How It Works</TabsTrigger>
-                <TabsTrigger value="contact">Contact Info</TabsTrigger>
-                <TabsTrigger value="social">Social Media</TabsTrigger>
+            <div className="overflow-x-auto pb-2 -mx-2 px-2">
+              <TabsList className="mb-4 md:mb-8 justify-start w-max min-w-full flex flex-nowrap">
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="system">System</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="appointments">Appointments</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="appearance">Appearance</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="content">Content</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="about">About Us</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="how_it_works">How It Works</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="contact">Contact Info</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="social">Social Media</TabsTrigger>
               </TabsList>
             </div>
             

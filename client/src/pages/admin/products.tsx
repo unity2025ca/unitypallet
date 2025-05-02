@@ -265,93 +265,142 @@ const AdminProducts = () => {
               </div>
             ) : products && products.length > 0 ? (
               <div className="overflow-x-auto -mx-4 sm:mx-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead className="hidden md:table-cell">Category</TableHead>
-                      <TableHead className="hidden md:table-cell">Status</TableHead>
-                      <TableHead className="hidden md:table-cell">Display Order</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.title}</TableCell>
-                        <TableCell>
-                          <img 
-                            src={product.imageUrl} 
-                            alt={product.title} 
-                            className="w-14 h-14 object-cover rounded"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://placehold.co/100?text=Image+Not+Available";
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>C${product.price}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline">
-                            {categoryMap[product.category as keyof typeof categoryMap]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className={statusColors[product.status as keyof typeof statusColors]}>
-                            {statusMap[product.status as keyof typeof statusMap]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex items-center space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="px-2 py-0 h-6"
-                              onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) - 1)}
-                              disabled={(product.displayOrder || 0) <= 0 || updateDisplayOrderMutation.isPending}
-                            >
-                              -
-                            </Button>
-                            <span className="w-8 text-center">
-                              {updateDisplayOrderMutation.isPending ? 
-                                <span className="animate-pulse">...</span> : 
-                                product.displayOrder || 0}
-                            </span>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="px-2 py-0 h-6" 
-                              onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) + 1)}
-                              disabled={updateDisplayOrderMutation.isPending}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditClick(product)}
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-red-500"
-                              onClick={() => handleDeleteClick(product)}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </Button>
-                          </div>
-                        </TableCell>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Image</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Display Order</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.title}</TableCell>
+                          <TableCell>
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.title} 
+                              className="w-14 h-14 object-cover rounded"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "https://placehold.co/100?text=Image+Not+Available";
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>C${product.price}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {categoryMap[product.category as keyof typeof categoryMap]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={statusColors[product.status as keyof typeof statusColors]}>
+                              {statusMap[product.status as keyof typeof statusMap]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="px-2 py-0 h-6"
+                                onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) - 1)}
+                                disabled={(product.displayOrder || 0) <= 0 || updateDisplayOrderMutation.isPending}
+                              >
+                                -
+                              </Button>
+                              <span className="w-8 text-center">
+                                {updateDisplayOrderMutation.isPending ? 
+                                  <span className="animate-pulse">...</span> : 
+                                  product.displayOrder || 0}
+                              </span>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="px-2 py-0 h-6" 
+                                onClick={() => handleUpdateDisplayOrder(product.id, (product.displayOrder || 0) + 1)}
+                                disabled={updateDisplayOrderMutation.isPending}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEditClick(product)}
+                              >
+                                <i className="fas fa-edit"></i>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-500"
+                                onClick={() => handleDeleteClick(product)}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {/* Mobile Card View */}
+                <div className="grid grid-cols-1 gap-4 md:hidden">
+                  {products.map((product) => (
+                    <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="flex items-center p-4 border-b border-gray-100">
+                        <img 
+                          src={product.imageUrl} 
+                          alt={product.title} 
+                          className="w-16 h-16 object-cover rounded mr-4"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://placehold.co/100?text=Image+Not+Available";
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-medium text-gray-900 truncate">{product.title}</h3>
+                          <p className="text-sm text-gray-500">C${product.price}</p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {categoryMap[product.category as keyof typeof categoryMap]}
+                            </Badge>
+                            <Badge variant="outline" className={`text-xs ${statusColors[product.status as keyof typeof statusColors]}`}>
+                              {statusMap[product.status as keyof typeof statusMap]}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 divide-x border-t border-gray-100">
+                        <Button 
+                          variant="ghost"
+                          className="h-12 rounded-none text-sm text-blue-600"
+                          onClick={() => handleEditClick(product)}
+                        >
+                          <i className="fas fa-edit mr-2"></i> Edit
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          className="h-12 rounded-none text-sm text-red-600"
+                          onClick={() => handleDeleteClick(product)}
+                        >
+                          <i className="fas fa-trash mr-2"></i> Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">
