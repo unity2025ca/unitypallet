@@ -89,12 +89,12 @@ const OrderStatusBadge = ({ status }: { status: string }) => {
       return <Badge className="bg-yellow-500 hover:bg-yellow-600"><Package className="h-3 w-3 mr-1" />قيد الانتظار</Badge>;
     case 'processing':
       return <Badge className="bg-blue-500 hover:bg-blue-600"><RefreshCw className="h-3 w-3 mr-1" />قيد التجهيز</Badge>;
-    case 'shipped':
-      return <Badge className="bg-indigo-500 hover:bg-indigo-600"><Truck className="h-3 w-3 mr-1" />تم الشحن</Badge>;
-    case 'delivered':
-      return <Badge className="bg-green-500 hover:bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />تم التسليم</Badge>;
+    case 'completed':
+      return <Badge className="bg-green-500 hover:bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />تم الاكتمال</Badge>;
     case 'cancelled':
       return <Badge className="bg-red-500 hover:bg-red-600"><Ban className="h-3 w-3 mr-1" />ملغي</Badge>;
+    case 'refunded':
+      return <Badge className="bg-blue-500 hover:bg-blue-600"><RefreshCw className="h-3 w-3 mr-1" />مسترد</Badge>;
     default:
       return <Badge className="bg-gray-500 hover:bg-gray-600">غير معروف</Badge>;
   }
@@ -253,8 +253,7 @@ const AdminOrders = () => {
       switch (tabId) {
         case "pending": return order.status?.toLowerCase() === "pending";
         case "processing": return order.status?.toLowerCase() === "processing";
-        case "shipped": return order.status?.toLowerCase() === "shipped";
-        case "delivered": return order.status?.toLowerCase() === "delivered";
+        case "completed": return order.status?.toLowerCase() === "completed";
         case "cancelled": return order.status?.toLowerCase() === "cancelled";
         default: return true;
       }
@@ -355,9 +354,9 @@ const AdminOrders = () => {
                     <SelectItem value="all">جميع الحالات</SelectItem>
                     <SelectItem value="pending">قيد الانتظار</SelectItem>
                     <SelectItem value="processing">قيد التجهيز</SelectItem>
-                    <SelectItem value="shipped">تم الشحن</SelectItem>
-                    <SelectItem value="delivered">تم التسليم</SelectItem>
+                    <SelectItem value="completed">تم الاكتمال</SelectItem>
                     <SelectItem value="cancelled">ملغي</SelectItem>
+                    <SelectItem value="refunded">مسترد</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -378,12 +377,11 @@ const AdminOrders = () => {
           </CardHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-6 mx-6 mb-4">
+            <TabsList className="grid grid-cols-5 mx-6 mb-4">
               <TabsTrigger value="all">الكل ({filteredOrders?.length || 0})</TabsTrigger>
               <TabsTrigger value="pending">قيد الانتظار ({pendingOrders})</TabsTrigger>
               <TabsTrigger value="processing">قيد التجهيز ({processingOrders})</TabsTrigger>
-              <TabsTrigger value="shipped">تم الشحن ({shippedOrders})</TabsTrigger>
-              <TabsTrigger value="delivered">تم التسليم ({deliveredOrders})</TabsTrigger>
+              <TabsTrigger value="completed">تم الاكتمال ({orders?.filter(order => order.status?.toLowerCase() === "completed").length || 0})</TabsTrigger>
               <TabsTrigger value="cancelled">ملغي ({cancelledOrders})</TabsTrigger>
             </TabsList>
             
@@ -618,9 +616,9 @@ const AdminOrders = () => {
                     <SelectContent>
                       <SelectItem value="pending">قيد الانتظار</SelectItem>
                       <SelectItem value="processing">قيد التجهيز</SelectItem>
-                      <SelectItem value="shipped">تم الشحن</SelectItem>
-                      <SelectItem value="delivered">تم التسليم</SelectItem>
+                      <SelectItem value="completed">تم الاكتمال</SelectItem>
                       <SelectItem value="cancelled">ملغي</SelectItem>
+                      <SelectItem value="refunded">مسترد</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
