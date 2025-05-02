@@ -301,7 +301,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
             
             <Button 
               variant="outline" 
-              className="w-full justify-start"
+              className="w-full justify-start bg-red-50 border-red-700 text-red-700 hover:bg-red-100"
               onClick={handleLogout}
             >
               <i className="fas fa-sign-out-alt w-5 mr-3"></i>

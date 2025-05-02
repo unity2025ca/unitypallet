@@ -206,6 +206,22 @@ export default function DynamicStyles() {
       color: #374151 !important;
     }
     
+    /* Make outline buttons more visible on white background */
+    button[class*="variant-outline"],
+    a[class*="variant-outline"],
+    .btn-outline {
+      border: 1.5px solid ${primaryColor} !important;
+      color: ${primaryColor} !important;
+      background: transparent !important;
+    }
+    
+    button[class*="variant-outline"]:hover,
+    a[class*="variant-outline"]:hover,
+    .btn-outline:hover {
+      background: ${primaryColor}15 !important;
+      border-color: ${primaryColor} !important;
+    }
+    
     /* Ensure primary buttons have readable text */
     .bg-primary, 
     button[class*="bg-primary"],
