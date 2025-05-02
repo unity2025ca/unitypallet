@@ -39,24 +39,50 @@ export async function sendSMS(to: string, body: string) {
       };
     }
     
+    // Validate and format phone number
+    let formattedNumber = to.trim();
+    if (!formattedNumber.startsWith('+')) {
+      formattedNumber = '+' + formattedNumber;
+      console.log(`Reformatted phone number to international format: ${formattedNumber}`);
+    }
+    
+    console.log(`Attempting to send SMS to ${formattedNumber} using Twilio number ${process.env.TWILIO_PHONE_NUMBER}`);
+    console.log(`SMS content: "${body.substring(0, 50)}${body.length > 50 ? '...' : ''}"`);
+    
     // نظرًا لأننا تحققنا بالفعل أن client ليس null، يمكننا استخدامه بأمان
     const message = await client.messages.create({
       body,
       from: process.env.TWILIO_PHONE_NUMBER!,
-      to
+      to: formattedNumber
     });
+    
+    console.log(`SMS sent successfully to ${formattedNumber}. Message SID: ${message.sid}`);
     
     return {
       success: true,
       messageId: message.sid,
-      message: 'Message sent successfully'
+      message: 'Message sent successfully',
+      to: formattedNumber
     };
   } catch (error: any) {
-    console.error('Error sending SMS:', error);
+    console.error(`Error sending SMS to ${to}:`, error.message);
+    
+    // Provide more detailed error information
+    const errorDetails = {
+      code: error.code || 'unknown',
+      status: error.status || 'unknown',
+      moreInfo: error.moreInfo || 'No additional information',
+      details: error.details || []
+    };
+    
+    console.error('Detailed SMS error:', JSON.stringify(errorDetails, null, 2));
+    
     return {
       success: false,
       error: error.message,
-      message: 'Failed to send message'
+      errorDetails,
+      message: 'Failed to send message',
+      to
     };
   }
 }

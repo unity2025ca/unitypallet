@@ -191,8 +191,18 @@ export async function sendOrderConfirmationNotifications(orderId: number): Promi
     // Get customer name and email
     const customerName = customer.fullName || customer.username || "Valued Customer";
     const customerEmail = customer.email;
-    // Check all possible phone field names (for schema compatibility)
-    const customerPhone = customer.phone || customer.phoneNumber || customer.contact; 
+    
+    // For this customer, log all available fields for debugging
+    console.log(`Customer data for order #${orderId}:`, JSON.stringify(customer, null, 2));
+    
+    // Extract phone number from the customer record - check multiple possible fields
+    // TypeScript complains but we're doing this on purpose for flexibility
+    let customerPhone = null;
+    if (customer.phone) customerPhone = customer.phone;
+    // @ts-ignore - checking for possible schema variants
+    else if (customer.phoneNumber) customerPhone = customer.phoneNumber;
+    // @ts-ignore - checking for possible schema variants
+    else if (customer.contact) customerPhone = customer.contact;
     
     console.log(`Customer contact information for order #${orderId}:`, {
       name: customerName,
