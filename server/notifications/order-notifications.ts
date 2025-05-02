@@ -4,6 +4,11 @@ import { sendSMS } from "../sms";
 import { storage } from "../storage";
 import { formatCurrency } from "../utils/format";
 
+// Define extended types for internal use
+interface OrderItemWithTitle extends OrderItem {
+  productTitle: string;
+}
+
 /**
  * Send order confirmation email to customer
  */
@@ -17,7 +22,7 @@ export async function sendOrderConfirmationEmail(
     console.log(`Preparing to send order confirmation email to ${customerEmail} for order #${order.id}`);
     
     // Fetch product details for each order item to display product title
-    const orderItemsWithProducts = await Promise.all(
+    const orderItemsWithProducts: OrderItemWithTitle[] = await Promise.all(
       orderItems.map(async (item) => {
         const product = await storage.getProductById(item.productId);
         return {
