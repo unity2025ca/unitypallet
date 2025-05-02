@@ -43,18 +43,33 @@ const checkoutSchema = z.object({
   deliveryMethod: z.enum(["delivery", "pickup"], {
     required_error: "Please select a delivery method",
   }),
-  address: z.string().min(5, "Address must be at least 5 characters").optional()
-    .or(z.string().min(5, "Address must be at least 5 characters")),
-  city: z.string().min(2, "City must be at least 2 characters").optional()
-    .or(z.string().min(2, "City must be at least 2 characters")),
-  province: z.string().min(2, "Province/State must be at least 2 characters").optional()
-    .or(z.string().min(2, "Province/State must be at least 2 characters")),
-  postalCode: z.string().min(5, "Please enter a valid postal code").optional()
-    .or(z.string().min(5, "Please enter a valid postal code")),
-  country: z.string().min(2, "Country must be at least 2 characters").optional()
-    .or(z.string().min(2, "Country must be at least 2 characters")),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
   notes: z.string().optional(),
   shippingCost: z.number().optional(),
+}).refine((data) => {
+  // If delivery method is pickup, shipping fields are not required
+  if (data.deliveryMethod === "pickup") {
+    return true;
+  }
+  
+  // If delivery method is delivery, shipping fields are required
+  if (data.deliveryMethod === "delivery") {
+    if (!data.address || data.address.length < 5) return false;
+    if (!data.city || data.city.length < 2) return false;
+    if (!data.province || data.province.length < 2) return false;
+    if (!data.country || data.country.length < 2) return false;
+    if (!data.postalCode || data.postalCode.length < 5) return false;
+    return true;
+  }
+  
+  return false;
+}, {
+  message: "Shipping address is required for delivery",
+  path: ["address"]
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -176,6 +191,16 @@ const CheckoutPage = () => {
         variant: "destructive",
       });
       return;
+    }
+    
+    // Skip shipping address validation for pickup
+    if (data.deliveryMethod === 'pickup') {
+      // Clear shipping fields for pickup orders to avoid sending unnecessary data
+      data.address = '';
+      data.city = '';
+      data.province = '';
+      data.postalCode = '';
+      data.country = '';
     }
 
     // Show processing message
