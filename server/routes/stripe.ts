@@ -170,8 +170,14 @@ router.post("/webhook", async (req, res) => {
       if (session.metadata && session.metadata.orderId && session.metadata.orderId !== "manual_checkout") {
         try {
           const orderId = parseInt(session.metadata.orderId);
+          // Update both payment status and order status
           await storage.updateOrderPaymentStatus(orderId, "paid");
-          console.log(`Checkout completed for order ${orderId}. Session ID: ${session.id}`);
+          await storage.updateOrderStatus(orderId, "processing");
+          
+          console.log(`Checkout completed for order ${orderId}. Payment status updated to 'paid', order status updated to 'processing'. Session ID: ${session.id}`);
+          
+          // You could add notification logic here (email, SMS) to notify the customer
+          // that their payment was successful
         } catch (error) {
           console.error("Error processing completed checkout:", error);
         }

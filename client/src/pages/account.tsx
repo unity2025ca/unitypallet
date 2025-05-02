@@ -30,7 +30,6 @@ export default function AccountPage() {
       toast({
         title: "Order Placed Successfully!",
         description: `Your order #${orderId} has been placed successfully. Thank you for your purchase!`,
-        variant: "success",
       });
       
       // Set active tab to orders to show the new order
