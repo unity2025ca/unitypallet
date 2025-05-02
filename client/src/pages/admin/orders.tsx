@@ -11,7 +11,16 @@ import { Badge } from "@/components/ui/badge";
 import { Order as SchemaOrder } from "@shared/schema";
 
 // Extended Order type for admin panel with customer information from API
-interface OrderWithCustomer extends SchemaOrder {
+interface OrderWithCustomer {
+  // Base order properties
+  id: number;
+  createdAt: Date | null;
+  userId: number;
+  status: "pending" | "processing" | "completed" | "cancelled" | "refunded" | null;
+  total: number;
+  notes: string | null;
+  updatedAt: Date | null;
+  
   // Customer information from users table
   full_name?: string;
   email?: string;
@@ -26,6 +35,7 @@ interface OrderWithCustomer extends SchemaOrder {
   
   // Payment information
   payment_method?: string;
+  payment_status?: "pending" | "refunded" | "paid" | "failed" | null;
   
   // Order items
   items?: Array<{
@@ -38,6 +48,10 @@ interface OrderWithCustomer extends SchemaOrder {
     price?: number;
     image_url?: string;
   }>;
+  
+  // Any other properties from SchemaOrder that might be needed
+  // Property getter for backward compatibility
+  paymentStatus?: "pending" | "refunded" | "paid" | "failed" | null;
 }
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Search, RefreshCw, Eye, Package, Truck, CheckCircle, XCircle, Ban, CreditCard, AlertTriangle } from "lucide-react";
@@ -452,7 +466,7 @@ const AdminOrders = () => {
                                order.payment_method || "غير محدد"}
                             </TableCell>
                             <TableCell>
-                              <PaymentStatusBadge status={order.paymentStatus || "pending"} />
+                              <PaymentStatusBadge status={order.payment_status || "pending"} />
                             </TableCell>
                             <TableCell>
                               <OrderStatusBadge status={order.status || "pending"} />
@@ -502,7 +516,9 @@ const AdminOrders = () => {
                   تفاصيل الطلب #{viewOrderId}
                 </DialogTitle>
                 <DialogDescription>
-                  {formatDate(getOrderById(viewOrderId)?.createdAt)}
+                  {viewOrderId && getOrderById(viewOrderId)?.createdAt ? 
+                    formatDate(getOrderById(viewOrderId)?.createdAt) : 
+                    "تاريخ غير محدد"}
                 </DialogDescription>
               </DialogHeader>
               
@@ -516,7 +532,7 @@ const AdminOrders = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الاسم:</span>
-                        <span className="font-medium">{getOrderById(viewOrderId)?.fullName || "غير محدد"}</span>
+                        <span className="font-medium">{getOrderById(viewOrderId)?.full_name || "غير محدد"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">البريد الإلكتروني:</span>
@@ -539,23 +555,23 @@ const AdminOrders = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">العنوان:</span>
-                        <span className="font-medium">{getOrderById(viewOrderId)?.address || "غير محدد"}</span>
+                        <span className="font-medium">{getOrderById(viewOrderId)?.shipping_address || "غير محدد"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">المدينة:</span>
-                        <span className="font-medium">{getOrderById(viewOrderId)?.city || "غير محدد"}</span>
+                        <span className="font-medium">{getOrderById(viewOrderId)?.shipping_city || "غير محدد"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">المقاطعة/الولاية:</span>
-                        <span className="font-medium">{getOrderById(viewOrderId)?.province || "غير محدد"}</span>
+                        <span className="font-medium">{getOrderById(viewOrderId)?.shipping_province || "غير محدد"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الرمز البريدي:</span>
-                        <span className="font-medium" dir="ltr">{getOrderById(viewOrderId)?.postalCode || "غير محدد"}</span>
+                        <span className="font-medium" dir="ltr">{getOrderById(viewOrderId)?.shipping_postal_code || "غير محدد"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">البلد:</span>
-                        <span className="font-medium">{getOrderById(viewOrderId)?.country || "غير محدد"}</span>
+                        <span className="font-medium">{getOrderById(viewOrderId)?.shipping_country || "غير محدد"}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -583,11 +599,11 @@ const AdminOrders = () => {
                         <TableRow key={item.id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>
-                            <div className="font-medium">{item.product?.title || "منتج غير معروف"}</div>
+                            <div className="font-medium">{item.title || "منتج غير معروف"}</div>
                           </TableCell>
-                          <TableCell>{formatPrice(item.price || item.product?.price)}</TableCell>
+                          <TableCell>{formatPrice(item.price_per_unit)}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{formatPrice((item.price || item.product?.price || 0) * item.quantity)}</TableCell>
+                          <TableCell>{formatPrice(item.price_per_unit * item.quantity)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -609,14 +625,14 @@ const AdminOrders = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">طريقة الدفع:</span>
                       <span className="font-medium">
-                        {getOrderById(viewOrderId)?.paymentMethod === "credit_card" ? "بطاقة ائتمان" : 
-                         getOrderById(viewOrderId)?.paymentMethod === "cash_on_delivery" ? "الدفع عند الاستلام" : 
-                         getOrderById(viewOrderId)?.paymentMethod || "غير محدد"}
+                        {getOrderById(viewOrderId)?.payment_method === "credit_card" ? "بطاقة ائتمان" : 
+                         getOrderById(viewOrderId)?.payment_method === "cash_on_delivery" ? "الدفع عند الاستلام" : 
+                         getOrderById(viewOrderId)?.payment_method || "غير محدد"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">حالة الدفع:</span>
-                      <PaymentStatusBadge status={getOrderById(viewOrderId)?.paymentStatus || "pending"} />
+                      <PaymentStatusBadge status={getOrderById(viewOrderId)?.payment_status || "pending"} />
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">حالة الطلب:</span>
@@ -656,7 +672,7 @@ const AdminOrders = () => {
                 <div className="sm:flex-1 w-full">
                   <Select 
                     onValueChange={(value) => handlePaymentStatusUpdate(viewOrderId, value)}
-                    defaultValue={getOrderById(viewOrderId)?.paymentStatus || "pending"}
+                    defaultValue={getOrderById(viewOrderId)?.payment_status || "pending"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="تحديث حالة الدفع" />
