@@ -206,10 +206,15 @@ export default function DynamicStyles() {
       color: #374151 !important;
     }
     
-    /* Make outline buttons more visible on white background */
+    /* Make ALL outline buttons more visible on white background */
     button[class*="variant-outline"],
     a[class*="variant-outline"],
-    .btn-outline {
+    .btn-outline,
+    [class*="outline"],
+    [class*="white"],
+    button[data-variant="outline"],
+    div[role="button"][data-variant="outline"],
+    a[data-variant="outline"] {
       border: 1.5px solid ${primaryColor} !important;
       color: ${primaryColor} !important;
       background: transparent !important;
@@ -217,9 +222,29 @@ export default function DynamicStyles() {
     
     button[class*="variant-outline"]:hover,
     a[class*="variant-outline"]:hover,
-    .btn-outline:hover {
+    .btn-outline:hover,
+    [class*="outline"]:hover,
+    [class*="white"]:hover,
+    button[data-variant="outline"]:hover,
+    div[role="button"][data-variant="outline"]:hover,
+    a[data-variant="outline"]:hover {
       background: ${primaryColor}15 !important;
       border-color: ${primaryColor} !important;
+    }
+    
+    /* Fix white buttons on white background */
+    .bg-white,
+    .bg-white button,
+    button.bg-white,
+    .bg-white a[role="button"],
+    a[role="button"].bg-white,
+    .bg-background button,
+    button.bg-background,
+    .bg-background a[role="button"],
+    a[role="button"].bg-background,
+    [data-white-button] {
+      border: 1.5px solid ${primaryColor} !important;
+      color: ${primaryColor} !important;
     }
     
     /* Ensure primary buttons have readable text */
@@ -232,11 +257,28 @@ export default function DynamicStyles() {
       color: white !important;
     }
 
+    /* Force white buttons to be visible */
+    button.bg-white,
+    button.white,
+    a.bg-white,
+    a.white,
+    div.white[role="button"],
+    div.bg-white[role="button"],
+    button[class*="white"],
+    .white-btn,
+    .white-button,
+    button[data-white],
+    a[data-white] {
+      background-color: transparent !important;
+      border: 2px solid ${primaryColor} !important;
+      color: ${primaryColor} !important;
+    }
+    
     /* Gray buttons */
-    .bg-white button:not([class*="destructive"]):not([class*="outline"]),
-    .bg-background button:not([class*="destructive"]):not([class*="outline"]),
+    .bg-white button:not([class*="destructive"]):not([class*="outline"]):not([class*="white"]),
+    .bg-background button:not([class*="destructive"]):not([class*="outline"]):not([class*="white"]),
     button.bg-default,
-    a[role="button"]:not([class*="destructive"]):not([class*="outline"]),
+    a[role="button"]:not([class*="destructive"]):not([class*="outline"]):not([class*="white"]),
     button[class*="variant-default"],
     button[class*="bg-gray"],
     [data-theme-button],
