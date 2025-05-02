@@ -78,6 +78,7 @@ export default function AdminSettings() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="overflow-x-auto pb-2">
               <TabsList className="mb-4 md:mb-8 justify-start">
+                <TabsTrigger value="system">System</TabsTrigger>
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="about">About Us</TabsTrigger>
@@ -86,6 +87,13 @@ export default function AdminSettings() {
                 <TabsTrigger value="social">Social Media</TabsTrigger>
               </TabsList>
             </div>
+            
+            <TabsContent value="system" className="space-y-4">
+              <p className="text-slate-600 mb-4 md:mb-6">Manage system settings and maintenance mode</p>
+              {systemSettings.map(setting => (
+                <SettingItem key={setting.id} setting={setting} />
+              ))}
+            </TabsContent>
             
             <TabsContent value="appearance" className="space-y-4">
               <p className="text-slate-600 mb-4 md:mb-6">Modify the site appearance, colors and logo</p>

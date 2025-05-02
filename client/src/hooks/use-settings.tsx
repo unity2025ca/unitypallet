@@ -9,6 +9,7 @@ type SettingsContextType = {
   getSettingValue: (key: string, defaultValue?: string) => string;
   getSettingsByCategory: (category: string) => Setting[];
   allSettings: Setting[] | undefined;
+  isMaintenanceMode: boolean;
 };
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -37,6 +38,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return allSettings?.filter(setting => setting.category === category) || [];
   };
 
+  // Check if maintenance mode is enabled
+  const isMaintenanceMode = getSettingValue("maintenance_mode") === "true";
+
   return (
     <SettingsContext.Provider
       value={{
@@ -46,6 +50,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         getSettingValue,
         getSettingsByCategory,
         allSettings,
+        isMaintenanceMode,
       }}
     >
       {children}

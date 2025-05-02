@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Check } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShoppingBag, Check, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/use-settings";
 
 const ProductDetailsPage = () => {
   // Get product ID from URL
@@ -17,6 +19,7 @@ const ProductDetailsPage = () => {
   const id = params?.id;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isMaintenanceMode } = useSettings();
   
   // State for selected image
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
