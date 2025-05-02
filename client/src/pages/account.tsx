@@ -364,13 +364,15 @@ export default function AccountPage() {
                           </div>
                         </div>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setLocation(`/orders/${order.id}`)}
-                      >
-                        View Details
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setLocation(`/orders/${order.id}`)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

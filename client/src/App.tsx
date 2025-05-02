@@ -21,6 +21,7 @@ import AuthPage from "@/pages/auth";
 import AccountPage from "@/pages/account";
 import CartPage from "@/pages/cart";
 import CheckoutPage from "@/pages/checkout";
+import OrdersPage from "@/pages/orders/index";
 import OrderDetailsPage from "@/pages/orders/[id]";
 import AdminIndex from "@/pages/admin/index";
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -65,6 +66,7 @@ function Router() {
         
         {/* Customer Protected Routes */}
         <CustomerProtectedRoute path="/account" component={AccountPage} />
+        <CustomerProtectedRoute path="/orders" component={OrdersPage} />
         <CustomerProtectedRoute path="/orders/:id" component={OrderDetailsPage} />
         <CustomerProtectedRoute path="/checkout" component={CheckoutPage} />
         
