@@ -41,16 +41,16 @@ export default function SettingItem({ setting }: SettingItemProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
       
       toast({
-        title: "تم التحديث بنجاح",
-        description: `تم تحديث "${setting.label}" بنجاح.`,
+        title: "Updated Successfully",
+        description: `"${setting.label}" has been updated successfully.`,
       });
       
       setIsChanged(false);
     } catch (error) {
       console.error(error);
       toast({
-        title: "خطأ في التحديث",
-        description: "حدث خطأ أثناء محاولة تحديث الإعداد.",
+        title: "Update Failed",
+        description: "An error occurred while updating the setting.",
         variant: "destructive",
       });
     } finally {

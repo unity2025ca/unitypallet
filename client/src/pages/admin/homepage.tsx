@@ -63,13 +63,13 @@ export default function AdminHomepage() {
         
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="overflow-x-auto pb-2">
-              <TabsList className="mb-4 md:mb-8 justify-start">
-                <TabsTrigger value="banner">Hero Banner</TabsTrigger>
-                <TabsTrigger value="features">Features</TabsTrigger>
-                <TabsTrigger value="about">About Section</TabsTrigger>
-                <TabsTrigger value="products">Products Section</TabsTrigger>
-                <TabsTrigger value="cta">Call to Action</TabsTrigger>
+            <div className="overflow-x-auto pb-2 -mx-2 px-2">
+              <TabsList className="mb-4 md:mb-8 justify-start w-max min-w-full flex flex-nowrap">
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="banner">Hero Banner</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="features">Features</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="about">About Section</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="products">Products Section</TabsTrigger>
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="cta">Call to Action</TabsTrigger>
               </TabsList>
             </div>
             
