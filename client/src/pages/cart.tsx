@@ -266,12 +266,12 @@ const CartPage = () => {
                   
                   {/* Price */}
                   <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
-                    C${item.product.price.toFixed(2)}
+                    C${(item.product.price / 100).toFixed(2)}
                   </td>
                   
                   {/* Subtotal */}
                   <td className="px-6 py-4 text-right text-sm font-medium text-gray-900">
-                    C${(item.product.price * item.quantity).toFixed(2)}
+                    C${((item.product.price * item.quantity) / 100).toFixed(2)}
                   </td>
                   
                   {/* Actions */}
@@ -308,7 +308,7 @@ const CartPage = () => {
         <div className="bg-gray-50 rounded-lg p-6 max-w-md w-full">
           <div className="flex justify-between text-base font-medium text-gray-900 mb-2">
             <p>Subtotal</p>
-            <p>C${cart.total.toFixed(2)}</p>
+            <p>C${(cart.total / 100).toFixed(2)}</p>
           </div>
           <div className="flex justify-between text-sm text-gray-500 mb-4">
             <p>Shipping & taxes calculated at checkout</p>
