@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { apiRequest } from '@/lib/queryClient';
+import { useSettings } from '@/hooks/use-settings';
 
 // Define the form schema with validation
 const appointmentFormSchema = z.object({
@@ -27,6 +28,7 @@ type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
 const AppointmentBubble: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const { showAppointmentsBubble, getAvailableAppointmentDays, getAppointmentTimeSettings } = useSettings();
   
   // Set up the form with default values
   const form = useForm<AppointmentFormValues>({
@@ -71,21 +73,85 @@ const AppointmentBubble: React.FC = () => {
     }
   };
 
-  // Generate time slots from 9 AM to 5 PM in 30-minute intervals
+  // Get available appointment time settings from context
+  const timeSettings = useMemo(() => getAppointmentTimeSettings(), [getAppointmentTimeSettings]);
+  
+  // Parse start and end times
+  const parseTime = (timeStr: string): { hour: number, minute: number } => {
+    const [hourStr, minuteStr] = timeStr.split(':');
+    return {
+      hour: parseInt(hourStr, 10),
+      minute: parseInt(minuteStr || '0', 10)
+    };
+  };
+  
+  // Generate time slots based on settings
   const generateTimeSlots = (): string[] => {
     const slots: string[] = [];
-    for (let hour = 9; hour <= 17; hour++) {
-      const hourStr = hour <= 12 ? `${hour}` : `${hour - 12}`;
-      const amPm = hour < 12 ? 'AM' : 'PM';
-      slots.push(`${hourStr}:00 ${amPm}`);
-      if (hour < 17) {
-        slots.push(`${hourStr}:30 ${amPm}`);
+    const startTime = parseTime(timeSettings.startTime);
+    const endTime = parseTime(timeSettings.endTime);
+    const intervalMinutes = timeSettings.intervalMinutes;
+    
+    // Start with the start hour and minutes
+    let currentHour = startTime.hour;
+    let currentMinute = startTime.minute;
+    
+    // Keep generating slots until we reach or exceed end time
+    while (currentHour < endTime.hour || 
+           (currentHour === endTime.hour && currentMinute <= endTime.minute)) {
+      
+      // Format the time for display
+      const formattedHour = currentHour % 12 === 0 ? 12 : currentHour % 12;
+      const amPm = currentHour < 12 ? 'AM' : 'PM';
+      const formattedMinute = currentMinute.toString().padStart(2, '0');
+      
+      slots.push(`${formattedHour}:${formattedMinute} ${amPm}`);
+      
+      // Increment time by interval
+      currentMinute += intervalMinutes;
+      if (currentMinute >= 60) {
+        currentHour += Math.floor(currentMinute / 60);
+        currentMinute = currentMinute % 60;
       }
     }
+    
     return slots;
   };
   
-  const timeSlots = generateTimeSlots();
+  // Get available days of the week
+  const availableDays = useMemo(() => getAvailableAppointmentDays(), [getAvailableAppointmentDays]);
+  
+  // Generate time slots
+  const timeSlots = useMemo(() => generateTimeSlots(), [timeSettings]);
+  
+  // Helper function to check if a date is an available day
+  const isAvailableDate = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+    return availableDays.includes(dayName);
+  };
+  
+  // Date change handler to validate selected date is on an available day
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    
+    if (selectedDate && !isAvailableDate(selectedDate)) {
+      toast({
+        title: "Unavailable Day",
+        description: `Appointments are not available on this day. Please select from: ${availableDays.join(', ')}`,
+        variant: "destructive",
+      });
+      // Clear the date input
+      form.setValue('date', '');
+    } else {
+      form.setValue('date', selectedDate);
+    }
+  };
+  
+  // If appointments bubble is hidden, don't render anything
+  if (!showAppointmentsBubble) {
+    return null;
+  }
   
   return (
     <>
@@ -162,8 +228,18 @@ const AppointmentBubble: React.FC = () => {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} min={new Date().toISOString().split("T")[0]} />
+                        <Input 
+                          type="date" 
+                          {...field} 
+                          min={new Date().toISOString().split("T")[0]} 
+                          onChange={(e) => {
+                            handleDateChange(e);
+                          }}
+                        />
                       </FormControl>
+                      <FormDescription>
+                        Available days: {availableDays.join(', ')}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

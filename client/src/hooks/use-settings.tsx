@@ -2,6 +2,12 @@ import { createContext, ReactNode, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Setting } from "@shared/schema";
 
+interface AppointmentTimeSettings {
+  startTime: string;
+  endTime: string;
+  intervalMinutes: number;
+}
+
 type SettingsContextType = {
   settings: Map<string, Setting> | undefined;
   isLoading: boolean;
@@ -10,6 +16,9 @@ type SettingsContextType = {
   getSettingsByCategory: (category: string) => Setting[];
   allSettings: Setting[] | undefined;
   isMaintenanceMode: boolean;
+  showAppointmentsBubble: boolean;
+  getAvailableAppointmentDays: () => string[];
+  getAppointmentTimeSettings: () => AppointmentTimeSettings;
 };
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -40,6 +49,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   // Check if maintenance mode is enabled
   const isMaintenanceMode = getSettingValue("maintenance_mode") === "true";
+  
+  // Check if appointments bubble should be shown
+  const showAppointmentsBubble = getSettingValue("show_appointments_bubble") === "true";
+  
+  // Get appointments settings
+  const getAvailableAppointmentDays = () => {
+    const days = getSettingValue("appointments_available_days", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday");
+    return days.split(',').map(day => day.trim());
+  };
+  
+  const getAppointmentTimeSettings = () => {
+    return {
+      startTime: getSettingValue("appointments_start_time", "9:00"),
+      endTime: getSettingValue("appointments_end_time", "17:00"),
+      intervalMinutes: parseInt(getSettingValue("appointments_interval", "60"), 10)
+    };
+  };
 
   return (
     <SettingsContext.Provider
@@ -51,6 +77,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         getSettingsByCategory,
         allSettings,
         isMaintenanceMode,
+        showAppointmentsBubble,
+        getAvailableAppointmentDays,
+        getAppointmentTimeSettings,
       }}
     >
       {children}
