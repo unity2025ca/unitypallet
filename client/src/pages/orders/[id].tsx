@@ -11,8 +11,28 @@ import { ArrowLeft, Loader2, Package, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 
-interface OrderDetails extends Order {
-  items: (OrderItem & { title?: string; price?: number; imageUrl?: string })[];
+interface OrderDetails {
+  id: number;
+  created_at?: Date;
+  user_id: number;
+  status: string | null;
+  payment_status: string | null; 
+  total: number;
+  shipping_cost?: number;
+  shipping_address?: string;
+  shipping_city?: string;
+  shipping_postal_code?: string;
+  shipping_country?: string;
+  notes?: string | null;
+  items: {
+    id: number;
+    product_id: number;
+    order_id: number;
+    quantity: number;
+    price_per_unit: number;
+    title?: string;
+    image_url?: string;
+  }[];
 }
 
 export default function OrderDetailsPage() {
@@ -122,7 +142,7 @@ export default function OrderDetailsPage() {
 
   // Format price to Canadian dollars
   const formatPrice = (price: number) => {
-    return `C$${(price / 100).toFixed(2)}`;
+    return `C$${price.toFixed(2)}`;
   };
 
   if (!customer) {
@@ -171,14 +191,14 @@ export default function OrderDetailsPage() {
             <CardHeader>
               <CardTitle>Order #{order.id}</CardTitle>
               <CardDescription>
-                Placed on {formatDate(order.createdAt)}
+                Placed on {formatDate(order.created_at)}
               </CardDescription>
               <div className="flex space-x-2 mt-2">
                 <div className={`px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
                   {getStatusText(order.status)}
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                  {getPaymentStatusText(order.paymentStatus)}
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
+                  {getPaymentStatusText(order.payment_status)}
                 </div>
               </div>
             </CardHeader>
@@ -193,20 +213,20 @@ export default function OrderDetailsPage() {
                   {order.items.map((item) => (
                     <div key={item.id} className="flex items-center space-x-4 border-b pb-4">
                       <div className="bg-secondary h-16 w-16 rounded flex items-center justify-center overflow-hidden">
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.title || 'Product'} className="h-full w-full object-cover" />
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.title || 'Product'} className="h-full w-full object-cover" />
                         ) : (
                           <Package className="h-8 w-8 text-muted-foreground" />
                         )}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium">{item.title || `Product #${item.productId}`}</h4>
+                        <h4 className="font-medium">{item.title || `Product #${item.product_id}`}</h4>
                         <div className="text-sm text-muted-foreground">
                           Quantity: {item.quantity}
                         </div>
                       </div>
                       <div className="font-medium">
-                        {formatPrice(item.pricePerUnit * item.quantity)}
+                        {formatPrice(item.price_per_unit * item.quantity)}
                       </div>
                     </div>
                   ))}
@@ -226,11 +246,11 @@ export default function OrderDetailsPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal:</span>
-                    <span>{formatPrice(order.total - (order.shippingCost || 0))}</span>
+                    <span>{formatPrice(order.total - (order.shipping_cost || 0))}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping:</span>
-                    <span>{formatPrice(order.shippingCost || 0)}</span>
+                    <span>{formatPrice(order.shipping_cost || 0)}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-medium">
@@ -243,7 +263,10 @@ export default function OrderDetailsPage() {
               <div>
                 <h4 className="font-medium mb-2">Shipping Information</h4>
                 <div className="text-sm text-muted-foreground">
-                  <p>{order.shippingAddress || "No shipping address provided"}</p>
+                  <p>{order.shipping_address || "No shipping address provided"}</p>
+                  {order.shipping_city && <p>{order.shipping_city}</p>}
+                  {order.shipping_postal_code && <p>{order.shipping_postal_code}</p>}
+                  {order.shipping_country && <p>{order.shipping_country}</p>}
                 </div>
               </div>
 
