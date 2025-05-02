@@ -148,7 +148,7 @@ export default function AccountPage() {
 
   // Format price to Canadian dollars
   const formatPrice = (price: number) => {
-    return `C$${(price / 100).toFixed(2)}`;
+    return `C$${price.toFixed(2)}`;
   };
 
   if (!customer) {
@@ -294,7 +294,7 @@ export default function AccountPage() {
                             Date
                           </div>
                           <div className="font-medium">
-                            {formatDate(order.createdAt)}
+                            {formatDate(order.created_at)}
                           </div>
                         </div>
                         <div>
@@ -309,8 +309,8 @@ export default function AccountPage() {
                           <div className={`px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
                             {getStatusText(order.status)}
                           </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                            {getPaymentStatusText(order.paymentStatus)}
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
+                            {getPaymentStatusText(order.payment_status)}
                           </div>
                         </div>
                       </div>
