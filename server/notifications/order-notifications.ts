@@ -191,7 +191,14 @@ export async function sendOrderConfirmationNotifications(orderId: number): Promi
     // Get customer name and email
     const customerName = customer.fullName || customer.username || "Valued Customer";
     const customerEmail = customer.email;
-    const customerPhone = customer.phone; // Using phone field from schema
+    // Check all possible phone field names (for schema compatibility)
+    const customerPhone = customer.phone || customer.phoneNumber || customer.contact; 
+    
+    console.log(`Customer contact information for order #${orderId}:`, {
+      name: customerName,
+      email: customerEmail || 'Not provided',
+      phone: customerPhone || 'Not provided'
+    });
     
     // Results
     let emailSent = false;

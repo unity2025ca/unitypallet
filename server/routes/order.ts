@@ -109,6 +109,21 @@ router.post('/', authenticateCustomer, async (req: Request, res: Response) => {
       }
     }
     
+    // Send immediate notification for cash on delivery orders
+    if (paymentMethod === 'cash_on_delivery') {
+      try {
+        console.log('Sending immediate notification for COD order:', order.id);
+        const { sendOrderConfirmationNotifications } = await import('../notifications/order-notifications');
+        const notificationResults = await sendOrderConfirmationNotifications(order.id);
+        console.log(`Order confirmation notifications for COD order ${order.id}:`, {
+          emailSent: notificationResults.emailSent,
+          smsSent: notificationResults.smsSent
+        });
+      } catch (error) {
+        console.error('Error sending COD order notifications:', error);
+      }
+    }
+    
     // Clear the cart by calling the cart DELETE endpoint
     await fetch(`http://localhost:5000/api/cart/clear`, {
       method: 'DELETE',
