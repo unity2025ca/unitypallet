@@ -62,6 +62,13 @@ interface User {
   username: string;
   isAdmin: boolean;
   roleType: string;
+  email?: string;
+  fullName?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
   createdAt?: string;
 }
 
@@ -364,6 +371,8 @@ const AdminUsersPage: React.FC = () => {
                 <TableRow>
                   <TableHead>Username</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead>Permissions</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -373,6 +382,23 @@ const AdminUsersPage: React.FC = () => {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{getRoleBadge(user.roleType)}</TableCell>
+                    <TableCell>
+                      {user.fullName && <div className="font-medium">{user.fullName}</div>}
+                      {user.email && <div className="text-sm text-gray-500">{user.email}</div>}
+                      {user.phone && <div className="text-sm text-gray-500">{user.phone}</div>}
+                    </TableCell>
+                    <TableCell>
+                      {user.address ? (
+                        <div>
+                          <div className="text-sm">{user.address}</div>
+                          <div className="text-sm text-gray-500">
+                            {[user.city, user.postalCode, user.country].filter(Boolean).join(", ")}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">No address provided</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {user.roleType === 'admin' && 'Full access to all features'}
                       {user.roleType === 'publisher' && 'Can manage products and view messages'}
