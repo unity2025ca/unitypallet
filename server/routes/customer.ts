@@ -140,6 +140,63 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// Update customer profile
+router.patch("/profile", async (req, res) => {
+  try {
+    // Check if user is authenticated and is a customer
+    if (!req.isAuthenticated() || req.user.roleType !== "customer") {
+      return res.status(401).json({ error: "Not authenticated as customer" });
+    }
+
+    const { fullName, email, phone, address, city, postalCode, country } = req.body;
+    
+    // Create an object with only the fields that were provided
+    const updateData: any = {};
+    if (fullName !== undefined) updateData.full_name = fullName;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    if (city !== undefined) updateData.city = city;
+    if (postalCode !== undefined) updateData.postal_code = postalCode;
+    if (country !== undefined) updateData.country = country;
+    
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No update data provided" });
+    }
+    
+    try {
+      // Update the user in the database using parameterized query
+      const updateFields = Object.keys(updateData).map((key, i) => `${key} = $${i + 2}`).join(", ");
+      const values = [req.user.id, ...Object.values(updateData)];
+      
+      const result = await pool.query(
+        `UPDATE users SET ${updateFields} WHERE id = $1 RETURNING *`,
+        values
+      );
+      
+      if (result.rows && result.rows.length > 0) {
+        // Update the session with the new user data
+        const updatedUser = result.rows[0];
+        req.login(updatedUser, (err) => {
+          if (err) {
+            return res.status(500).json({ error: "Failed to update session" });
+          }
+          return res.json(updatedUser);
+        });
+      } else {
+        return res.status(404).json({ error: "User not found" });
+      }
+    } catch (dbError) {
+      console.error("Database update error:", dbError);
+      return res.status(500).json({ error: "Failed to update profile" });
+    }
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return res.status(500).json({ error: "Profile update failed" });
+  }
+});
+
 // Get customer orders
 router.get("/orders", async (req, res) => {
   try {

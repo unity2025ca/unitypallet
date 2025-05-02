@@ -14,6 +14,17 @@ import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
+// Type for customer profile update
+export type CustomerProfileUpdate = {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+};
+
 type CustomerAuthContextType = {
   customer: User | null;
   isLoading: boolean;
@@ -21,6 +32,7 @@ type CustomerAuthContextType = {
   loginMutation: UseMutationResult<User, Error, LoginCredentials>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, z.infer<typeof customerRegistrationSchema>>;
+  updateProfileMutation: UseMutationResult<User, Error, CustomerProfileUpdate>;
 };
 
 export const CustomerAuthContext = createContext<CustomerAuthContextType | null>(null);
@@ -113,6 +125,32 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
+  
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: CustomerProfileUpdate) => {
+      const res = await apiRequest("PATCH", "/api/customer/profile", profileData);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Profile update failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (data: User) => {
+      queryClient.setQueryData(["/api/customer"], data);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been successfully updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   return (
     <CustomerAuthContext.Provider
@@ -123,6 +161,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        updateProfileMutation,
       }}
     >
       {children}

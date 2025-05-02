@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useCustomerAuth } from "@/hooks/use-customer-auth";
+import { useCustomerAuth, CustomerProfileUpdate } from "@/hooks/use-customer-auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { Order } from "@shared/schema";
@@ -7,9 +7,28 @@ import { Order } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, ShoppingBag, User, LogOut, CheckCircle2 } from "lucide-react";
+import { Loader2, Package, ShoppingBag, User, LogOut, CheckCircle2, X } from "lucide-react";
 import { useLocation, useSearch } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogClose
+} from "@/components/ui/dialog";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -149,6 +168,32 @@ export default function AccountPage() {
   // Format price to Canadian dollars
   const formatPrice = (price: number) => {
     return `C$${price.toFixed(2)}`;
+  };
+
+  // Profile Update Dialog
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const { updateProfileMutation } = useCustomerAuth();
+  
+  // Set up form with useForm hook
+  const form = useForm<CustomerProfileUpdate>({
+    defaultValues: {
+      fullName: customer?.fullName || "",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+      address: customer?.address || "",
+      city: customer?.city || "",
+      postalCode: customer?.postalCode || "",
+      country: customer?.country || "",
+    }
+  });
+  
+  // Handle profile update form submission
+  const handleProfileUpdate = (data: CustomerProfileUpdate) => {
+    updateProfileMutation.mutate(data, {
+      onSuccess: () => {
+        setProfileDialogOpen(false);
+      }
+    });
   };
 
   if (!customer) {
@@ -294,7 +339,7 @@ export default function AccountPage() {
                             Date
                           </div>
                           <div className="font-medium">
-                            {formatDate(order.created_at)}
+                            {formatDate(order.created_at || order.createdAt)}
                           </div>
                         </div>
                         <div>
@@ -309,8 +354,8 @@ export default function AccountPage() {
                           <div className={`px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
                             {getStatusText(order.status)}
                           </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
-                            {getPaymentStatusText(order.payment_status)}
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status || order.paymentStatus)}`}>
+                            {getPaymentStatusText(order.payment_status || order.paymentStatus)}
                           </div>
                         </div>
                       </div>
