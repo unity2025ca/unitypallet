@@ -773,7 +773,7 @@ const OrderSummary = ({
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-gray-600">Subtotal</span>
-          <span>C${(cart.total / 100).toFixed(2)}</span>
+          <span>C${(cart.total).toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Shipping</span>
@@ -785,7 +785,7 @@ const OrderSummary = ({
           ) : deliveryMethod === 'pickup' ? (
             <span>Free (Pickup)</span>
           ) : finalShippingCost > 0 ? (
-            <span>C${(finalShippingCost / 100).toFixed(2)}</span>
+            <span>C${(finalShippingCost).toFixed(2)}</span>
           ) : (
             <span>{shippingAddress ? "Free" : "Enter shipping address"}</span>
           )}
@@ -796,7 +796,7 @@ const OrderSummary = ({
       
       <div className="flex justify-between font-bold text-lg">
         <span>Total</span>
-        <span>C${(total / 100).toFixed(2)}</span>
+        <span>C${(total).toFixed(2)}</span>
       </div>
       
       <div className="mt-6 text-sm text-gray-500">
