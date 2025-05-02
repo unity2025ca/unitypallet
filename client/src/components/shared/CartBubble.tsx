@@ -13,7 +13,7 @@ interface CartResponse {
 
 const CartBubble = () => {
   const [, setLocation] = useLocation();
-  const { getSettingValue } = useSettings();
+  const { getSettingValue, isMaintenanceMode } = useSettings();
   const [isVisible, setIsVisible] = useState(true);
   const [animateCount, setAnimateCount] = useState(false);
   const [prevItemCount, setPrevItemCount] = useState(0);
@@ -42,8 +42,8 @@ const CartBubble = () => {
     setIsVisible(!location.startsWith('/admin') && !location.includes('/cart'));
   }, [location]);
 
-  // Always show the bubble even if cart is empty
-  if (!isVisible || !cart) {
+  // Hide bubble if in maintenance mode, admin pages, cart page, or if cart data is not available
+  if (!isVisible || !cart || isMaintenanceMode) {
     return null;
   }
 

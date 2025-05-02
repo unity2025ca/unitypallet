@@ -225,58 +225,71 @@ const ProductDetailsPage = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  <Button 
-                    size="lg" 
-                    className="w-full text-xl py-6 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg"
-                    disabled={product.status === "soldout" || addToCartMutation.isPending}
-                    onClick={() => {
-                      addToCartMutation.mutate(product.id);
-                    }}
-                  >
-                    {product.status === "soldout" ? (
-                      "Sold Out"
-                    ) : addedToCart ? (
-                      <div className="w-full" onClick={() => setLocation("/cart")}>
-                        <Check className="mr-2 h-6 w-6 inline-block" />
-                        View Cart & Checkout
-                      </div>
-                    ) : addToCartMutation.isPending ? (
-                      <>
-                        <div className="h-6 w-6 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="mr-2 h-6 w-6" />
-                        ADD TO CART - C${product.price}
-                      </>
-                    )}
-                  </Button>
+                  {isMaintenanceMode ? (
+                    <Alert className="border-amber-200 bg-amber-50">
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
+                      <AlertDescription className="text-amber-700">
+                        Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
+                        Please check back later or contact us for assistance.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <>
+                      <Button 
+                        size="lg" 
+                        className="w-full text-xl py-6 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg"
+                        disabled={product.status === "soldout" || addToCartMutation.isPending}
+                        onClick={() => {
+                          addToCartMutation.mutate(product.id);
+                        }}
+                      >
+                        {product.status === "soldout" ? (
+                          "Sold Out"
+                        ) : addedToCart ? (
+                          <div className="w-full" onClick={() => setLocation("/cart")}>
+                            <Check className="mr-2 h-6 w-6 inline-block" />
+                            View Cart & Checkout
+                          </div>
+                        ) : addToCartMutation.isPending ? (
+                          <>
+                            <div className="h-6 w-6 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingBag className="mr-2 h-6 w-6" />
+                            ADD TO CART - C${product.price}
+                          </>
+                        )}
+                      </Button>
 
-                  <div className="flex gap-4">
-                    <Button 
-                      size="lg" 
-                      className="w-1/2 btn-red"
-                      disabled={product.status === "soldout"}
-                      asChild
-                    >
-                      <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
-                        <i className="fab fa-whatsapp mr-2"></i>
-                        WhatsApp Order
-                      </a>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="w-1/2 btn-black"
-                      asChild
-                    >
-                      <Link href="/contact">
-                        More Information
-                      </Link>
-                    </Button>
-                  </div>
+                      <div className="flex gap-4">
+                        <Button 
+                          size="lg" 
+                          className="w-1/2 btn-red"
+                          disabled={product.status === "soldout"}
+                          asChild
+                        >
+                          <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-whatsapp mr-2"></i>
+                            WhatsApp Order
+                          </a>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="lg" 
+                          className="w-1/2 btn-black"
+                          asChild
+                        >
+                          <Link href="/contact">
+                            More Information
+                          </Link>
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
                 
                 <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">

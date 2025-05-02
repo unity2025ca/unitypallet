@@ -2,10 +2,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash2, ChevronLeft, ShoppingBag, X, MinusCircle, PlusCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Trash2, ChevronLeft, ShoppingBag, X, MinusCircle, PlusCircle, AlertTriangle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
+import { useSettings } from "@/hooks/use-settings";
 
 interface CartItem {
   id: number;
@@ -31,6 +33,7 @@ const CartPage = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { customer } = useCustomerAuth();
+  const { isMaintenanceMode } = useSettings();
 
   // Fetch cart data
   const { data: cart, isLoading, isError } = useQuery<CartResponse>({
@@ -162,6 +165,32 @@ const CartPage = () => {
           <p className="text-red-600 mb-4">We couldn't load your cart. Please try again later.</p>
           <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/cart'] })}>
             Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check for maintenance mode
+  if (isMaintenanceMode) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+        <Alert className="border-amber-200 bg-amber-50 mb-6">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
+            Please check back later or contact us for assistance.
+          </AlertDescription>
+        </Alert>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-10 text-center">
+          <div className="text-gray-400 mb-4">
+            <ShoppingBag className="h-16 w-16 mx-auto" />
+          </div>
+          <p className="text-gray-500 mb-8">Purchasing functionality is temporarily disabled while we're performing maintenance.</p>
+          <Button asChild size="lg">
+            <Link href="/products">Browse Products</Link>
           </Button>
         </div>
       </div>
