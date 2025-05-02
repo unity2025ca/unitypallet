@@ -53,6 +53,7 @@ export default function AdminSettings() {
   const socialSettings = settings?.filter(s => s.category === "social") || [];
   const aboutSettings = settings?.filter(s => s.category === "about") || [];
   const howItWorksSettings = settings?.filter(s => s.category === "how_it_works") || [];
+  const systemSettings = settings?.filter(s => s.category === "system") || [];
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">

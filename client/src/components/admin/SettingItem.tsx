@@ -4,9 +4,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, XIcon, AlertOctagon } from "lucide-react";
 
 interface SettingItemProps {
   setting: Setting;
@@ -21,6 +22,12 @@ export default function SettingItem({ setting }: SettingItemProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
     setIsChanged(e.target.value !== setting.value);
+  };
+
+  const handleSwitchChange = (checked: boolean) => {
+    const newValue = checked ? "true" : "false";
+    setValue(newValue);
+    setIsChanged(newValue !== setting.value);
   };
 
   const handleSubmit = async () => {
@@ -115,6 +122,48 @@ export default function SettingItem({ setting }: SettingItemProps) {
           className="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2"
         />
       );
+    } else if (setting.type === "boolean") {
+      // For the maintenance mode, show a special warning UI
+      if (setting.key === "maintenance_mode") {
+        inputElement = (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id={setting.key}
+                checked={value === "true"}
+                onCheckedChange={handleSwitchChange}
+              />
+              <Label htmlFor={setting.key}>
+                {value === "true" ? "Enabled" : "Disabled"}
+              </Label>
+            </div>
+            
+            {value === "true" && (
+              <div className="p-4 border border-red-200 bg-red-50 rounded-md flex items-center">
+                <AlertOctagon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
+                <span className="text-sm text-red-800">
+                  Warning: When enabled, all purchasing functionality will be disabled on the website.
+                  Customers will not be able to add items to cart or checkout.
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      } else {
+        // For other boolean settings
+        inputElement = (
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id={setting.key}
+              checked={value === "true"}
+              onCheckedChange={handleSwitchChange}
+            />
+            <Label htmlFor={setting.key}>
+              {value === "true" ? "Enabled" : "Disabled"}
+            </Label>
+          </div>
+        );
+      }
     }
 
     return inputElement;
