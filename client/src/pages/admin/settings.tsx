@@ -54,6 +54,7 @@ export default function AdminSettings() {
   const aboutSettings = settings?.filter(s => s.category === "about") || [];
   const howItWorksSettings = settings?.filter(s => s.category === "how_it_works") || [];
   const systemSettings = settings?.filter(s => s.category === "system") || [];
+  const appointmentsSettings = settings?.filter(s => s.category === "appointments") || [];
   
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -79,6 +80,7 @@ export default function AdminSettings() {
             <div className="overflow-x-auto pb-2">
               <TabsList className="mb-4 md:mb-8 justify-start">
                 <TabsTrigger value="system">System</TabsTrigger>
+                <TabsTrigger value="appointments">Appointments</TabsTrigger>
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
                 <TabsTrigger value="about">About Us</TabsTrigger>
@@ -93,6 +95,27 @@ export default function AdminSettings() {
               {systemSettings.map(setting => (
                 <SettingItem key={setting.id} setting={setting} />
               ))}
+            </TabsContent>
+            
+            <TabsContent value="appointments" className="space-y-4">
+              <p className="text-slate-600 mb-4 md:mb-6">Configure appointment settings and availability</p>
+              <div className="border-b pb-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Appointment Visibility</h3>
+                {appointmentsSettings
+                  .filter(s => s.key.includes('show_appointments'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
+              
+              <div className="border-b pb-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Appointment Days and Hours</h3>
+                {appointmentsSettings
+                  .filter(s => s.key.includes('days') || s.key.includes('time') || s.key.includes('interval'))
+                  .map(setting => (
+                    <SettingItem key={setting.id} setting={setting} />
+                  ))}
+              </div>
             </TabsContent>
             
             <TabsContent value="appearance" className="space-y-4">
