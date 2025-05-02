@@ -156,7 +156,18 @@ router.post("/webhook", async (req, res) => {
         try {
           const orderId = parseInt(paymentIntent.metadata.orderId);
           await storage.updateOrderPaymentStatus(orderId, "paid");
+          await storage.updateOrderStatus(orderId, "processing");
+          
           console.log(`Payment for order ${orderId} succeeded. Payment ID: ${paymentIntent.id}`);
+          
+          // Send order confirmation notifications (email and SMS)
+          const { sendOrderConfirmationNotifications } = await import('../notifications/order-notifications');
+          const notificationResults = await sendOrderConfirmationNotifications(orderId);
+          
+          console.log(`Order confirmation notifications for order ${orderId}:`, {
+            emailSent: notificationResults.emailSent,
+            smsSent: notificationResults.smsSent
+          });
         } catch (error) {
           console.error("Error processing successful payment:", error);
         }
@@ -176,8 +187,14 @@ router.post("/webhook", async (req, res) => {
           
           console.log(`Checkout completed for order ${orderId}. Payment status updated to 'paid', order status updated to 'processing'. Session ID: ${session.id}`);
           
-          // You could add notification logic here (email, SMS) to notify the customer
-          // that their payment was successful
+          // Send order confirmation notifications (email and SMS)
+          const { sendOrderConfirmationNotifications } = await import('../notifications/order-notifications');
+          const notificationResults = await sendOrderConfirmationNotifications(orderId);
+          
+          console.log(`Order confirmation notifications for order ${orderId}:`, {
+            emailSent: notificationResults.emailSent,
+            smsSent: notificationResults.smsSent
+          });
         } catch (error) {
           console.error("Error processing completed checkout:", error);
         }
