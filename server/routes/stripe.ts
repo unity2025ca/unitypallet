@@ -51,23 +51,48 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
     // Get order items for better product description
     const orderItems = await storage.getOrderItemsByOrderId(Number(orderId));
     
-    // Create a checkout session instead of a payment intent
+    // Create a checkout session with separate line items for products and shipping
     // This will redirect the user to Stripe's hosted checkout page
+    
+    // Calculate product total (without shipping)
+    const productTotal = order.total - order.shippingCost;
+    
+    // Prepare line items array
+    const lineItems = [];
+    
+    // Add product as first line item
+    lineItems.push({
+      price_data: {
+        currency: 'cad',
+        product_data: {
+          name: `Order #${orderId} - ${orderItems.length} items`,
+          description: `Purchase from Unity Pallets`,
+        },
+        unit_amount: productTotal, // Product amount without shipping
+      },
+      quantity: 1,
+    });
+    
+    // Add shipping as separate line item if applicable
+    if (order.shippingCost > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'Shipping',
+            description: 'Shipping and handling fees',
+          },
+          unit_amount: order.shippingCost, // Shipping amount
+        },
+        quantity: 1,
+      });
+    }
+    
+    console.log('Stripe checkout line items:', lineItems);
+    
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'cad',
-            product_data: {
-              name: `Order #${orderId} - ${orderItems.length} items`,
-              description: `Purchase from Unity Pallets${order.shippingCost ? ' (including shipping)' : ''}`,
-            },
-            unit_amount: amount, // Amount is already in cents from the client
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: 'payment',
       success_url: `${req.headers.origin}/account?order_success=true&order_id=${orderId}`,
       cancel_url: `${req.headers.origin}/checkout?canceled=true`,
