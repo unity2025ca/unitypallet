@@ -1,10 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { Providers } from "./components/ui/providers";
 
-createRoot(document.getElementById("root")!).render(
-  <Providers>
-    <App />
-  </Providers>
-);
+// Removed Providers wrapper since it's already included in App.tsx
+createRoot(document.getElementById("root")!).render(<App />);

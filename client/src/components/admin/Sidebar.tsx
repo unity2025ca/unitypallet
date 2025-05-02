@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import translations from "@/lib/i18n";
+import { useTranslations } from "@/App"; // Using translations from App context
 import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, ShieldAlert } from 'lucide-react';
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -28,6 +28,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
   const [location, navigate] = useLocation();
   const { logout, user } = useAdminAuth();
   const [isMobile, setIsMobile] = useState(false);
+  const translations = useTranslations(); // Use translations from context
   
   // Get current user role
   const userRole = user?.isAdmin ? 'admin' : (user?.roleType || 'user');
@@ -52,7 +53,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       name: "Core",
       items: [
         { 
-          name: translations.admin.sidebar.dashboard, 
+          name: "Dashboard", 
           href: "/admin/dashboard", 
           icon: "fas fa-tachometer-alt",
           roles: ["admin", "publisher", "user"] // All roles can access
@@ -75,7 +76,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           roles: ["admin"] // Only admin can access 
         },
         { 
-          name: translations.admin.sidebar.products, 
+          name: "Products", 
           href: "/admin/products", 
           icon: "fas fa-box",
           roles: ["admin", "publisher"] // Admin and publisher can access
@@ -92,7 +93,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       name: "Customer",
       items: [
         { 
-          name: translations.admin.sidebar.orders, 
+          name: "Orders", 
           href: "/admin/orders", 
           icon: "fas fa-envelope",
           roles: ["admin", "publisher"] // Admin and publisher can access
@@ -299,7 +300,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
               onClick={handleLogout}
             >
               <i className="fas fa-sign-out-alt w-5 mr-3"></i>
-              {translations.admin.sidebar.logout}
+              Logout
             </Button>
           </div>
         </div>

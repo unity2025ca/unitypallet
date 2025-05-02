@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import translations from "@/lib/i18n";
+import translations from "@/lib/i18n-temp";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";

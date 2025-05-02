@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import translations from "@/lib/i18n";
+import translations from "@/lib/i18n-temp";
 import { useSettings } from "@/hooks/use-settings";
 
 const Footer = () => {

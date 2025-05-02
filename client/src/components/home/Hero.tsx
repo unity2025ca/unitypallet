@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import translations from "@/lib/i18n";
+import translations from "@/lib/i18n-temp";
 import { Button } from "@/components/ui/button";
 
 const Hero = () => {

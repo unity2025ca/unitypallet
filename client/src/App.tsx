@@ -42,12 +42,47 @@ import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
+import { createContext, useContext } from "react";
+
+// Create a simplified translations context to avoid module import issues
+export const translations = {
+  navItems: {
+    home: "Home",
+    shop: "Shop",
+    about: "About Us",
+    howItWorks: "How It Works",
+    faq: "FAQ",
+    contact: "Contact Us",
+    admin: "Admin Panel"
+  },
+  admin: {
+    login: {
+      title: "Login to Admin Panel",
+      username: "Username",
+      password: "Password",
+      submit: "Login",
+      error: "Invalid username or password"
+    },
+    sidebar: {
+      dashboard: "Dashboard",
+      products: "Products",
+      orders: "Orders",
+      logout: "Logout"
+    }
+  }
+};
+
+// Create a context for translations
+export const TranslationsContext = createContext(translations);
+
+// Hook to use translations
+export const useTranslations = () => useContext(TranslationsContext);
 
 function Router() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith("/admin");
   
-  // استخدام هوك تتبع الزيارات
+  // Use visitor tracking hook
   useVisitorTracking();
   
   return (
@@ -102,13 +137,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <CustomerAuthProvider>
-          <Providers>
-            <TooltipProvider>
-              <DynamicStyles />
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </Providers>
+          <TranslationsContext.Provider value={translations}>
+            <Providers>
+              <TooltipProvider>
+                <DynamicStyles />
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </Providers>
+          </TranslationsContext.Provider>
         </CustomerAuthProvider>
       </SettingsProvider>
     </QueryClientProvider>

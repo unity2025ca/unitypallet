@@ -1,4 +1,4 @@
-import translations from "@/lib/i18n";
+import translations from "@/lib/i18n-temp";
 
 const Features = () => {
   const features = translations.features.items;

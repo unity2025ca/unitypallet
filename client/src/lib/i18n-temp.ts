@@ -1,5 +1,5 @@
-// Simple i18n utility for direct string translations
-// In a more complex app, we would use i18next
+// Temporary i18n utility as a workaround for import issues
+// This file uses a different name to avoid caching issues
 
 const translations = {
   navItems: {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import translations from "@/lib/i18n";
+import translations from "@/lib/i18n-temp"; // Using temporary i18n file
 import { Product } from "@shared/schema";
 import { Activity, Calendar, Users, Package, Mail, Settings, AlertTriangle, ShieldAlert, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
