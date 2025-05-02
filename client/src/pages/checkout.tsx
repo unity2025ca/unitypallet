@@ -762,7 +762,7 @@ const OrderSummary = ({
             <div className="flex-1">
               <h3 className="text-sm font-medium">{item.product.title}</h3>
               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-              <p className="text-sm font-medium">C${(item.product.price * item.quantity / 100).toFixed(2)}</p>
+              <p className="text-sm font-medium">C${(item.product.price * item.quantity).toFixed(2)}</p>
             </div>
           </div>
         ))}
