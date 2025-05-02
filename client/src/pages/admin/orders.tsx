@@ -236,7 +236,7 @@ const AdminOrders = () => {
   }
   
   // Format date function
-  const formatDate = (dateString: string | Date | null) => {
+  const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "غير محدد";
     try {
       const date = new Date(dateString);
@@ -516,9 +516,7 @@ const AdminOrders = () => {
                   تفاصيل الطلب #{viewOrderId}
                 </DialogTitle>
                 <DialogDescription>
-                  {viewOrderId && getOrderById(viewOrderId)?.createdAt ? 
-                    formatDate(getOrderById(viewOrderId)?.createdAt) : 
-                    "تاريخ غير محدد"}
+                  {viewOrderId ? formatDate(getOrderById(viewOrderId)?.createdAt) : "تاريخ غير محدد"}
                 </DialogDescription>
               </DialogHeader>
               
