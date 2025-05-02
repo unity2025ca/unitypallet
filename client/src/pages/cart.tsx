@@ -176,26 +176,31 @@ const CartPage = () => {
     return (
       <div className="container mx-auto px-4 py-16">
         <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
-        <Alert className="border-amber-200 bg-amber-50 mb-6">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
-          <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
-          <AlertDescription className="text-amber-700">
-            Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
-            Please check back later or contact us for assistance.
-          </AlertDescription>
-        </Alert>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-10 text-center">
-          <div className="text-gray-400 mb-4">
-            <ShoppingBag className="h-16 w-16 mx-auto" />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="text-red-500 mb-4">
+            <AlertTriangle className="h-12 w-12 mx-auto" />
           </div>
-          <p className="text-gray-500 mb-8">Purchasing functionality is temporarily disabled while we're performing maintenance.</p>
-          <Button asChild size="lg">
-            <Link href="/products">Browse Products</Link>
-          </Button>
+          <h2 className="text-xl font-semibold text-red-700 mb-2">Ordering Temporarily Unavailable</h2>
+          <p className="text-red-600 mb-4">Our website is currently undergoing maintenance. The shopping cart is unavailable.</p>
+          <div className="flex justify-center gap-4 mt-6">
+            <Button asChild>
+              <Link href="/products">
+                Continue Browsing
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
+                <i className="fab fa-whatsapp mr-2"></i>
+                Contact on WhatsApp
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
+  
+
 
   // Show empty cart state
   if (!cart || cart.items.length === 0) {

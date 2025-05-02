@@ -225,15 +225,41 @@ const ProductDetailsPage = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {isMaintenanceMode ? (
-                    <Alert className="border-amber-200 bg-amber-50">
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                      <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
-                      <AlertDescription className="text-amber-700">
-                        Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
-                        Please check back later or contact us for assistance.
-                      </AlertDescription>
-                    </Alert>
+                    {isMaintenanceMode ? (
+                    <>
+                      <Alert className="border-amber-200 bg-amber-50 mb-4">
+                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                        <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
+                        <AlertDescription className="text-amber-700">
+                          Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
+                          Please contact us through WhatsApp for assistance.
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <div className="flex gap-4">
+                        <Button 
+                          size="lg" 
+                          className="w-1/2 btn-red"
+                          asChild
+                        >
+                          <a href="https://wa.me/12892166500" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-whatsapp mr-2"></i>
+                            WhatsApp Order
+                          </a>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="lg" 
+                          className="w-1/2 btn-black"
+                          asChild
+                        >
+                          <Link href="/contact">
+                            More Information
+                          </Link>
+                        </Button>
+                      </div>
+                    </>
                   ) : (
                     <>
                       <Button 

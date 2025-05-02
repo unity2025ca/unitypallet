@@ -18,7 +18,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     soldout: "bg-black text-white",
   };
   
-  const isSoldOut = product.status === "soldout" || isMaintenanceMode;
+  const isSoldOut = product.status === "soldout";
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
@@ -42,25 +42,31 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <span className={`text-lg font-bold ${isSoldOut ? 'text-gray-400' : 'text-primary'}`}>
             C${product.price}
           </span>
-          <Button 
-            asChild={!isSoldOut}
-            variant={isSoldOut ? "ghost" : "default"}
-            className={isSoldOut ? 
-              "bg-gray-300 text-gray-600 cursor-not-allowed" : 
-              "btn-red"
-            }
-            disabled={isSoldOut}
-          >
-            {isMaintenanceMode ? (
-              <span>Unavailable</span>
-            ) : isSoldOut ? (
-              <span>Sold Out</span>
-            ) : (
-              <Link href={`/products/${product.id}`}>
+          {!isMaintenanceMode ? (
+            <Button 
+              asChild={!isSoldOut}
+              variant={isSoldOut ? "ghost" : "default"}
+              className={isSoldOut ? 
+                "bg-gray-300 text-gray-600 cursor-not-allowed" : 
+                "btn-red"
+              }
+              disabled={isSoldOut}
+            >
+              {isSoldOut ? (
+                <span>Sold Out</span>
+              ) : (
+                <Link href={`/products/${product.id}`}>
+                  {translations.shop.detailsButton}
+                </Link>
+              )}
+            </Button>
+          ) : (
+            <Link href={`/products/${product.id}`}>
+              <Button variant="default" className="btn-red">
                 {translations.shop.detailsButton}
-              </Link>
-            )}
-          </Button>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>
