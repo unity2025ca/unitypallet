@@ -80,6 +80,7 @@ const CheckoutPage = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { customer } = useCustomerAuth();
+  const { isMaintenanceMode } = useSettings();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
@@ -289,6 +290,36 @@ const CheckoutPage = () => {
       });
     });
   };
+
+  // Handle maintenance mode
+  if (isMaintenanceMode) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <Alert className="border-amber-200 bg-amber-50 mb-6">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
+            Please check back later or contact us for assistance.
+          </AlertDescription>
+        </Alert>
+        <div className="bg-gray-100 rounded-lg p-8 text-center">
+          <p className="text-gray-600 mb-6">
+            We apologize for the inconvenience. Please try again later or contact our customer service team.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="outline" asChild>
+              <Link href="/contact">Contact Us</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/products">Continue Browsing</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle authentication issues
   if (!customer) {

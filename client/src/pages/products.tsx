@@ -6,10 +6,14 @@ import { Product } from "@shared/schema";
 import ProductCard from "@/components/product/ProductCard";
 import ProductFilter from "@/components/product/ProductFilter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
 
 const ProductsPage = () => {
   const [location] = useLocation();
   const [activeCategory, setActiveCategory] = useState("all");
+  const { isMaintenanceMode } = useSettings();
   
   // Extract category from URL if present
   useEffect(() => {
@@ -53,6 +57,17 @@ const ProductsPage = () => {
             {translations.shop.subtitle}
           </p>
         </div>
+        
+        {isMaintenanceMode && (
+          <Alert className="border-amber-200 bg-amber-50 mb-8">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            <AlertTitle className="text-amber-800">Ordering Temporarily Unavailable</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              Our website is currently undergoing maintenance. Purchasing features are temporarily unavailable.
+              You can still browse products, but you won't be able to place orders at this time.
+            </AlertDescription>
+          </Alert>
+        )}
         
         {/* Category Filter */}
         <ProductFilter 

@@ -2,12 +2,15 @@ import { Link } from "wouter";
 import translations from "@/lib/i18n";
 import { Product, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks/use-settings";
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { isMaintenanceMode } = useSettings();
+  
   // Map status to UI components
   const statusColors: Record<string, string> = {
     available: "bg-red-100 text-primary",
@@ -15,7 +18,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     soldout: "bg-black text-white",
   };
   
-  const isSoldOut = product.status === "soldout";
+  const isSoldOut = product.status === "soldout" || isMaintenanceMode;
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
@@ -48,7 +51,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             }
             disabled={isSoldOut}
           >
-            {isSoldOut ? (
+            {isMaintenanceMode ? (
+              <span>Unavailable</span>
+            ) : isSoldOut ? (
               <span>Sold Out</span>
             ) : (
               <Link href={`/products/${product.id}`}>
