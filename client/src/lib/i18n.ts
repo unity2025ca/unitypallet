@@ -1,7 +1,7 @@
 // Simple i18n utility for direct string translations
 // In a more complex app, we would use i18next
 
-const translations = {
+export const translations = {
   navItems: {
     home: "Home",
     shop: "Shop",
@@ -226,5 +226,3 @@ const translations = {
     }
   }
 };
-
-export default translations;

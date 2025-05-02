@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import translations from "@/lib/i18n";
+import { translations } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, ShieldAlert } from 'lucide-react';
 import { useAdminAuth } from "@/hooks/use-admin-auth";
