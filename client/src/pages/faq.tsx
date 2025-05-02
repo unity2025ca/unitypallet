@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import FaqAccordion from "@/components/shared/FaqAccordion";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";

@@ -31,8 +31,8 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Trash } from 'lucide-react';
+import Sidebar from '@/components/admin/Sidebar';
 import { apiRequest } from '@/lib/queryClient';
-import { AdminLayout } from '@/components/admin/AdminLayout';
 
 // Define appointment types
 interface Appointment {
@@ -42,39 +42,14 @@ interface Appointment {
   phone: string;
   date: string;
   time: string;
-  message: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  created_at: string;
+  message: string | null;
+  status: string;
+  createdAt: string;
 }
-
-const statusStyles = {
-  pending: { class: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' },
-  confirmed: { class: 'bg-green-100 text-green-800 border-green-200', label: 'Confirmed' },
-  cancelled: { class: 'bg-red-100 text-red-800 border-red-200', label: 'Cancelled' },
-  completed: { class: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Completed' },
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-};
-
-const formatDateTime = (dateString: string, timeString: string) => {
-  const date = new Date(`${dateString}T${timeString}`);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
 
 const AdminAppointmentsPage: React.FC = () => {
   const { toast } = useToast();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<number | null>(null);
   
   // Fetch appointments
@@ -120,7 +95,7 @@ const AdminAppointmentsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/appointments'] });
       toast({
         title: 'Appointment deleted',
-        description: 'The appointment has been successfully deleted.',
+        description: 'The appointment has been deleted successfully.',
       });
       setAppointmentToDelete(null);
     },
@@ -130,150 +105,173 @@ const AdminAppointmentsPage: React.FC = () => {
         description: `Failed to delete appointment: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+      setAppointmentToDelete(null);
     },
   });
 
-  const handleStatusChange = (id: number, value: string) => {
-    updateStatusMutation.mutate({ id, status: value });
+  // Handle status change
+  const handleStatusChange = (appointmentId: number, newStatus: string) => {
+    updateStatusMutation.mutate({ id: appointmentId, status: newStatus });
   };
 
-  const confirmDelete = (id: number) => {
+  // Handle delete
+  const handleDelete = (id: number) => {
     setAppointmentToDelete(id);
   };
 
-  const handleDelete = () => {
-    if (appointmentToDelete !== null) {
+  // Confirm delete
+  const confirmDelete = () => {
+    if (appointmentToDelete) {
       deleteAppointmentMutation.mutate(appointmentToDelete);
     }
   };
 
+  // Status badge color mapping
+  const getStatusColor = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: // pending
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      // Check if it's a valid date
+      if (isNaN(date.getTime())) {
+        // If it's not a timestamp format, it might be in YYYY-MM-DD format
+        return dateStr;
+      }
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }).format(date);
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <AdminLayout title="Appointments">
-      <div className="mb-6">
-        <p className="text-gray-600">Manage customer appointment requests</p>
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar isMobileOpen={isMobileOpen} toggleMobile={() => setIsMobileOpen(!isMobileOpen)} />
+      
+      <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2">Appointments</h1>
+          <p className="text-gray-600">Manage customer appointment requests</p>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : isError ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            Failed to load appointments. Please try again.
+          </div>
+        ) : appointments && appointments.length > 0 ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableCaption>A list of all appointment requests.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Requested on</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {appointments.map((appointment) => (
+                  <TableRow key={appointment.id}>
+                    <TableCell className="font-medium">{appointment.name}</TableCell>
+                    <TableCell>
+                      <div>{appointment.email}</div>
+                      <div className="text-sm text-gray-500">{appointment.phone}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div>{appointment.date}</div>
+                      <div className="text-sm text-gray-500">{appointment.time}</div>
+                    </TableCell>
+                    <TableCell>{formatDate(appointment.createdAt)}</TableCell>
+                    <TableCell>
+                      <Select 
+                        defaultValue={appointment.status} 
+                        onValueChange={(value) => handleStatusChange(appointment.id, value)}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue>
+                            <Badge className={`${getStatusColor(appointment.status)} px-2 py-1 text-xs font-medium`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end">
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDelete(appointment.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <p className="text-gray-500">No appointments found.</p>
+          </div>
+        )}
       </div>
       
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : isError ? (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          Failed to load appointments. Please try again.
-        </div>
-      ) : appointments && appointments.length > 0 ? (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <Table>
-            <TableCaption>A list of all appointment requests.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Requested on</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {appointments.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell className="font-medium">{appointment.name}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div>{appointment.email}</div>
-                      <div className="text-muted-foreground">{appointment.phone}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatDateTime(appointment.date, appointment.time)}</TableCell>
-                  <TableCell>{formatDate(appointment.created_at)}</TableCell>
-                  <TableCell>
-                    <Select
-                      defaultValue={appointment.status}
-                      onValueChange={(value) => handleStatusChange(appointment.id, value)}
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue>
-                          <Badge 
-                            variant="outline" 
-                            className={statusStyles[appointment.status as keyof typeof statusStyles].class}
-                          >
-                            {statusStyles[appointment.status as keyof typeof statusStyles].label}
-                          </Badge>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">
-                          <Badge variant="outline" className={statusStyles.pending.class}>
-                            {statusStyles.pending.label}
-                          </Badge>
-                        </SelectItem>
-                        <SelectItem value="confirmed">
-                          <Badge variant="outline" className={statusStyles.confirmed.class}>
-                            {statusStyles.confirmed.label}
-                          </Badge>
-                        </SelectItem>
-                        <SelectItem value="cancelled">
-                          <Badge variant="outline" className={statusStyles.cancelled.class}>
-                            {statusStyles.cancelled.label}
-                          </Badge>
-                        </SelectItem>
-                        <SelectItem value="completed">
-                          <Badge variant="outline" className={statusStyles.completed.class}>
-                            {statusStyles.completed.label}
-                          </Badge>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => confirmDelete(appointment.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="text-xl font-semibold mb-2">No appointments found</div>
-          <p className="text-muted-foreground">
-            There are no customer appointment requests at this time.
-          </p>
-        </div>
-      )}
-      
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={appointmentToDelete !== null} onOpenChange={(open) => !open && setAppointmentToDelete(null)}>
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!appointmentToDelete} onOpenChange={() => setAppointmentToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the appointment record.
+              This action cannot be undone. This will permanently delete the appointment from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              disabled={deleteAppointmentMutation.isPending}
-            >
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700">
               {deleteAppointmentMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              Delete
+                <span className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
+                </span>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </div>
   );
 };
 

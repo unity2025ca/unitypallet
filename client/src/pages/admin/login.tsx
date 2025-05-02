@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { translations } from "@/lib/i18n";
+import translations from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,6 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const { login, isAuthenticated } = useAdminAuth();
   const [_, navigate] = useLocation();
-  
-  // Debug authentication status
-  useEffect(() => {
-    console.log("Authentication status:", isAuthenticated ? "Authenticated" : "Not authenticated");
-  }, [isAuthenticated]);
   
   // Redirect if already authenticated with proper checks
   useEffect(() => {
@@ -38,7 +33,7 @@ const AdminLogin = () => {
     
     login.mutate({ username, password }, {
       onError: () => {
-        setError("Invalid username or password");
+        setError(translations.admin.login.error);
       }
     });
   };
@@ -48,14 +43,14 @@ const AdminLogin = () => {
       <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Login to Admin Panel
+            {translations.admin.login.title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">
-                Username
+                {translations.admin.login.username}
               </Label>
               <Input 
                 id="username"
@@ -67,7 +62,7 @@ const AdminLogin = () => {
             
             <div className="space-y-2">
               <Label htmlFor="password">
-                Password
+                {translations.admin.login.password}
               </Label>
               <Input 
                 id="password"
@@ -95,7 +90,7 @@ const AdminLogin = () => {
                   Logging in...
                 </span>
               ) : (
-                "Login"
+                translations.admin.login.submit
               )}
             </Button>
           </form>

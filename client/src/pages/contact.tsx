@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { insertContactSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";

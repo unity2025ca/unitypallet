@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useRef, useEffect } from "react";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import { categoryMap, insertProductSchema, statusMap, type Product, type ProductImage } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {

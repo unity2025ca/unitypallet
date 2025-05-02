@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link, useLocation } from "wouter";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import { Product, ProductImage, categoryMap, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

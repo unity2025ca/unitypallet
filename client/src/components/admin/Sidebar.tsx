@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { translations } from "@/lib/i18n";
+import translations from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Shield, ShieldAlert } from 'lucide-react';
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -52,7 +52,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       name: "Core",
       items: [
         { 
-          name: "Dashboard", 
+          name: translations.admin.sidebar.dashboard, 
           href: "/admin/dashboard", 
           icon: "fas fa-tachometer-alt",
           roles: ["admin", "publisher", "user"] // All roles can access
@@ -75,7 +75,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           roles: ["admin"] // Only admin can access 
         },
         { 
-          name: "Products", 
+          name: translations.admin.sidebar.products, 
           href: "/admin/products", 
           icon: "fas fa-box",
           roles: ["admin", "publisher"] // Admin and publisher can access
@@ -92,7 +92,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
       name: "Customer",
       items: [
         { 
-          name: "Orders", 
+          name: translations.admin.sidebar.orders, 
           href: "/admin/orders", 
           icon: "fas fa-envelope",
           roles: ["admin", "publisher"] // Admin and publisher can access
@@ -239,7 +239,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
                                 }`}
                                 onClick={() => {
                                   handleNavClick();
-                                  navigate(item.href);
+                                  window.location.href = item.href;
                                 }}
                               >
                                 <i className={`${item.icon} w-4 mr-3`}></i>
@@ -286,7 +286,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
                 if (isMobile && toggleMobile) {
                   toggleMobile();
                 }
-                navigate("/");
+                window.location.href = "/";
               }}
             >
               <i className="fas fa-home w-5 mr-3"></i>
@@ -299,7 +299,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
               onClick={handleLogout}
             >
               <i className="fas fa-sign-out-alt w-5 mr-3"></i>
-              Logout
+              {translations.admin.sidebar.logout}
             </Button>
           </div>
         </div>

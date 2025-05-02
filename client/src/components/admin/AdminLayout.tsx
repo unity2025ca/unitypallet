@@ -1,27 +1,30 @@
-import { ReactNode, useState } from "react";
-import { Redirect } from "wouter";
-import { Loader2, Menu } from "lucide-react";
-import Sidebar from "@/components/admin/Sidebar";
-import { NotificationCenter } from "@/components/admin/NotificationCenter";
-import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { useLocation, Redirect } from 'wouter';
+import { useAdminAuth } from '@/hooks/use-admin-auth';
+import Sidebar from '@/components/admin/Sidebar';
+import { Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
-  children: ReactNode;
-  title: string;
-  requireAdmin?: boolean;
+  children: React.ReactNode;
 }
 
-export function AdminLayout({ children, title, requireAdmin = false }: AdminLayoutProps) {
-  const { user, isAuthenticated, isLoading, isAdmin } = useAdminAuth();
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  const [_, navigate] = useLocation();
+  const { isAuthenticated, isAdmin, isLoading } = useAdminAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Toggle mobile menu
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-  
-  // Show loading spinner while checking authentication
+
+  // Authentication check
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/admin/login');
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -29,59 +32,20 @@ export function AdminLayout({ children, title, requireAdmin = false }: AdminLayo
       </div>
     );
   }
-  
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
+
+  // Redirect if not authenticated or not admin
+  if (!isAuthenticated || !isAdmin) {
     return <Redirect to="/admin/login" />;
   }
-  
-  // Check if admin role is required but user is not admin
-  if (requireAdmin && !isAdmin) {
-    return <Redirect to="/admin/dashboard" />;
-  }
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
-      {/* Mobile overlay when sidebar is open */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
-          onClick={toggleMobileMenu}
-          aria-hidden="true"
-        />
-      )}
-      
-      {/* Sidebar */}
       <Sidebar isMobileOpen={isMobileMenuOpen} toggleMobile={toggleMobileMenu} />
-      
-      <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-auto transition-all duration-300">
-        {/* Header with mobile menu and notifications */}
-        <div className="flex items-center justify-between mb-6 sticky top-0 z-10 bg-slate-50 py-2">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleMobileMenu}
-              className="mr-2 md:hidden"
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-            <h1 className="text-2xl font-bold">{title}</h1>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {/* Notification Center - always visible */}
-            {user && <NotificationCenter user={user} />}
-          </div>
-        </div>
-        
-        {/* Main content */}
-        <div className="pb-6">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 p-4 md:p-8 md:ml-64">
+        {children}
+      </div>
     </div>
   );
-}
+};
 
+export default AdminLayout;

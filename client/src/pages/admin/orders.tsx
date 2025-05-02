@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useLocation } from "wouter";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import Sidebar from "@/components/admin/Sidebar";
 import { useState } from "react";
 import { format } from "date-fns";

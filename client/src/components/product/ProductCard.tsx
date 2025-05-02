@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import translations from "@/lib/i18n-temp";
+import translations from "@/lib/i18n";
 import { Product, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";

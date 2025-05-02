@@ -35,25 +35,7 @@ const createSimpleWebSocket = () => {
   try {
     // Create WebSocket connection
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Fix port handling to be more reliable especially in development environments
-    const host = window.location.host.split(':')[0]; // Get host without port
-    const port = '5000'; // Use server port directly for WebSocket
-    const wsUrl = `${protocol}//${host}:${port}/ws`;
-    console.log('Connecting to WebSocket at:', wsUrl);
-    
-    // Create the connection with explicit error handlers
-    const socket = new WebSocket(wsUrl);
-    
-    // Add enhanced event handlers for debugging
-    socket.addEventListener('error', (event) => {
-      console.error('WebSocket connection error:', event);
-    });
-    
-    socket.addEventListener('open', () => {
-      console.log('WebSocket connection successfully established');
-    });
-    
-    return socket;
+    return new WebSocket(`${protocol}//${window.location.host}/ws`);
   } catch (error) {
     console.error('Failed to create WebSocket connection:', error);
     return null;
