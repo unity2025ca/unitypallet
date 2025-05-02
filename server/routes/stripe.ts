@@ -54,8 +54,16 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
     // Create a checkout session with separate line items for products and shipping
     // This will redirect the user to Stripe's hosted checkout page
     
-    // Calculate product total (without shipping)
+    // Calculate product total (without shipping) and convert to cents for Stripe
+    // In our system, amounts are stored as cents (e.g., 1250 means $1250.00)
+    // But Stripe expects amounts in cents (e.g., 125000 means $1250.00)
+    // So we need to multiply by 100
     const productTotal = order.total - order.shippingCost;
+    const productTotalInCents = productTotal * 100;
+    const shippingCostInCents = order.shippingCost * 100;
+    
+    console.log(`Original product total: ${productTotal}, converted to cents: ${productTotalInCents}`);
+    console.log(`Original shipping cost: ${order.shippingCost}, converted to cents: ${shippingCostInCents}`);
     
     // Prepare line items array
     const lineItems = [];
@@ -68,7 +76,7 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
           name: `Order #${orderId} - ${orderItems.length} items`,
           description: `Purchase from Unity Pallets`,
         },
-        unit_amount: productTotal, // Product amount without shipping
+        unit_amount: productTotalInCents, // Product amount in cents
       },
       quantity: 1,
     });
@@ -82,7 +90,7 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
             name: 'Shipping',
             description: 'Shipping and handling fees',
           },
-          unit_amount: order.shippingCost, // Shipping amount
+          unit_amount: shippingCostInCents, // Shipping amount in cents
         },
         quantity: 1,
       });
