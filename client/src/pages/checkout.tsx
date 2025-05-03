@@ -253,7 +253,24 @@ const CheckoutPage = () => {
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Shipping calculation failed: ${response.status}`);
+        // Try to parse the error response as JSON
+        return response.json().then(errorData => {
+          if (errorData.error === 'Shipping unavailable') {
+            toast({
+              title: "Shipping Unavailable",
+              description: errorData.details || "Your location is outside our delivery range",
+              variant: "destructive",
+            });
+            throw new Error("Location outside delivery range");
+          } else {
+            throw new Error(`Shipping calculation failed: ${response.status}`);
+          }
+        }).catch(e => {
+          if (e.message === "Location outside delivery range") {
+            throw e;
+          }
+          throw new Error(`Shipping calculation failed: ${response.status}`);
+        });
       }
       return response.json();
     })
@@ -262,6 +279,16 @@ const CheckoutPage = () => {
       if (result.shippingCost !== undefined) {
         const calculatedShippingCost = result.shippingCost;
         setShippingCost(calculatedShippingCost);
+        
+        // Check if shipping cost is -1 (outside delivery range)
+        if (calculatedShippingCost === -1) {
+          toast({
+            title: "Cannot Place Order",
+            description: "Your location is outside our delivery range. Please choose pickup or try a different address.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         // Add shipping cost to the order data
         console.log('Placing order with calculated shipping cost:', calculatedShippingCost);
@@ -275,6 +302,12 @@ const CheckoutPage = () => {
     })
     .catch(error => {
       console.error("Error calculating shipping cost:", error);
+      
+      // Don't proceed if the error is about location being outside delivery range
+      if (error.message === "Location outside delivery range") {
+        return;
+      }
+      
       toast({
         title: "Shipping Calculation Error",
         description: "Could not calculate shipping cost. Using default cost.",
@@ -657,16 +690,26 @@ const CheckoutPage = () => {
               </div>
               
               <div className="pt-4">
+                {/* Show warning when shipping is unavailable for delivery */}
+                {isShippingUnavailable && form.watch('deliveryMethod') === 'delivery' && (
+                  <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">
+                    <p className="font-medium">Shipping Unavailable for This Address</p>
+                    <p>Please choose pickup or try a different address that is within our delivery range.</p>
+                  </div>
+                )}
+                
                 <Button 
                   type="submit" 
                   className="w-full py-6 text-xl bg-red-600 hover:bg-red-700" 
-                  disabled={placeOrderMutation.isPending}
+                  disabled={placeOrderMutation.isPending || (form.watch('deliveryMethod') === 'delivery' && isShippingUnavailable)}
                 >
                   {placeOrderMutation.isPending ? (
                     <>
                       <div className="h-5 w-5 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       Processing...
                     </>
+                  ) : form.watch('deliveryMethod') === 'delivery' && isShippingUnavailable ? (
+                    "Shipping Unavailable"
                   ) : (
                     "Place Order"
                   )}
