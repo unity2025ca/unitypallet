@@ -1301,8 +1301,26 @@ export class DatabaseStorage implements IStorage {
       
       // If locations are in the same zone, use that zone for calculation
       let zoneId: number | undefined = undefined;
+      let maxDistanceLimit: number = 0; // Default: no limit
+      
       if (fromLocation.zoneId && toLocation.zoneId && fromLocation.zoneId === toLocation.zoneId) {
         zoneId = fromLocation.zoneId;
+        
+        // Get the shipping zone info to check for max distance limit
+        if (zoneId) {
+          const shippingZone = await this.getShippingZoneById(zoneId);
+          if (shippingZone && shippingZone.maxDistanceLimit) {
+            maxDistanceLimit = shippingZone.maxDistanceLimit;
+            console.log(`Zone ${zoneId} has max distance limit of ${maxDistanceLimit}km`);
+          }
+        }
+      } else if (fromLocation.zoneId) {
+        // Only from location has zone, try to get that zone's limit
+        const shippingZone = await this.getShippingZoneById(fromLocation.zoneId);
+        if (shippingZone && shippingZone.maxDistanceLimit) {
+          maxDistanceLimit = shippingZone.maxDistanceLimit;
+          console.log(`From location's zone ${fromLocation.zoneId} has max distance limit of ${maxDistanceLimit}km`);
+        }
       }
       
       console.log('Calculating shipping cost between locations:', {
@@ -1313,6 +1331,7 @@ export class DatabaseStorage implements IStorage {
         toCity: toLocation.city,
         toCoords: [toLocation.latitude, toLocation.longitude],
         zoneId,
+        maxDistanceLimit,
         weight
       });
       
@@ -1323,7 +1342,8 @@ export class DatabaseStorage implements IStorage {
         parseFloat(toLocation.latitude),
         parseFloat(toLocation.longitude),
         zoneId,
-        weight
+        weight,
+        maxDistanceLimit
       );
     } catch (error) {
       console.error('Error in calculateShippingCost:', error);

@@ -546,6 +546,9 @@ const ShippingManagement = () => {
                         <TableRow key={zone.id}>
                           <TableCell className="font-medium">{zone.name}</TableCell>
                           <TableCell>{zone.description || "—"}</TableCell>
+                          <TableCell>
+                            {zone.maxDistanceLimit ? `${zone.maxDistanceLimit} km` : "No limit"}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
                               <Button
