@@ -213,19 +213,72 @@ router.post('/calculate', async (req: Request, res: Response) => {
       province: customerLocation.province
     });
 
-    // Find the lowest shipping cost from any warehouse to the customer's location
+    // Instead of using storage.calculateShippingCost which relies on database IDs,
+    // We'll directly calculate the cost based on coordinates for this custom location
     const shippingCosts = await Promise.all(
       warehouses.map(async (warehouse) => {
-        console.log('Calculating shipping from warehouse:', warehouse.id, 'to location:', customerLocation!.id);
+        console.log('Calculating shipping from warehouse:', warehouse.id, 'to custom location:', customerLocation.city);
         try {
-          const cost = await storage.calculateShippingCost(
-            warehouse.id,
-            customerLocation!.id
+          // Get warehouse's zone information for rate calculation
+          let zoneId = warehouse.zoneId;
+          if (!zoneId) {
+            console.log('Warehouse has no zone ID, using default shipping');
+            return 2500; // Default shipping cost for warehouses without zones
+          }
+          
+          // Get rates for this zone
+          const rates = await storage.getShippingRatesByZoneId(zoneId);
+          if (!rates || rates.length === 0) {
+            console.log('No shipping rates defined for zone', zoneId);
+            return 2000; // Default cost when no rates are defined
+          }
+          
+          // Calculate the distance between warehouse and customer location using our Haversine function
+          const distance = calculateDistance(
+            parseFloat(warehouse.latitude),
+            parseFloat(warehouse.longitude),
+            parseFloat(customLatitude || warehouse.latitude),
+            parseFloat(customLongitude || warehouse.longitude)
           );
-          console.log('Calculated cost:', cost);
+          
+          console.log(`Calculated distance from warehouse ${warehouse.id} to ${customerLocation.city}: ${distance}km`);
+          
+          // Check if distance exceeds the max distance limit for this zone
+          if (distance > maxDistanceLimit) {
+            console.log(`Distance ${distance}km exceeds zone limit of ${maxDistanceLimit}km`);
+            return -1; // -1 indicates outside delivery range
+          }
+          
+          // Find the applicable rate for this distance
+          const applicableRate = rates.find(rate => 
+            distance >= rate.minDistance && 
+            distance <= rate.maxDistance && 
+            rate.isActive
+          );
+          
+          if (!applicableRate) {
+            console.log('No applicable shipping rate found for distance', distance);
+            return -1; // Outside shipping range
+          }
+          
+          // Calculate shipping cost based on distance
+          let cost = applicableRate.baseRate;
+          
+          // Add additional cost per km if applicable
+          const additionalDistance = Math.max(0, distance - applicableRate.minDistance);
+          const additionalCost = Math.round(additionalDistance * applicableRate.additionalRatePerKm);
+          cost += additionalCost;
+          
+          console.log('Calculated shipping cost:', {
+            baseRate: applicableRate.baseRate,
+            additionalDistance,
+            additionalCost,
+            totalCost: cost
+          });
+          
           return cost;
         } catch (err) {
-          console.error('Error in calculateShippingCost:', err);
+          console.error('Error calculating shipping cost:', err);
           return Number.MAX_SAFE_INTEGER; // Use a high value so it won't be selected as minimum
         }
       })
