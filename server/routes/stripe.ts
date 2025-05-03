@@ -158,6 +158,9 @@ router.post("/webhook", async (req, res) => {
           await storage.updateOrderPaymentStatus(orderId, "paid");
           await storage.updateOrderStatus(orderId, "processing");
           
+          // Also store the payment intent ID in the order for reference
+          await storage.updateOrderPaymentIntent(orderId, paymentIntent.id);
+          
           console.log(`Payment for order ${orderId} succeeded. Payment ID: ${paymentIntent.id}`);
           
           // Send order confirmation notifications (email and SMS)
@@ -185,6 +188,15 @@ router.post("/webhook", async (req, res) => {
           await storage.updateOrderPaymentStatus(orderId, "paid");
           await storage.updateOrderStatus(orderId, "processing");
           
+          // Also store the payment intent ID in the order for reference if available
+          if (session.payment_intent) {
+            await storage.updateOrderPaymentIntent(orderId, 
+              typeof session.payment_intent === 'string' ? 
+              session.payment_intent : 
+              session.payment_intent.id
+            );
+          }
+          
           console.log(`Checkout completed for order ${orderId}. Payment status updated to 'paid', order status updated to 'processing'. Session ID: ${session.id}`);
           
           // Send order confirmation notifications (email and SMS)
@@ -201,6 +213,24 @@ router.post("/webhook", async (req, res) => {
       }
       break;
       
+    case "checkout.session.expired":
+      const expiredSession = event.data.object as Stripe.Checkout.Session;
+      
+      // Handle expired checkout session
+      if (expiredSession.metadata && expiredSession.metadata.orderId && expiredSession.metadata.orderId !== "manual_checkout") {
+        try {
+          const orderId = parseInt(expiredSession.metadata.orderId);
+          // Update payment status to 'expired' and order status to 'cancelled'
+          await storage.updateOrderPaymentStatus(orderId, "failed");
+          await storage.updateOrderStatus(orderId, "cancelled");
+          
+          console.log(`Checkout session expired for order ${orderId}. Payment status updated to 'failed', order status updated to 'cancelled'. Session ID: ${expiredSession.id}`);
+        } catch (error) {
+          console.error("Error processing expired checkout:", error);
+        }
+      }
+      break;
+      
     case "payment_intent.payment_failed":
       const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
       
@@ -209,9 +239,35 @@ router.post("/webhook", async (req, res) => {
         try {
           const orderId = parseInt(failedPaymentIntent.metadata.orderId);
           await storage.updateOrderPaymentStatus(orderId, "failed");
-          console.log(`Payment failed for order ${orderId}. Payment ID: ${failedPaymentIntent.id}`);
+          // Also mark the order as cancelled since payment failed
+          await storage.updateOrderStatus(orderId, "cancelled");
+          
+          // Also store the payment intent ID in the order for reference
+          await storage.updateOrderPaymentIntent(orderId, failedPaymentIntent.id);
+          
+          console.log(`Payment failed for order ${orderId}. Order cancelled. Payment ID: ${failedPaymentIntent.id}`);
         } catch (error) {
           console.error("Error processing failed payment:", error);
+        }
+      }
+      break;
+      
+    case "payment_intent.canceled":
+      const canceledPaymentIntent = event.data.object as Stripe.PaymentIntent;
+      
+      // Handle canceled payment intent (when customer abandons checkout)
+      if (canceledPaymentIntent.metadata.orderId && canceledPaymentIntent.metadata.orderId !== "manual_checkout") {
+        try {
+          const orderId = parseInt(canceledPaymentIntent.metadata.orderId);
+          await storage.updateOrderPaymentStatus(orderId, "failed");
+          await storage.updateOrderStatus(orderId, "cancelled");
+          
+          // Also store the payment intent ID in the order for reference
+          await storage.updateOrderPaymentIntent(orderId, canceledPaymentIntent.id);
+          
+          console.log(`Payment intent canceled for order ${orderId}. Order cancelled. Payment ID: ${canceledPaymentIntent.id}`);
+        } catch (error) {
+          console.error("Error processing canceled payment intent:", error);
         }
       }
       break;
