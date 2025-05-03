@@ -55,6 +55,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin/orders', requireAdmin, adminOrdersRouter);
   app.use('/api/admin/shipping', requireAdmin, adminShippingRouter);
   
+  // Allowed cities API router
+  const adminAllowedCitiesRouter = (await import('./routes/admin-allowed-cities')).default;
+  app.use(adminAllowedCitiesRouter);
+  
   // Admin notifications routes
   const adminNotificationsRouter = (await import('./routes/admin-notifications')).default;
   app.use('/api/admin/notifications', requireAdmin, adminNotificationsRouter);

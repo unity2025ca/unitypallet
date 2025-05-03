@@ -136,20 +136,23 @@ router.post('/calculate', async (req: Request, res: Response) => {
       'markham': { lat: '43.8561', lon: '-79.3370' },
     };
     
-    // STRICT MODE: Only allow specific cities within a very small range
-    // Define allowed cities (only these will be accepted for shipping)
-    const allowedCities = ['brampton', 'mississauga', 'toronto'];
-    
+    // STRICT MODE: Only allow specific cities from the database
     // Lookup coordinates or use warehouse coordinates as fallback
     const normalizedCity = city.toLowerCase().trim();
     
-    // Check if this is an allowed city first
-    if (!allowedCities.includes(normalizedCity) && 
-        !allowedCities.some(allowed => normalizedCity.includes(allowed) || allowed.includes(normalizedCity))) {
-      console.log(`City ${city} is not in the allowed list: ${allowedCities.join(', ')}`);
+    // Check if this is an allowed city from the database
+    const isAllowed = await storage.isCityAllowed(normalizedCity);
+    
+    if (!isAllowed) {
+      console.log(`City ${city} is not in the allowed cities list`);
+      
+      // Get the list of active allowed cities for the error message
+      const activeCities = await storage.getAllActiveAllowedCities();
+      const cityNames = activeCities.map(c => c.cityName).join(', ');
+      
       return res.status(400).json({ 
         error: 'Out of service',
-        details: 'Your location is outside our delivery range - we only deliver to Brampton, Mississauga, and Toronto' 
+        details: `Your location is outside our delivery range - we only deliver to: ${cityNames || 'select cities'}` 
       });
     }
     
@@ -171,9 +174,14 @@ router.post('/calculate', async (req: Request, res: Response) => {
         // No matching city - this shouldn't happen given our allowed cities check above
         // But just to be safe, reject it
         console.log('No coordinate match found for apparently allowed city - reject anyway');
+        
+        // Get the list of active allowed cities for the error message
+        const activeCities = await storage.getAllActiveAllowedCities();
+        const cityNames = activeCities.map(c => c.cityName).join(', ');
+        
         return res.status(400).json({ 
           error: 'Out of service',
-          details: 'Your location is outside our delivery range - we only deliver to Brampton, Mississauga, and Toronto' 
+          details: `Your location is outside our delivery range - we only deliver to: ${cityNames || 'select cities'}` 
         });
       }
     }
