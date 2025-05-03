@@ -385,6 +385,7 @@ export const shippingZones = pgTable("shipping_zones", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  maxDistanceLimit: integer("max_distance_limit").default(0), // 0 means no limit, otherwise max shipping distance in km
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
