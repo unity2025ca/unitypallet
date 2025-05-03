@@ -719,12 +719,17 @@ const OrderSummary = ({
 }) => {
   const [calculatingShipping, setCalculatingShipping] = useState(false);
   const [calculatedShippingCost, setCalculatedShippingCost] = useState<number | null>(null);
+  const { toast } = useToast();
   
   // Calculate shipping when address changes and delivery method is 'delivery'
   useEffect(() => {
     // Only calculate if delivery method is 'delivery' and we have a shipping address
     if (deliveryMethod === 'delivery' && shippingAddress && 
         shippingAddress.city && shippingAddress.province && shippingAddress.country) {
+      // Reset state from previous calculations
+      if (onShippingCostCalculated) {
+        onShippingCostCalculated(0); // Reset to neutral state
+      }
       setCalculatingShipping(true);
       
       console.log('Calculating shipping for address:', {
@@ -818,8 +823,14 @@ const OrderSummary = ({
     onShippingCostCalculated
   ]);
   
+  // Check if shipping is unavailable (indicated by -1 cost)
+  const isShippingUnavailable = (shippingCost === -1 || calculatedShippingCost === -1) && deliveryMethod === 'delivery';
+  
   // Use provided shipping cost from parent, or calculated cost
-  const finalShippingCost = deliveryMethod === 'pickup' ? 0 : (shippingCost || calculatedShippingCost || 0);
+  const finalShippingCost = 
+    deliveryMethod === 'pickup' ? 0 : 
+    isShippingUnavailable ? 0 : // Don't add shipping cost if unavailable
+    (shippingCost || calculatedShippingCost || 0);
   
   // Calculate total
   const total = cart.total + finalShippingCost;
@@ -866,6 +877,8 @@ const OrderSummary = ({
             </span>
           ) : deliveryMethod === 'pickup' ? (
             <span>Free (Pickup)</span>
+          ) : isShippingUnavailable ? (
+            <span className="text-red-600 font-medium">Unavailable</span>
           ) : finalShippingCost > 0 ? (
             <span>C${(finalShippingCost).toFixed(2)}</span>
           ) : (
@@ -880,6 +893,13 @@ const OrderSummary = ({
         <span>Total</span>
         <span>C${(total).toFixed(2)}</span>
       </div>
+      
+      {isShippingUnavailable && deliveryMethod === 'delivery' && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-700">
+          <p className="font-medium mb-1">Location Out of Delivery Range</p>
+          <p>Your address is outside our delivery area. Please choose pickup or try a different address.</p>
+        </div>
+      )}
       
       <div className="mt-6 text-sm text-gray-500">
         <p>Secure payment via credit card processed by Stripe.</p>
