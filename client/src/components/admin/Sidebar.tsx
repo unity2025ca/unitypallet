@@ -109,6 +109,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           icon: "fas fa-truck",
           roles: ["admin"] // Only admin can access
         },
+        { 
+          name: "Allowed Cities", 
+          href: "/admin/allowed-cities", 
+          icon: "fas fa-map-marker-alt",
+          roles: ["admin"] // Only admin can access
+        },
       ]
     },
     {
