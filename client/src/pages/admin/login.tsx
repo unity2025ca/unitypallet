@@ -11,16 +11,20 @@ const AdminLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, isAuthenticated } = useAdminAuth();
+  const { login, isAuthenticated, isAdmin } = useAdminAuth();
   const [_, navigate] = useLocation();
   
   // Redirect if already authenticated with proper checks
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("User is already authenticated, redirecting to dashboard");
+    if (isAuthenticated && isAdmin) {
+      console.log("Admin user authenticated, redirecting to dashboard");
       navigate("/admin/dashboard");
+    } else if (isAuthenticated) {
+      console.log("Non-admin user attempting to access admin dashboard, rejecting");
+      // Redirect to homepage if authenticated but not an admin
+      window.location.href = "/";
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isAdmin, navigate]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
