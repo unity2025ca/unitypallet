@@ -447,6 +447,22 @@ export type InsertCart = z.infer<typeof insertCartSchema>;
 export type CartItem = typeof cartItems.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 
+// Allowed Cities for Delivery
+export const allowedCities = pgTable("allowed_cities", {
+  id: serial("id").primaryKey(),
+  cityName: text("city_name").notNull().unique(),
+  province: text("province").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAllowedCitySchema = createInsertSchema(allowedCities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export types for shipping
 export type ShippingZone = typeof shippingZones.$inferSelect;
 export type InsertShippingZone = z.infer<typeof insertShippingZoneSchema>;
@@ -454,3 +470,5 @@ export type ShippingRate = typeof shippingRates.$inferSelect;
 export type InsertShippingRate = z.infer<typeof insertShippingRateSchema>;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
+export type AllowedCity = typeof allowedCities.$inferSelect;
+export type InsertAllowedCity = z.infer<typeof insertAllowedCitySchema>;

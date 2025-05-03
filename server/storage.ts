@@ -31,6 +31,8 @@ import {
   type InsertLocation,
   type Category,
   type InsertCategory,
+  type AllowedCity,
+  type InsertAllowedCity,
   users,
   products,
   contacts,
@@ -46,7 +48,8 @@ import {
   shippingZones,
   shippingRates,
   locations,
-  categories
+  categories,
+  allowedCities
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc, sql, lte, gte } from "drizzle-orm";
@@ -168,6 +171,15 @@ export interface IStorage {
   getWarehouseLocations(): Promise<Location[]>;
   updateLocation(id: number, locationData: Partial<InsertLocation>): Promise<Location | undefined>;
   deleteLocation(id: number): Promise<boolean>;
+  
+  // Allowed Cities methods
+  createAllowedCity(cityData: InsertAllowedCity): Promise<AllowedCity>;
+  getAllowedCityById(id: number): Promise<AllowedCity | undefined>;
+  getAllAllowedCities(): Promise<AllowedCity[]>;
+  getAllActiveAllowedCities(): Promise<AllowedCity[]>;
+  updateAllowedCity(id: number, cityData: Partial<InsertAllowedCity>): Promise<AllowedCity | undefined>;
+  deleteAllowedCity(id: number): Promise<boolean>;
+  isCityAllowed(cityName: string): Promise<boolean>;
   
   // Shipping calculation
   calculateShippingCost(fromLocationId: number, toLocationId: number, weight?: number): Promise<number>;
@@ -1486,9 +1498,105 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Allowed Cities methods
+  async createAllowedCity(cityData: InsertAllowedCity): Promise<AllowedCity> {
+    const result = await db.insert(allowedCities).values(cityData).returning();
+    return result[0];
+  }
+
+  async getAllowedCityById(id: number): Promise<AllowedCity | undefined> {
+    const result = await db.select().from(allowedCities).where(eq(allowedCities.id, id));
+    return result[0];
+  }
+
+  async getAllAllowedCities(): Promise<AllowedCity[]> {
+    return db.select().from(allowedCities).orderBy(asc(allowedCities.cityName));
+  }
+
+  async getAllActiveAllowedCities(): Promise<AllowedCity[]> {
+    return db.select().from(allowedCities)
+      .where(eq(allowedCities.isActive, true))
+      .orderBy(asc(allowedCities.cityName));
+  }
+
+  async updateAllowedCity(id: number, cityData: Partial<InsertAllowedCity>): Promise<AllowedCity | undefined> {
+    const result = await db
+      .update(allowedCities)
+      .set(cityData)
+      .where(eq(allowedCities.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteAllowedCity(id: number): Promise<boolean> {
+    const result = await db
+      .delete(allowedCities)
+      .where(eq(allowedCities.id, id))
+      .returning({ id: allowedCities.id });
+    
+    return result.length > 0;
+  }
+
+  async isCityAllowed(cityName: string): Promise<boolean> {
+    if (!cityName) return false;
+    
+    const normalizedCityName = cityName.toLowerCase().trim();
+    
+    // Check for exact match first
+    const exactMatches = await db.select()
+      .from(allowedCities)
+      .where(and(
+        sql`LOWER(${allowedCities.cityName}) = ${normalizedCityName}`,
+        eq(allowedCities.isActive, true)
+      ));
+    
+    if (exactMatches.length > 0) {
+      return true;
+    }
+    
+    // Check for partial matches (city name contains the search term or vice versa)
+    const partialMatches = await db.select()
+      .from(allowedCities)
+      .where(and(
+        or(
+          sql`LOWER(${allowedCities.cityName}) LIKE ${`%${normalizedCityName}%`}`,
+          sql`${normalizedCityName} LIKE CONCAT('%', LOWER(${allowedCities.cityName}), '%')`
+        ),
+        eq(allowedCities.isActive, true)
+      ));
+    
+    return partialMatches.length > 0;
+  }
+  
   // Helper method to convert degrees to radians
   private deg2rad(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+  
+  // Initialize the database with initial allowed cities
+  private async initializeDatabase() {
+    try {
+      // Check if we have some allowed cities already, if not add initial ones
+      const existingCities = await this.getAllAllowedCities();
+      
+      if (existingCities.length === 0) {
+        // Add initial allowed cities
+        const initialCities = [
+          { cityName: 'Brampton', province: 'Ontario', isActive: true },
+          { cityName: 'Mississauga', province: 'Ontario', isActive: true },
+          { cityName: 'Toronto', province: 'Ontario', isActive: true }
+        ];
+        
+        for (const city of initialCities) {
+          await this.createAllowedCity(city);
+        }
+        
+        console.log('Initialized allowed cities with:', initialCities.map(c => c.cityName).join(', '));
+      }
+    } catch (error) {
+      console.error('Error initializing allowed cities:', error);
+    }
   }
 }
 
