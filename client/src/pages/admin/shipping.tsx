@@ -55,6 +55,7 @@ import { Loader2, Trash2, Edit, MapPin, Navigation, DollarSign } from "lucide-re
 const zoneSchema = z.object({
   name: z.string().min(1, "Zone name is required"),
   description: z.string().optional(),
+  maxDistanceLimit: z.number().min(0, "Max distance limit must be 0 or greater").default(0),
 });
 
 const rateSchema = z.object({
@@ -114,6 +115,7 @@ const ShippingManagement = () => {
     defaultValues: {
       name: "",
       description: "",
+      maxDistanceLimit: 0, // 0 means no limit
     },
   });
 
@@ -430,6 +432,7 @@ const ShippingManagement = () => {
     zoneForm.reset({
       name: zone.name,
       description: zone.description || "",
+      maxDistanceLimit: zone.maxDistanceLimit || 0,
     });
     setOpenZoneDialog(true);
   };
@@ -534,6 +537,7 @@ const ShippingManagement = () => {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Description</TableHead>
+                        <TableHead>Max Distance</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -765,6 +769,28 @@ const ShippingManagement = () => {
                     <FormControl>
                       <Textarea placeholder="Description of this shipping zone" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={zoneForm.control}
+                name="maxDistanceLimit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Maximum Shipping Distance (km)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 60 (0 means no limit)"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Set a maximum shipping distance for this zone, e.g. 60km. Enter 0 for no limit.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
