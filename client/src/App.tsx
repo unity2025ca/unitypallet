@@ -45,6 +45,7 @@ import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
+import { AdminProtectedRoute, PublisherProtectedRoute } from "@/lib/admin-protected-route";
 
 function Router() {
   const [location] = useLocation();
@@ -74,24 +75,24 @@ function Router() {
         <CustomerProtectedRoute path="/orders/:id" component={OrderDetailsPage} />
         <CustomerProtectedRoute path="/checkout" component={CheckoutPage} />
         
-        {/* Admin Routes */}
-        <Route path="/admin" component={AdminIndex} />
+        {/* Admin Routes - Login is public, all others are protected */}
         <Route path="/admin/login" component={AdminLogin} />
-        <Route path="/admin/dashboard" component={AdminDashboard} />
-        <Route path="/admin/products" component={AdminProducts} />
-        <Route path="/admin/orders" component={AdminOrders} />
-        <Route path="/admin/newsletter" component={AdminNewsletter} />
-        <Route path="/admin/sms" component={AdminSms} />
-        <Route path="/admin/faqs" component={AdminFaqs} />
-        <Route path="/admin/appointments" component={AdminAppointments} />
-        <Route path="/admin/users" component={AdminUsers} />
-        <Route path="/admin/settings" component={AdminSettings} />
-        <Route path="/admin/visitor-stats" component={AdminVisitorStats} />
-        <Route path="/admin/shipping" component={AdminShipping} />
-        <Route path="/admin/homepage" component={AdminHomepage} />
-        <Route path="/admin/categories" component={AdminCategories} />
-        <Route path="/admin/test-notifications" component={TestNotificationsPage} />
-        <Route path="/admin/test-orders" component={TestOrdersPage} />
+        <AdminProtectedRoute path="/admin" component={AdminIndex} />
+        <AdminProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
+        <PublisherProtectedRoute path="/admin/products" component={AdminProducts} />
+        <PublisherProtectedRoute path="/admin/orders" component={AdminOrders} />
+        <AdminProtectedRoute path="/admin/newsletter" component={AdminNewsletter} />
+        <AdminProtectedRoute path="/admin/sms" component={AdminSms} />
+        <PublisherProtectedRoute path="/admin/faqs" component={AdminFaqs} />
+        <PublisherProtectedRoute path="/admin/appointments" component={AdminAppointments} />
+        <AdminProtectedRoute path="/admin/users" component={AdminUsers} />
+        <AdminProtectedRoute path="/admin/settings" component={AdminSettings} />
+        <AdminProtectedRoute path="/admin/visitor-stats" component={AdminVisitorStats} />
+        <AdminProtectedRoute path="/admin/shipping" component={AdminShipping} />
+        <AdminProtectedRoute path="/admin/homepage" component={AdminHomepage} />
+        <AdminProtectedRoute path="/admin/categories" component={AdminCategories} />
+        <AdminProtectedRoute path="/admin/test-notifications" component={TestNotificationsPage} />
+        <AdminProtectedRoute path="/admin/test-orders" component={TestOrdersPage} />
         
         {/* Fallback to 404 */}
         <Route component={NotFound} />
