@@ -144,6 +144,7 @@ export interface IStorage {
   getOrdersByCustomerId(userId: number): Promise<Order[]>;
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
   updateOrderPaymentStatus(id: number, paymentStatus: string): Promise<Order | undefined>;
+  updateOrderPaymentIntent(id: number, paymentIntentId: string): Promise<Order | undefined>;
   
   // Order Item methods
   createOrderItem(orderItemData: InsertOrderItem): Promise<OrderItem>;
@@ -1095,6 +1096,19 @@ export class DatabaseStorage implements IStorage {
       return updatedOrder;
     } catch (error) {
       console.error('Error updating order payment status:', error);
+      throw error;
+    }
+  }
+  
+  async updateOrderPaymentIntent(id: number, paymentIntentId: string): Promise<Order | undefined> {
+    try {
+      const [updatedOrder] = await db.update(orders)
+        .set({ paymentIntentId })
+        .where(eq(orders.id, id))
+        .returning();
+      return updatedOrder;
+    } catch (error) {
+      console.error('Error updating order payment intent ID:', error);
       throw error;
     }
   }
