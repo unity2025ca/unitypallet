@@ -45,7 +45,27 @@ export const customerRegistrationSchema = createInsertSchema(users)
     confirmPassword: z.string(),
   });
 
-// Category enum for product categories
+// Products Categories schema
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  nameAr: text("name_ar").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  descriptionAr: text("description_ar"),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
+// Category enum for product categories (for backward compatibility)
 export const categoryEnum = pgEnum("category", [
   "electronics",
   "home",

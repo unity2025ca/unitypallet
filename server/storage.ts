@@ -29,6 +29,8 @@ import {
   type InsertShippingRate,
   type Location,
   type InsertLocation,
+  type Category,
+  type InsertCategory,
   users,
   products,
   contacts,
@@ -43,7 +45,8 @@ import {
   orderItems,
   shippingZones,
   shippingRates,
-  locations
+  locations,
+  categories
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc, sql, lte, gte } from "drizzle-orm";
@@ -60,6 +63,14 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
+  
+  // Category methods
+  getAllCategories(): Promise<Category[]>;
+  getCategoryById(id: number): Promise<Category | undefined>;
+  getCategoryBySlug(slug: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Product methods
   getAllProducts(): Promise<Product[]>;
@@ -228,6 +239,45 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
   
+  // Category methods
+  async getAllCategories(): Promise<Category[]> {
+    return db.select().from(categories).orderBy(asc(categories.displayOrder), asc(categories.id));
+  }
+  
+  async getCategoryById(id: number): Promise<Category | undefined> {
+    const result = await db.select().from(categories).where(eq(categories.id, id));
+    return result[0];
+  }
+  
+  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
+    const result = await db.select().from(categories).where(eq(categories.slug, slug));
+    return result[0];
+  }
+  
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const result = await db.insert(categories).values(category).returning();
+    return result[0];
+  }
+  
+  async updateCategory(id: number, categoryData: Partial<InsertCategory>): Promise<Category | undefined> {
+    const result = await db
+      .update(categories)
+      .set(categoryData)
+      .where(eq(categories.id, id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async deleteCategory(id: number): Promise<boolean> {
+    const result = await db
+      .delete(categories)
+      .where(eq(categories.id, id))
+      .returning({ id: categories.id });
+    
+    return result.length > 0;
+  }
+
   // Product methods
   async getAllProducts(): Promise<Product[]> {
     return db.select().from(products).orderBy(asc(products.displayOrder), asc(products.id));
