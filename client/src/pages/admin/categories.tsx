@@ -257,13 +257,15 @@ export default function AdminCategories() {
     // Find the category just above this one
     if (!categories) return;
     
-    const sortedCategories = [...categories].sort((a, b) => a.displayOrder - b.displayOrder);
+    const sortedCategories = [...categories].sort((a, b) => 
+      (a.displayOrder || 0) - (b.displayOrder || 0)
+    );
     const currentIndex = sortedCategories.findIndex(c => c.id === category.id);
     
     if (currentIndex <= 0) return; // Already at the top
     
     const previousCategory = sortedCategories[currentIndex - 1];
-    const newOrder = previousCategory.displayOrder - 1;
+    const newOrder = (previousCategory.displayOrder || 0) - 1;
     
     try {
       await apiRequest("PUT", `/api/admin/categories/${category.id}`, {
@@ -289,13 +291,15 @@ export default function AdminCategories() {
   const moveCategoryDown = async (category: Category) => {
     if (!categories) return;
     
-    const sortedCategories = [...categories].sort((a, b) => a.displayOrder - b.displayOrder);
+    const sortedCategories = [...categories].sort((a, b) => 
+      (a.displayOrder || 0) - (b.displayOrder || 0)
+    );
     const currentIndex = sortedCategories.findIndex(c => c.id === category.id);
     
     if (currentIndex >= sortedCategories.length - 1) return; // Already at the bottom
     
     const nextCategory = sortedCategories[currentIndex + 1];
-    const newOrder = nextCategory.displayOrder + 1;
+    const newOrder = (nextCategory.displayOrder || 0) + 1;
     
     try {
       await apiRequest("PUT", `/api/admin/categories/${category.id}`, {
@@ -332,7 +336,7 @@ export default function AdminCategories() {
   }
   
   const sortedCategories = categories ? 
-    [...categories].sort((a, b) => a.displayOrder - b.displayOrder) : 
+    [...categories].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)) : 
     [];
 
   return (
