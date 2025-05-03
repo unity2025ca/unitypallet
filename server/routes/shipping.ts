@@ -136,8 +136,22 @@ router.post('/calculate', async (req: Request, res: Response) => {
       'markham': { lat: '43.8561', lon: '-79.3370' },
     };
     
+    // STRICT MODE: Only allow specific cities within a very small range
+    // Define allowed cities (only these will be accepted for shipping)
+    const allowedCities = ['brampton', 'mississauga', 'toronto'];
+    
     // Lookup coordinates or use warehouse coordinates as fallback
     const normalizedCity = city.toLowerCase().trim();
+    
+    // Check if this is an allowed city first
+    if (!allowedCities.includes(normalizedCity) && 
+        !allowedCities.some(allowed => normalizedCity.includes(allowed) || allowed.includes(normalizedCity))) {
+      console.log(`City ${city} is not in the allowed list: ${allowedCities.join(', ')}`);
+      return res.status(400).json({ 
+        error: 'Out of service',
+        details: 'Your location is outside our delivery range - we only deliver to Brampton, Mississauga, and Toronto' 
+      });
+    }
     
     if (cityCoordinates[normalizedCity]) {
       customLatitude = cityCoordinates[normalizedCity].lat;
@@ -154,24 +168,12 @@ router.post('/calculate', async (req: Request, res: Response) => {
         customLongitude = cityCoordinates[partialMatch].lon;
         console.log(`Found partial match coordinates for ${city} using ${partialMatch}: lat=${customLatitude}, lon=${customLongitude}`);
       } else {
-        // No matching city, use random coordinates within 30-120km range from warehouse
-        // This simulates customers at varying distances
-        
-        // Generate a random distance between 30km and 120km
-        const randomDistance = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
-        
-        // Generate a random angle in radians
-        const randomAngle = Math.random() * 2 * Math.PI;
-        
-        // Default to warehouse coordinates plus random offset
-        // In a real system, you'd use a geocoding service
-        console.log(`No coordinate match found for ${city}, using simulated location ${randomDistance}km from warehouse`);
-        
-        // Treat unrecognized cities as out of range for safety
-        console.log('Unrecognized location, treating as out of range');
+        // No matching city - this shouldn't happen given our allowed cities check above
+        // But just to be safe, reject it
+        console.log('No coordinate match found for apparently allowed city - reject anyway');
         return res.status(400).json({ 
-          error: 'Shipping unavailable',
-          details: 'Your location is outside our delivery range or not recognized in our system' 
+          error: 'Out of service',
+          details: 'Your location is outside our delivery range - we only deliver to Brampton, Mississauga, and Toronto' 
         });
       }
     }
