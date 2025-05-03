@@ -71,11 +71,12 @@ router.post(
       
       // If no display order specified, place at the end
       if (displayOrder === undefined) {
-        const result = await db
-          .select({ maxOrder: db.fn.max(categories.displayOrder) })
-          .from(categories);
+        const result = await db.execute(
+          `SELECT MAX(display_order) as "maxOrder" FROM categories`
+        );
         
-        displayOrder = result[0].maxOrder ? (result[0].maxOrder + 10) : 10;
+        const maxOrder = result.rows[0]?.maxOrder ? parseInt(result.rows[0].maxOrder) : 0;
+        displayOrder = maxOrder + 10;
       }
       
       // Insert the new category
