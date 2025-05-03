@@ -98,7 +98,9 @@ router.post('/calculate', async (req: Request, res: Response) => {
       });
     }
     
-    const maxDistanceLimit = warehouseZone.maxDistanceLimit;
+    // Set a hard limit of 60km for all shipping, regardless of zone settings
+    const maxDistanceLimit = Math.min(warehouseZone.maxDistanceLimit, 60); // Force 60km max
+    console.log(`Setting strict maximum distance limit to ${maxDistanceLimit}km`);
     
     // Create a custom location based on the provided address
     // In a real app, you would use a geocoding service to get actual coordinates
@@ -188,8 +190,8 @@ router.post('/calculate', async (req: Request, res: Response) => {
     if (distanceFromWarehouse > maxDistanceLimit) {
       console.log('Location exceeds maximum delivery distance');
       return res.status(400).json({ 
-        error: 'Shipping unavailable',
-        details: 'Your location is outside our delivery range' 
+        error: 'Out of service',
+        details: 'Your location is outside our delivery range - maximum 60km distance' 
       });
     }
     
