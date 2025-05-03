@@ -80,10 +80,23 @@ router.post('/calculate', async (req: Request, res: Response) => {
           createdAt: new Date() // Required by the type
         };
         
-        // Return fixed shipping cost plus a distance premium
-        const fixedCost = 2500; // $25 base cost in cents
-        console.log('Using fixed shipping cost for unknown location:', fixedCost);
-        return res.json({ shippingCost: fixedCost });
+        // Check if the zone has max distance limit
+        const shippingZone = referenceWarehouse.zoneId ? 
+          await storage.getShippingZoneById(referenceWarehouse.zoneId) : 
+          undefined;
+        if (shippingZone && shippingZone.maxDistanceLimit) {
+          // For unknown locations in a zone with distance limits, consider them outside range
+          console.log('Unknown location with zone that has distance limits - treating as outside range');
+          return res.status(400).json({ 
+            error: 'Shipping unavailable',
+            details: 'Your location is outside our delivery range' 
+          });
+        } else {
+          // Only for zones without distance limits, return fixed cost
+          const fixedCost = 2500; // $25 base cost in cents
+          console.log('Using fixed shipping cost for unknown location (no distance limit):', fixedCost);
+          return res.json({ shippingCost: fixedCost });
+        }
       } else {
         // No warehouses and no matching location, use absolute default
         console.log('No warehouses and no matching location, using absolute default cost');
@@ -133,8 +146,28 @@ router.post('/calculate', async (req: Request, res: Response) => {
       return res.json({ shippingCost: 3500 }); // $35 default when calculation fails
     }
 
+    // Count how many locations are outside range (indicated by -1)
+    const outsideRangeCounts = shippingCosts.filter(cost => cost === -1).length;
+    
+    // If more than 50% of warehouses indicate the location is outside range, consider it out of range
+    if (outsideRangeCounts > 0 && outsideRangeCounts >= Math.ceil(shippingCosts.length / 2)) {
+      console.log(`${outsideRangeCounts} of ${shippingCosts.length} warehouses indicate location is outside range - treating as outside range`);
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Your location is outside our delivery range' 
+      });
+    }
+    
     // Use the lowest shipping cost from all warehouses, excluding invalid values (-1 for outside range and MAX_SAFE_INTEGER for errors)
     const validCosts = shippingCosts.filter(cost => cost !== Number.MAX_SAFE_INTEGER && cost !== -1);
+    // If no valid costs, treat as outside range
+    if (validCosts.length === 0) {
+      console.log('No valid shipping costs found - treating as outside range');
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Your location is outside our delivery range' 
+      });
+    }
     const shippingCost = Math.min(...validCosts);
     
     console.log('Final shipping cost:', shippingCost);
