@@ -3,6 +3,27 @@ import { storage } from '../storage';
 
 const router = express.Router();
 
+// Utility function to calculate distance between two points using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  // Radius of the Earth in kilometers
+  const R = 6371;
+  
+  // Convert latitude and longitude from degrees to radians
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  
+  // Haversine formula
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance in kilometers
+  
+  return parseFloat(distance.toFixed(2)); // Round to 2 decimal places
+}
+
 // Calculate shipping cost based on customer address
 router.post('/calculate', async (req: Request, res: Response) => {
   try {
@@ -34,37 +55,157 @@ router.post('/calculate', async (req: Request, res: Response) => {
     const allLocations = await storage.getAllLocations();
     console.log('All locations:', allLocations.length);
     
-    // First try to find exact city and province match
-    let customerLocation = allLocations.find(loc => 
-      loc.city.toLowerCase().trim() === city.toLowerCase().trim() && 
-      loc.province.toLowerCase().trim() === province.toLowerCase().trim()
-    );
+    // Instead of relying on existing locations, we'll create a custom customer location based on input
+    // and validate based on coordinates and distance calculation
     
-    // If exact match not found, try looking for city name that contains the customer city
-    if (!customerLocation) {
-      console.log('Exact city/province match not found, looking for partial city match');
-      customerLocation = allLocations.find(loc => 
-        loc.city.toLowerCase().includes(city.toLowerCase().trim()) && 
-        loc.province.toLowerCase().trim() === province.toLowerCase().trim()
-      );
-    }
+    // Get a reference location (preferably from warehouse)
+    console.log('Creating temporary location based on customer input');
     
-    // If still not found, try only province match
-    if (!customerLocation) {
-      console.log('Partial city match not found, looking for province match:', province);
-      customerLocation = allLocations.find(loc => 
-        loc.province.toLowerCase().trim() === province.toLowerCase().trim()
-      );
-    }
-
-    // If still no location found, treat as outside delivery range
-    if (!customerLocation) {
-      console.log('No location match found at all - treating as outside delivery range');
+    // Find a reference location for coordinates
+    const referenceLocation = warehouses.length > 0 ? warehouses[0] : allLocations[0];
+    
+    if (!referenceLocation) {
+      console.log('No reference location found for coordinates');
       return res.status(400).json({ 
         error: 'Shipping unavailable',
-        details: 'Your location is outside our delivery range or not recognized in our system' 
+        details: 'Unable to calculate shipping to your location' 
       });
     }
+    
+    // Try to find exact coordinates for this city/province using Google Maps API or a geocoding service
+    // For now, we'll use a rough estimate based on major cities' coordinates
+    // This is a simplified example - in production you'd want to use a proper geocoding service
+    
+    // Get the warehouse's zone and its max distance limit
+    const warehouse = warehouses[0];
+    
+    // Check if warehouse has a zoneId set
+    if (!warehouse.zoneId) {
+      console.log('Warehouse has no zoneId set');
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Shipping configuration issue - please contact support' 
+      });
+    }
+    
+    const warehouseZone = await storage.getShippingZoneById(warehouse.zoneId);
+    
+    if (!warehouseZone || !warehouseZone.maxDistanceLimit) {
+      console.log('No max distance limit set for warehouse zone');
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Shipping configuration issue - please contact support' 
+      });
+    }
+    
+    const maxDistanceLimit = warehouseZone.maxDistanceLimit;
+    
+    // Create a custom location based on the provided address
+    // In a real app, you would use a geocoding service to get actual coordinates
+    // For this demo, we'll generate coordinates based on the city name and province
+    let customLatitude, customLongitude;
+    
+    // Common cities in Canada with their coordinates
+    const cityCoordinates: Record<string, {lat: string, lon: string}> = {
+      'toronto': { lat: '43.6532', lon: '-79.3832' },
+      'montreal': { lat: '45.5017', lon: '-73.5673' },
+      'vancouver': { lat: '49.2827', lon: '-123.1207' },
+      'calgary': { lat: '51.0447', lon: '-114.0719' },
+      'edmonton': { lat: '53.5461', lon: '-113.4938' },
+      'ottawa': { lat: '45.4215', lon: '-75.6972' },
+      'winnipeg': { lat: '49.8951', lon: '-97.1384' },
+      'quebec city': { lat: '46.8139', lon: '-71.2080' },
+      'hamilton': { lat: '43.2557', lon: '-79.8711' },
+      'brampton': { lat: '43.7315', lon: '-79.7624' },
+      'kitchener': { lat: '43.4516', lon: '-80.4925' },
+      'london': { lat: '42.9849', lon: '-81.2453' },
+      'victoria': { lat: '48.4284', lon: '-123.3656' },
+      'halifax': { lat: '44.6488', lon: '-63.5752' },
+      'niagara falls': { lat: '43.0896', lon: '-79.0849' },
+      'windsor': { lat: '42.3149', lon: '-83.0364' },
+      'oshawa': { lat: '43.8971', lon: '-78.8658' },
+      'saskatoon': { lat: '52.1332', lon: '-106.6700' },
+      'barrie': { lat: '44.3894', lon: '-79.6903' },
+      'guelph': { lat: '43.5448', lon: '-80.2482' },
+      'kingston': { lat: '44.2312', lon: '-76.4860' },
+      'regina': { lat: '50.4452', lon: '-104.6189' },
+      'burnaby': { lat: '49.2488', lon: '-122.9805' },
+      'mississauga': { lat: '43.5890', lon: '-79.6441' },
+      'markham': { lat: '43.8561', lon: '-79.3370' },
+    };
+    
+    // Lookup coordinates or use warehouse coordinates as fallback
+    const normalizedCity = city.toLowerCase().trim();
+    
+    if (cityCoordinates[normalizedCity]) {
+      customLatitude = cityCoordinates[normalizedCity].lat;
+      customLongitude = cityCoordinates[normalizedCity].lon;
+      console.log(`Found coordinates for ${city}: lat=${customLatitude}, lon=${customLongitude}`);
+    } else {
+      // Try partial city name match
+      const partialMatch = Object.keys(cityCoordinates).find(key => 
+        normalizedCity.includes(key) || key.includes(normalizedCity)
+      );
+      
+      if (partialMatch) {
+        customLatitude = cityCoordinates[partialMatch].lat;
+        customLongitude = cityCoordinates[partialMatch].lon;
+        console.log(`Found partial match coordinates for ${city} using ${partialMatch}: lat=${customLatitude}, lon=${customLongitude}`);
+      } else {
+        // No matching city, use random coordinates within 30-120km range from warehouse
+        // This simulates customers at varying distances
+        
+        // Generate a random distance between 30km and 120km
+        const randomDistance = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
+        
+        // Generate a random angle in radians
+        const randomAngle = Math.random() * 2 * Math.PI;
+        
+        // Default to warehouse coordinates plus random offset
+        // In a real system, you'd use a geocoding service
+        console.log(`No coordinate match found for ${city}, using simulated location ${randomDistance}km from warehouse`);
+        
+        // Treat unrecognized cities as out of range for safety
+        console.log('Unrecognized location, treating as out of range');
+        return res.status(400).json({ 
+          error: 'Shipping unavailable',
+          details: 'Your location is outside our delivery range or not recognized in our system' 
+        });
+      }
+    }
+    
+    // Distance is calculated in km using the Haversine formula
+    const distanceFromWarehouse = calculateDistance(
+      parseFloat(warehouse.latitude), 
+      parseFloat(warehouse.longitude),
+      parseFloat(customLatitude || warehouse.latitude), 
+      parseFloat(customLongitude || warehouse.longitude)
+    );
+    
+    console.log(`Distance from warehouse: ${distanceFromWarehouse}km, Max allowed: ${maxDistanceLimit}km`);
+    
+    // Check if distance exceeds max distance limit
+    if (distanceFromWarehouse > maxDistanceLimit) {
+      console.log('Location exceeds maximum delivery distance');
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Your location is outside our delivery range' 
+      });
+    }
+    
+    // Create a temporary customer location with the correct coordinates
+    const customerLocation = {
+      id: -999, // Special temporary ID for custom locations
+      city: city,
+      province: province,
+      country: country,
+      postalCode: postalCode || '',
+      latitude: customLatitude || warehouse.latitude,
+      longitude: customLongitude || warehouse.longitude,
+      isWarehouse: false,
+      zoneId: warehouse.zoneId,
+      createdAt: new Date()
+    };
     
     console.log('Found customer location:', { 
       id: customerLocation.id,
