@@ -1,18 +1,18 @@
 import { Router, Request, Response } from "express";
-import { storage } from "../storage";
-import { insertCategorySchema } from "@shared/schema";
-import { z } from "zod";
-import { slugify } from "../utils/format";
-import { requireAdmin, canManageProducts } from "../middleware/auth";
-import { validate } from "../middleware/validation";
+import { db } from "../db";
+import { categories, insertCategorySchema } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import slugify from "slugify";
+import { requireAdmin } from "../middleware/auth";
+import { validateSchema } from "../middleware/validation";
 
 const router = Router();
 
 // Get all categories
-router.get("/api/categories", async (req: Request, res: Response) => {
+router.get("/api/categories", async (_req: Request, res: Response) => {
   try {
-    const categories = await storage.getAllCategories();
-    res.json(categories);
+    const allCategories = await db.select().from(categories);
+    res.json(allCategories);
   } catch (error) {
     console.error("Error fetching categories:", error);
     res.status(500).json({ error: "Failed to fetch categories" });
@@ -22,8 +22,17 @@ router.get("/api/categories", async (req: Request, res: Response) => {
 // Get a single category by ID
 router.get("/api/categories/:id", async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
-    const category = await storage.getCategoryById(id);
+    const { id } = req.params;
+    const categoryId = parseInt(id);
+    
+    if (isNaN(categoryId)) {
+      return res.status(400).json({ error: "Invalid category ID" });
+    }
+    
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, categoryId));
     
     if (!category) {
       return res.status(404).json({ error: "Category not found" });
@@ -38,24 +47,51 @@ router.get("/api/categories/:id", async (req: Request, res: Response) => {
 
 // Create a new category (admin only)
 router.post(
-  "/api/admin/categories",
+  "/api/admin/categories", 
   requireAdmin,
-  validate(insertCategorySchema),
+  validateSchema(insertCategorySchema),
   async (req: Request, res: Response) => {
     try {
-      // Generate slug from name
-      if (!req.body.slug) {
-        req.body.slug = slugify(req.body.name);
+      let { name, nameAr, slug, description, descriptionAr, displayOrder } = req.body;
+      
+      // Generate slug if not provided
+      if (!slug) {
+        slug = slugify(name, { lower: true, strict: true });
       }
       
-      // Check if slug already exists
-      const existingCategory = await storage.getCategoryBySlug(req.body.slug);
+      // Check if slug is already in use
+      const [existingCategory] = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.slug, slug));
+      
       if (existingCategory) {
-        return res.status(400).json({ error: "A category with this slug already exists" });
+        return res.status(400).json({ error: "Slug already in use" });
       }
       
-      const category = await storage.createCategory(req.body);
-      res.status(201).json(category);
+      // If no display order specified, place at the end
+      if (displayOrder === undefined) {
+        const result = await db
+          .select({ maxOrder: db.fn.max(categories.displayOrder) })
+          .from(categories);
+        
+        displayOrder = result[0].maxOrder ? (result[0].maxOrder + 10) : 10;
+      }
+      
+      // Insert the new category
+      const [newCategory] = await db
+        .insert(categories)
+        .values({
+          name,
+          nameAr,
+          slug,
+          description,
+          descriptionAr,
+          displayOrder,
+        })
+        .returning();
+      
+      res.status(201).json(newCategory);
     } catch (error) {
       console.error("Error creating category:", error);
       res.status(500).json({ error: "Failed to create category" });
@@ -69,34 +105,55 @@ router.put(
   requireAdmin,
   async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
+      const { id } = req.params;
+      const categoryId = parseInt(id);
       
-      // Validate the request body
-      const updateSchema = insertCategorySchema.partial();
-      const result = updateSchema.safeParse(req.body);
-      
-      if (!result.success) {
-        return res.status(400).json({ errors: result.error.errors });
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ error: "Invalid category ID" });
       }
       
-      // Generate slug from name if name is changed and slug isn't provided
-      if (req.body.name && !req.body.slug) {
-        req.body.slug = slugify(req.body.name);
+      // Verify category exists
+      const [category] = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.id, categoryId));
+      
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
       }
       
-      // If slug is being updated, check it doesn't conflict
-      if (req.body.slug) {
-        const existingCategory = await storage.getCategoryBySlug(req.body.slug);
-        if (existingCategory && existingCategory.id !== id) {
-          return res.status(400).json({ error: "A category with this slug already exists" });
+      let { name, nameAr, slug, description, descriptionAr, displayOrder } = req.body;
+      
+      // Generate slug if name changed and slug not provided
+      if (name !== category.name && !slug) {
+        slug = slugify(name, { lower: true, strict: true });
+      }
+      
+      // Check if new slug is already in use by another category
+      if (slug && slug !== category.slug) {
+        const [existingCategory] = await db
+          .select()
+          .from(categories)
+          .where(eq(categories.slug, slug));
+        
+        if (existingCategory && existingCategory.id !== categoryId) {
+          return res.status(400).json({ error: "Slug already in use" });
         }
       }
       
-      const updatedCategory = await storage.updateCategory(id, req.body);
-      
-      if (!updatedCategory) {
-        return res.status(404).json({ error: "Category not found" });
-      }
+      // Update the category
+      const [updatedCategory] = await db
+        .update(categories)
+        .set({
+          name: name || category.name,
+          nameAr: nameAr || category.nameAr,
+          slug: slug || category.slug,
+          description: description !== undefined ? description : category.description,
+          descriptionAr: descriptionAr !== undefined ? descriptionAr : category.descriptionAr,
+          displayOrder: displayOrder !== undefined ? displayOrder : category.displayOrder,
+        })
+        .where(eq(categories.id, categoryId))
+        .returning();
       
       res.json(updatedCategory);
     } catch (error) {
@@ -112,14 +169,29 @@ router.delete(
   requireAdmin,
   async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteCategory(id);
+      const { id } = req.params;
+      const categoryId = parseInt(id);
       
-      if (!success) {
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ error: "Invalid category ID" });
+      }
+      
+      // Verify category exists
+      const [category] = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.id, categoryId));
+      
+      if (!category) {
         return res.status(404).json({ error: "Category not found" });
       }
       
-      res.json({ success: true });
+      // Delete the category
+      await db
+        .delete(categories)
+        .where(eq(categories.id, categoryId));
+      
+      res.status(200).json({ success: true });
     } catch (error) {
       console.error("Error deleting category:", error);
       res.status(500).json({ error: "Failed to delete category" });

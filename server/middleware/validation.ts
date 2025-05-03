@@ -1,29 +1,35 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodSchema } from "zod";
+import { z } from "zod";
 
 /**
- * Middleware for validating request body against a Zod schema
+ * Middleware factory for validating request body against a Zod schema
  * @param schema The Zod schema to validate against
  * @returns Express middleware function
  */
-export function validate(schema: ZodSchema) {
+export function validateSchema(schema: z.ZodType<any, any>) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = schema.safeParse(req.body);
       
       if (!result.success) {
-        return res.status(400).json({
-          error: "Validation failed",
-          details: result.error.errors
+        // Format Zod errors into a more readable format
+        const formattedErrors = result.error.errors.map(err => ({
+          path: err.path.join('.'),
+          message: err.message
+        }));
+        
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: formattedErrors 
         });
       }
       
-      // Update the request body with the parsed and validated data
+      // Replace req.body with the validated and transformed data
       req.body = result.data;
       next();
     } catch (error) {
       console.error("Validation error:", error);
-      res.status(500).json({ error: "Internal server error during validation" });
+      res.status(500).json({ error: "Server error during validation" });
     }
   };
 }
