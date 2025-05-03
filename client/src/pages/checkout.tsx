@@ -176,6 +176,8 @@ const CheckoutPage = () => {
     country: string;
     postalCode?: string;
   } | null>(null);
+  
+  // Remove redundant variable since we're checking shippingCost directly
 
   // Update shipping address when form fields change
   useEffect(() => {
@@ -691,7 +693,7 @@ const CheckoutPage = () => {
               
               <div className="pt-4">
                 {/* Show warning when shipping is unavailable for delivery */}
-                {isShippingUnavailable && form.watch('deliveryMethod') === 'delivery' && (
+                {shippingCost === -1 && form.watch('deliveryMethod') === 'delivery' && (
                   <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">
                     <p className="font-medium">Shipping Unavailable for This Address</p>
                     <p>Please choose pickup or try a different address that is within our delivery range.</p>
@@ -701,14 +703,14 @@ const CheckoutPage = () => {
                 <Button 
                   type="submit" 
                   className="w-full py-6 text-xl bg-red-600 hover:bg-red-700" 
-                  disabled={placeOrderMutation.isPending || (form.watch('deliveryMethod') === 'delivery' && isShippingUnavailable)}
+                  disabled={placeOrderMutation.isPending || (form.watch('deliveryMethod') === 'delivery' && shippingCost === -1)}
                 >
                   {placeOrderMutation.isPending ? (
                     <>
                       <div className="h-5 w-5 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       Processing...
                     </>
-                  ) : form.watch('deliveryMethod') === 'delivery' && isShippingUnavailable ? (
+                  ) : form.watch('deliveryMethod') === 'delivery' && shippingCost === -1 ? (
                     "Shipping Unavailable"
                   ) : (
                     "Place Order"
