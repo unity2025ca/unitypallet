@@ -743,7 +743,14 @@ const OrderSummary = ({
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`Shipping calculation failed: ${response.status}`);
+          // If response not successful, see if there's a structured error message
+          return response.json().then(errorData => {
+            console.error('Shipping calculation error response:', errorData);
+            throw new Error(errorData.details || `Shipping calculation failed: ${response.status}`);
+          }).catch(e => {
+            // If can't parse as JSON, use status code
+            throw new Error(`Shipping calculation failed: ${response.status}`);
+          });
         }
         return response.json();
       })
@@ -755,6 +762,18 @@ const OrderSummary = ({
           // Notify parent component about the calculated cost
           if (onShippingCostCalculated) {
             onShippingCostCalculated(cost);
+          }
+        } else if (data.error && data.error === 'Shipping unavailable') {
+          // Handle shipping unavailable error (outside delivery range)
+          toast({
+            title: "Shipping Unavailable",
+            description: data.details || "Your location is outside our delivery range",
+            variant: "destructive",
+          });
+          setCalculatedShippingCost(null);
+          // Set shipping cost to -1 to indicate it's not available
+          if (onShippingCostCalculated) {
+            onShippingCostCalculated(-1);
           }
         } else {
           console.error('Invalid shipping cost response:', data);

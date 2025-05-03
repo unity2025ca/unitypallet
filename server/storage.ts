@@ -1357,7 +1357,8 @@ export class DatabaseStorage implements IStorage {
     toLat: number, 
     toLng: number, 
     zoneId?: number,
-    weight: number = 0
+    weight: number = 0,
+    maxDistanceLimit: number = 0
   ): Promise<number> {
     try {
       // Validate inputs
@@ -1378,6 +1379,13 @@ export class DatabaseStorage implements IStorage {
       const distance = R * c; // Distance in kilometers
       
       console.log('Calculated distance:', distance, 'km');
+      
+      // Check if distance exceeds max distance limit (if set)
+      if (maxDistanceLimit > 0 && distance > maxDistanceLimit) {
+        console.log(`Distance ${distance}km exceeds max distance limit of ${maxDistanceLimit}km`);
+        // Return -1 to indicate shipping is not available due to distance limit
+        return -1;
+      }
       
       // Find applicable shipping rate
       let applicableRates: ShippingRate[] = [];

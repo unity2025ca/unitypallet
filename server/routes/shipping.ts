@@ -117,14 +117,24 @@ router.post('/calculate', async (req: Request, res: Response) => {
 
     console.log('All shipping costs:', shippingCosts);
     
+    // Check if any locations are outside delivery range (indicated by cost of -1)
+    const allOutsideRange = shippingCosts.every(cost => cost === -1);
+    if (allOutsideRange) {
+      console.log('All warehouses are too far away - outside maximum delivery range');
+      return res.status(400).json({ 
+        error: 'Shipping unavailable',
+        details: 'Your location is outside our delivery range' 
+      });
+    }
+    
     // Handle case where all shipping calculations failed
     if (shippingCosts.length === 0 || shippingCosts.every(cost => cost === Number.MAX_SAFE_INTEGER)) {
       console.log('All shipping calculations failed, using default cost');
       return res.json({ shippingCost: 3500 }); // $35 default when calculation fails
     }
 
-    // Use the lowest shipping cost from all warehouses, excluding MAX_SAFE_INTEGER values
-    const validCosts = shippingCosts.filter(cost => cost !== Number.MAX_SAFE_INTEGER);
+    // Use the lowest shipping cost from all warehouses, excluding invalid values (-1 for outside range and MAX_SAFE_INTEGER for errors)
+    const validCosts = shippingCosts.filter(cost => cost !== Number.MAX_SAFE_INTEGER && cost !== -1);
     const shippingCost = Math.min(...validCosts);
     
     console.log('Final shipping cost:', shippingCost);
