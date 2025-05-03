@@ -257,10 +257,10 @@ const CheckoutPage = () => {
       if (!response.ok) {
         // Try to parse the error response as JSON
         return response.json().then(errorData => {
-          if (errorData.error === 'Shipping unavailable') {
+          if (errorData.error === 'Shipping unavailable' || errorData.error === 'Out of service') {
             toast({
-              title: "Shipping Unavailable",
-              description: errorData.details || "Your location is outside our delivery range",
+              title: "تعذر الشحن إلى موقعك",
+              description: errorData.details || "عنوانك خارج نطاق التوصيل المسموح به",
               variant: "destructive",
             });
             throw new Error("Location outside delivery range");
@@ -285,8 +285,8 @@ const CheckoutPage = () => {
         // Check if shipping cost is -1 (outside delivery range)
         if (calculatedShippingCost === -1) {
           toast({
-            title: "Cannot Place Order",
-            description: "Your location is outside our delivery range. Please choose pickup or try a different address.",
+            title: "لا يمكن إتمام الطلب",
+            description: "موقعك خارج نطاق التوصيل. يرجى اختيار الاستلام أو تجربة عنوان آخر.",
             variant: "destructive",
           });
           return;
@@ -311,10 +311,13 @@ const CheckoutPage = () => {
       }
       
       toast({
-        title: "Shipping Calculation Error",
-        description: "Could not calculate shipping cost. Using default cost.",
+        title: "خطأ في حساب تكلفة الشحن",
+        description: "لا يمكن إتمام الطلب. يرجى التأكد من أن عنوانك ضمن مناطق التوصيل المتاحة.",
         variant: "destructive",
       });
+      
+      // Since we had an error, we should not proceed with default shipping cost
+      return;
       
       // Use a default shipping cost if calculation fails
       const defaultShippingCost = 3000; // Default $30.00 in cents
