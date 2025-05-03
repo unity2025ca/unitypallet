@@ -259,8 +259,8 @@ const CheckoutPage = () => {
         return response.json().then(errorData => {
           if (errorData.error === 'Shipping unavailable' || errorData.error === 'Out of service') {
             toast({
-              title: "تعذر الشحن إلى موقعك",
-              description: errorData.details || "عنوانك خارج نطاق التوصيل المسموح به",
+              title: "Shipping Not Available",
+              description: errorData.details || "Your location is outside our delivery range",
               variant: "destructive",
             });
             throw new Error("Location outside delivery range");
@@ -285,8 +285,8 @@ const CheckoutPage = () => {
         // Check if shipping cost is -1 (outside delivery range)
         if (calculatedShippingCost === -1) {
           toast({
-            title: "لا يمكن إتمام الطلب",
-            description: "موقعك خارج نطاق التوصيل. يرجى اختيار الاستلام أو تجربة عنوان آخر.",
+            title: "Cannot Place Order",
+            description: "Your location is outside our delivery range. Please choose pickup or try a different address.",
             variant: "destructive",
           });
           return;
@@ -311,8 +311,8 @@ const CheckoutPage = () => {
       }
       
       toast({
-        title: "خطأ في حساب تكلفة الشحن",
-        description: "لا يمكن إتمام الطلب. يرجى التأكد من أن عنوانك ضمن مناطق التوصيل المتاحة.",
+        title: "Shipping Calculation Error",
+        description: "Cannot complete your order. Please make sure your address is within our delivery areas.",
         variant: "destructive",
       });
       
