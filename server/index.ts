@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
 
 const app = express();
 app.use(express.json());
@@ -66,5 +67,8 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Schedule the order cleanup job to run every 15 minutes
+    scheduleOrderCleanupJob(15);
   });
 })();
