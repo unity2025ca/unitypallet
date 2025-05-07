@@ -114,13 +114,13 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
         fetch_format: 'auto',
       };
   
-      // إضافة معرّف عام إذا تم توفيره
+      // Add public ID if provided
       if (publicId) {
         options.public_id = publicId;
       }
       
-      // استخدام طريقة upload_stream بدلاً من upload
-      // هذه الطريقة تقوم برفع الملف كـ stream بدلاً من قراءته كاملاً في الذاكرة
+      // Use upload_stream method instead of upload
+      // This method uploads the file as a stream instead of reading it entirely into memory
       const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
         if (error) {
           console.error('Cloudinary upload error:', error);
@@ -149,7 +149,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
         });
       });
       
-      // إنشاء stream لقراءة الملف وتمريره إلى uploadStream
+      // Create a stream to read the file and pipe it to uploadStream
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(uploadStream);
       
@@ -163,7 +163,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
     });
   } catch (error: any) {
     console.error('Cloudinary upload error:', error);
-    // تسجيل سبب الخطأ بشكل أكثر تفصيلاً
+    // Log detailed error information
     console.error('Upload error details:', JSON.stringify(error, null, 2));
     return {
       success: false,
@@ -173,18 +173,18 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
 };
 
 /**
- * حذف صورة من Cloudinary
- * @param publicId المعرّف العام للصورة
- * @returns وعد يحتوي على نتيجة الحذف
+ * Delete an image from Cloudinary
+ * @param publicId The public ID of the image
+ * @returns Promise containing the deletion result
  */
 export const deleteImage = async (publicId: string) => {
   try {
-    // نحذف فقط إذا كان هناك معرّف عام
+    // Only delete if there's a public ID
     if (!publicId) {
       return { success: false, error: 'No public ID provided' };
     }
 
-    // حذف الصورة من Cloudinary
+    // Delete the image from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
     
     return {
@@ -201,9 +201,9 @@ export const deleteImage = async (publicId: string) => {
 };
 
 /**
- * استخراج المعرّف العام من عنوان URL للصورة
- * @param url عنوان URL للصورة من Cloudinary
- * @returns المعرّف العام للصورة، أو فراغ إذا لم يكن URL من Cloudinary
+ * Extract the public ID from a Cloudinary image URL
+ * @param url The Cloudinary image URL
+ * @returns The public ID of the image, or empty string if URL is not from Cloudinary
  */
 export const extractPublicIdFromUrl = (url: string): string => {
   if (!url || !url.includes('cloudinary.com')) {
@@ -211,8 +211,8 @@ export const extractPublicIdFromUrl = (url: string): string => {
   }
   
   try {
-    // استخراج المعرّف العام من عنوان URL
-    // مثال: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.jpg
+    // Extract the public ID from the URL
+    // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.jpg
     const matches = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
     return matches ? matches[1] : '';
   } catch (error) {
@@ -221,5 +221,5 @@ export const extractPublicIdFromUrl = (url: string): string => {
   }
 };
 
-// تصدير الكائن cloudinary للاستخدام المباشر إذا لزم الأمر
+// Export the cloudinary object for direct use if needed
 export { cloudinary };
