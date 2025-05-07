@@ -1,18 +1,40 @@
 import { Link } from "wouter";
 import translations from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks/use-settings";
 
 const Hero = () => {
+  const { getSettingValue } = useSettings();
+  
+  // Get banner content from settings
+  const bannerTitle = getSettingValue('home_banner_title', translations.hero.title);
+  const bannerSubtitle = getSettingValue('home_banner_subtitle', translations.hero.subtitle);
+  const bannerButtonText = getSettingValue('home_banner_button_text', translations.hero.browseButton);
+  const bannerButtonLink = getSettingValue('home_banner_button_link', '/products');
+  
+  // Get banner image from settings
+  const bannerImage = getSettingValue('home_banner_image', '');
+  
+  // Background style with dynamic image if available
+  const sectionStyle = bannerImage ? {
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${bannerImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  } : {};
+  
   return (
-    <section className="relative bg-black overflow-hidden">
+    <section 
+      className="relative bg-black overflow-hidden" 
+      style={sectionStyle}
+    >
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="md:flex items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold font-primary mb-4 text-white">
-              {translations.hero.title}
+              {bannerTitle}
             </h1>
             <p className="text-xl mb-8 text-gray-300 font-medium">
-              {translations.hero.subtitle}
+              {bannerSubtitle}
             </p>
             <div className="flex flex-wrap gap-4">
               <Button 
@@ -20,8 +42,8 @@ const Hero = () => {
                 size="lg"
                 className="btn-red font-bold"
               >
-                <Link href="/products">
-                  {translations.hero.browseButton}
+                <Link href={bannerButtonLink}>
+                  {bannerButtonText}
                 </Link>
               </Button>
               <Button 
@@ -38,7 +60,7 @@ const Hero = () => {
           </div>
           <div className="md:w-1/2">
             <img 
-              src="https://e.top4top.io/p_33985nlw01.jpeg" 
+              src={bannerImage || "https://e.top4top.io/p_33985nlw01.jpeg"} 
               alt="Amazon Return Pallets" 
               className="rounded-lg shadow-2xl object-cover h-80 md:h-96 w-full" 
             />
