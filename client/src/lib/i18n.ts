@@ -18,7 +18,7 @@ export const translations = {
     howItWorksButton: "How Does It Work?"
   },
   features: {
-    title: "Why Buy from Unity?",
+    title: "Why Buy from Jaberco?",
     subtitle: "We offer the best Amazon return pallets at competitive prices and guaranteed quality",
     items: [
       {
@@ -56,7 +56,7 @@ export const translations = {
   },
   about: {
     title: "About Us",
-    description: "At Unity, we strive to provide authentic products at discounted prices through Amazon return pallets to customers in Saudi Arabia. We believe in delivering value and quality simultaneously.",
+    description: "At Jaberco, we strive to provide authentic products at discounted prices through Amazon return pallets to customers in Saudi Arabia. We believe in delivering value and quality simultaneously.",
     vision: {
       title: "Our Vision",
       description: "To be the primary destination for consumers seeking great deals and investment opportunities in e-commerce returns."

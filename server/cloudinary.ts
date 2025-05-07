@@ -2,7 +2,9 @@ import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
 // Cloudinary configuration
-let cloudName, apiKey, apiSecret;
+let cloudName: string | undefined;
+let apiKey: string | undefined;
+let apiSecret: string | undefined;
 
 // Cloudinary can be configured either through separate environment variables or via CLOUDINARY_URL
 if (process.env.CLOUDINARY_URL) {
@@ -49,7 +51,7 @@ console.log(`Cloudinary initialized with:
 `);
 
 // Default folder for storing product images
-const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
+const PRODUCT_IMAGES_FOLDER = 'jaberco_ecommerce/products';
 
 // Interface for upload result
 export interface CloudinaryUploadResult {

@@ -11,7 +11,7 @@ const AboutPage = () => {
           <div className="md:w-1/2 md:pl-12 mb-8 md:mb-0">
             <img 
               src={getSettingValue('about_image', 'https://images.unsplash.com/photo-1577415124269-fc1140a69e91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80')} 
-              alt="Unity Team" 
+              alt="Jaberco Team" 
               className="rounded-lg shadow-xl w-full" 
             />
           </div>
@@ -49,7 +49,7 @@ const AboutPage = () => {
                 Our History
               </h3>
               <p className="text-gray-700">
-                {getSettingValue('about_history', 'Founded in 2022, Unity started with a simple goal: to make Amazon return pallets accessible to resellers and businesses of all sizes. What began as a small operation has grown into a trusted source for quality products across Canada.')}
+                {getSettingValue('about_history', 'Founded in 2022, Jaberco started with a simple goal: to make Amazon return pallets accessible to resellers and businesses of all sizes. What began as a small operation has grown into a trusted source for quality products across Canada.')}
               </p>
             </div>
             
