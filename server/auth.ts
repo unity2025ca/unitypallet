@@ -71,7 +71,7 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'unity-secret-key',
+    secret: process.env.SESSION_SECRET || 'jaberco-secure-random-key-' + Math.random().toString(36).slice(2),
     resave: false,
     saveUninitialized: false,
     cookie: { 
