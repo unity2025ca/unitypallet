@@ -65,7 +65,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
     setIsChanged(false);
   };
   
-  // Function to handle logo upload
+  // Function to handle image upload for any image setting
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,24 +97,40 @@ export default function SettingItem({ setting }: SettingItemProps) {
       
       // Create FormData object
       const formData = new FormData();
-      formData.append('logo', file);
       
-      // Upload the logo
-      const response = await fetch('/api/settings/upload-logo', {
+      // Determine if this is a logo upload or a general image upload
+      const isLogoUpload = setting.key === "site_logo";
+      
+      // Use the appropriate field name in the FormData
+      if (isLogoUpload) {
+        formData.append('logo', file);
+      } else {
+        formData.append('image', file);
+        formData.append('settingKey', setting.key); // Pass the setting key to identify which setting to update
+      }
+      
+      // Choose the correct endpoint based on upload type
+      const uploadEndpoint = isLogoUpload 
+        ? '/api/settings/upload-logo' 
+        : '/api/settings/upload-image';
+      
+      // Upload the image
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Failed to upload logo');
+        throw new Error(`Failed to upload ${isLogoUpload ? 'logo' : 'image'}`);
       }
       
       const result = await response.json();
       
       if (result.success) {
-        // Update logo value with the new URL
-        setValue(result.logoUrl);
-        setIsChanged(result.logoUrl !== setting.value);
+        // Update value with the new URL
+        const imageUrl = isLogoUpload ? result.logoUrl : result.imageUrl;
+        setValue(imageUrl);
+        setIsChanged(imageUrl !== setting.value);
         
         // Reset the file input
         if (fileInputRef.current) {
@@ -122,8 +138,8 @@ export default function SettingItem({ setting }: SettingItemProps) {
         }
         
         toast({
-          title: "Logo uploaded successfully",
-          description: "The website logo has been updated successfully",
+          title: `${isLogoUpload ? "Logo" : "Image"} uploaded successfully`,
+          description: `The ${setting.label.toLowerCase()} has been updated successfully`,
         });
         
         // Update the cache
@@ -132,10 +148,10 @@ export default function SettingItem({ setting }: SettingItemProps) {
         throw new Error(result.message || 'Unknown error occurred');
       }
     } catch (error: any) {
-      console.error('Logo upload error:', error);
+      console.error('Image upload error:', error);
       toast({
-        title: "Failed to upload logo",
-        description: error.message || "An error occurred while uploading the logo",
+        title: `Failed to upload ${setting.key === "site_logo" ? "logo" : "image"}`,
+        description: error.message || `An error occurred while uploading the ${setting.label.toLowerCase()}`,
         variant: "destructive"
       });
     } finally {
@@ -173,7 +189,15 @@ export default function SettingItem({ setting }: SettingItemProps) {
           />
         </div>
       );
-    } else if ((setting.type === "url" || setting.type === "image") && setting.key === "site_logo") {
+    } else if (setting.type === "url" || setting.type === "image") {
+      // Check if this is an image setting
+      const isImage = setting.type === "image" || 
+                      setting.key === "site_logo" || 
+                      setting.key.includes("image") || 
+                      setting.key.includes("background");
+                      
+      const isLogoUpload = setting.key === "site_logo";
+      
       inputElement = (
         <div className="space-y-4">
           <div className="space-y-3">
@@ -182,44 +206,52 @@ export default function SettingItem({ setting }: SettingItemProps) {
               id={setting.key} 
               value={value} 
               onChange={handleInputChange}
-              placeholder="https://example.com/logo.png"
+              placeholder={isImage ? "https://example.com/image.jpg" : "https://example.com/"}
             />
-            {value && (
+            {value && isImage && (
               <div className="flex justify-center p-2 bg-gray-50 rounded-md">
-                <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+                <img 
+                  src={value} 
+                  alt={`${setting.label} Preview`} 
+                  className={isLogoUpload ? "h-12 object-contain" : "max-h-32 object-contain"} 
+                />
               </div>
             )}
           </div>
           
-          {/* Add file upload section */}
-          <div className="space-y-2">
-            <div className="text-sm text-gray-500">Or upload a new logo directly:</div>
-            <div className="flex space-x-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleLogoUpload}
-                accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-                className="hidden"
-                id={`${setting.key}-upload`}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="mr-2 h-4 w-4" />
-                )}
-                {isUploading ? "Uploading..." : "Upload Logo"}
-              </Button>
+          {/* Add file upload section for all image fields */}
+          {isImage && (
+            <div className="space-y-2">
+              <div className="text-sm text-gray-500">
+                Or upload a new {isLogoUpload ? "logo" : "image"} directly:
+              </div>
+              <div className="flex space-x-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoUpload}
+                  accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  id={`${setting.key}-upload`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  {isUploading ? "Uploading..." : `Upload ${isLogoUpload ? "Logo" : "Image"}`}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       );
     } else if (setting.type === "textarea") {

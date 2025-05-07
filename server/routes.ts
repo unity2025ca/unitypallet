@@ -759,6 +759,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Create general route for uploading images for settings
+  app.post("/api/settings/upload-image", requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+      
+      // Get the setting key from the request body
+      const settingKey = req.body.settingKey;
+      
+      if (!settingKey) {
+        return res.status(400).json({ success: false, message: 'Setting key is required' });
+      }
+      
+      // Get the existing setting to make sure it exists
+      const existingSetting = await storage.getSetting(settingKey);
+      if (!existingSetting) {
+        return res.status(404).json({ success: false, message: 'Setting not found' });
+      }
+      
+      // Upload the image to Cloudinary with a unique identifier based on the setting key
+      const publicId = `jaberco_setting_${settingKey}_${Date.now()}`;
+      const uploadResult = await uploadImage(req.file.path, publicId);
+      
+      // Delete the temporary file after upload
+      fs.unlinkSync(req.file.path);
+      
+      if (!uploadResult.success) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to upload image to cloud storage',
+          error: uploadResult.error
+        });
+      }
+      
+      // Get the URL from Cloudinary
+      const imageUrl = uploadResult.imageUrl || '';
+      
+      // Update the setting with the new image URL
+      const setting = await storage.updateSetting(settingKey, imageUrl);
+      
+      if (!setting) {
+        return res.status(404).json({ success: false, message: 'Setting update failed' });
+      }
+      
+      res.json({
+        success: true,
+        setting: setting,
+        imageUrl: imageUrl
+      });
+    } catch (error) {
+      console.error('Error uploading setting image:', error);
+      res.status(500).json({ success: false, message: 'Error uploading image' });
+    }
+  });
+  
   // Authentication routes with improved error handling
   app.post("/api/login", (req, res, next) => {
     import("passport").then(passportModule => {
