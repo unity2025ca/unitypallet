@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Setting } from "@shared/schema";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CheckIcon, XIcon, AlertOctagon } from "lucide-react";
+import { CheckIcon, XIcon, AlertOctagon, Upload, Loader2 } from "lucide-react";
 
 interface SettingItemProps {
   setting: Setting;
@@ -17,6 +17,8 @@ export default function SettingItem({ setting }: SettingItemProps) {
   const [value, setValue] = useState(setting.value);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +64,84 @@ export default function SettingItem({ setting }: SettingItemProps) {
     setValue(setting.value);
     setIsChanged(false);
   };
+  
+  // Function to handle logo upload
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a valid image file (JPEG, PNG, GIF, WEBP, SVG)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      // Upload the logo
+      const response = await fetch('/api/settings/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update logo value with the new URL
+        setValue(result.logoUrl);
+        setIsChanged(result.logoUrl !== setting.value);
+        
+        // Reset the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        toast({
+          title: "Logo uploaded successfully",
+          description: "The website logo has been updated successfully",
+        });
+        
+        // Update the cache
+        queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      } else {
+        throw new Error(result.message || 'Unknown error occurred');
+      }
+    } catch (error: any) {
+      console.error('Logo upload error:', error);
+      toast({
+        title: "Failed to upload logo",
+        description: error.message || "An error occurred while uploading the logo",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Render different inputs based on setting type
   const renderInput = () => {
@@ -93,21 +173,53 @@ export default function SettingItem({ setting }: SettingItemProps) {
           />
         </div>
       );
-    } else if (setting.type === "url" && setting.key === "site_logo") {
+    } else if ((setting.type === "url" || setting.type === "image") && setting.key === "site_logo") {
       inputElement = (
-        <div className="space-y-3">
-          <Input 
-            type="url"
-            id={setting.key} 
-            value={value} 
-            onChange={handleInputChange}
-            placeholder="https://example.com/logo.png"
-          />
-          {value && (
-            <div className="flex justify-center p-2 bg-gray-50 rounded-md">
-              <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <Input 
+              type="url"
+              id={setting.key} 
+              value={value} 
+              onChange={handleInputChange}
+              placeholder="https://example.com/logo.png"
+            />
+            {value && (
+              <div className="flex justify-center p-2 bg-gray-50 rounded-md">
+                <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+              </div>
+            )}
+          </div>
+          
+          {/* Add file upload section */}
+          <div className="space-y-2">
+            <div className="text-sm text-gray-500">Or upload a new logo directly:</div>
+            <div className="flex space-x-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLogoUpload}
+                accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                className="hidden"
+                id={`${setting.key}-upload`}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {isUploading ? "Uploading..." : "Upload Logo"}
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       );
     } else if (setting.type === "textarea") {

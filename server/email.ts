@@ -33,12 +33,12 @@ export async function sendEmail(
       to: params.to,
       from: {
         email: params.from,
-        name: "Unity Pallets" // Using store name improves deliverability
+        name: "Jaberco Pallets" // Using store name improves deliverability
       },
       subject: params.subject,
       // Setting these spam prevention headers
       headers: {
-        "List-Unsubscribe": "<https://unitypallets.com/unsubscribe>",
+        "List-Unsubscribe": "<https://jaberco.com/unsubscribe>",
         "Precedence": "Bulk"
       },
       // Categories help with tracking in SendGrid
@@ -68,9 +68,9 @@ export async function sendEmail(
   ${htmlContent}
   <br><br>
   <p style="font-size: 12px; color: #777;">
-    You received this email because you subscribed to updates from Unity Pallets.
+    You received this email because you subscribed to updates from Jaberco Pallets.
     <br>
-    If you no longer wish to receive these emails, you can <a href="https://unitypallets.com/unsubscribe" style="color: #777;">unsubscribe here</a>.
+    If you no longer wish to receive these emails, you can <a href="https://jaberco.com/unsubscribe" style="color: #777;">unsubscribe here</a>.
   </p>
 </body>
 </html>`;

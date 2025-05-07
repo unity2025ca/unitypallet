@@ -1,15 +1,17 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
-// تكوين Cloudinary
-let cloudName, apiKey, apiSecret;
+// Cloudinary configuration
+let cloudName: string | undefined;
+let apiKey: string | undefined;
+let apiSecret: string | undefined;
 
-// يمكن تكوين Cloudinary إما عبر متغيرات البيئة المنفصلة أو عبر CLOUDINARY_URL
+// Cloudinary can be configured either through separate environment variables or via CLOUDINARY_URL
 if (process.env.CLOUDINARY_URL) {
   console.log('Using CLOUDINARY_URL for configuration');
-  // استخراج التكوين من CLOUDINARY_URL
+  // Extract configuration from CLOUDINARY_URL
   try {
-    // تنسيق URL: cloudinary://api_key:api_secret@cloud_name
+    // URL format: cloudinary://api_key:api_secret@cloud_name
     const cloudinaryUrl = process.env.CLOUDINARY_URL;
     const match = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
     
@@ -33,7 +35,7 @@ if (process.env.CLOUDINARY_URL) {
   console.error('Missing required Cloudinary environment variables');
 }
 
-// تكوين Cloudinary
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: cloudName,
   api_key: apiKey,
@@ -41,17 +43,17 @@ cloudinary.config({
   secure: true,
 });
 
-// عرض رسالة تأكيد لمساعدة في تصحيح الأخطاء
+// Display confirmation message to help with debugging
 console.log(`Cloudinary initialized with:
 - cloud_name: ${cloudName}
 - api_key exists: ${Boolean(apiKey)}
 - api_secret exists: ${Boolean(apiSecret)}
 `);
 
-// المجلد الافتراضي لتخزين صور المنتجات
-const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
+// Default folder for storing product images
+const PRODUCT_IMAGES_FOLDER = 'jaberco_ecommerce/products';
 
-// واجهة لنتيجة التحميل
+// Interface for upload result
 export interface CloudinaryUploadResult {
   success: boolean;
   imageUrl?: string;
@@ -63,16 +65,16 @@ export interface CloudinaryUploadResult {
 }
 
 /**
- * رفع صورة إلى Cloudinary
- * @param filePath مسار الملف المؤقت على الخادم
- * @param publicId معرّف عام للصورة (اختياري)
- * @returns وعد يحتوي على نتيجة التحميل
+ * Upload an image to Cloudinary
+ * @param filePath Path to the temporary file on the server
+ * @param publicId Public ID for the image (optional)
+ * @returns Promise containing the upload result
  */
 export const uploadImage = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
   try {
     console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
     
-    // التحقق من تكوين Cloudinary
+    // Verify Cloudinary configuration
     if (!cloudName || !apiKey || !apiSecret) {
       console.error('Cloudinary configuration is incomplete:');
       console.error(`- cloud_name exists: ${Boolean(cloudName)}`);
@@ -84,7 +86,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // تحقق من وجود المسار
+    // Check if file path exists
     if (!filePath) {
       console.error('No file path provided for upload');
       return {
@@ -93,7 +95,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // التحقق من وجود الملف
+    // Check if file exists
     if (!fs.existsSync(filePath)) {
       console.error(`File not found at path: ${filePath}`);
       return {
@@ -102,23 +104,23 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // طريقة بديلة: استخدام stream بدلاً من base64
+    // Alternative method: Using stream instead of base64
     return new Promise<CloudinaryUploadResult>((resolve) => {
       const options: any = {
         folder: PRODUCT_IMAGES_FOLDER,
         resource_type: 'auto',
-        // تحسين للأداء وتقليل حجم الصورة
+        // Optimize performance and reduce image size
         quality: 'auto',
         fetch_format: 'auto',
       };
   
-      // إضافة معرّف عام إذا تم توفيره
+      // Add public ID if provided
       if (publicId) {
         options.public_id = publicId;
       }
       
-      // استخدام طريقة upload_stream بدلاً من upload
-      // هذه الطريقة تقوم برفع الملف كـ stream بدلاً من قراءته كاملاً في الذاكرة
+      // Use upload_stream method instead of upload
+      // This method uploads the file as a stream instead of reading it entirely into memory
       const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
         if (error) {
           console.error('Cloudinary upload error:', error);
@@ -147,7 +149,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
         });
       });
       
-      // إنشاء stream لقراءة الملف وتمريره إلى uploadStream
+      // Create a stream to read the file and pipe it to uploadStream
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(uploadStream);
       
@@ -161,7 +163,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
     });
   } catch (error: any) {
     console.error('Cloudinary upload error:', error);
-    // تسجيل سبب الخطأ بشكل أكثر تفصيلاً
+    // Log detailed error information
     console.error('Upload error details:', JSON.stringify(error, null, 2));
     return {
       success: false,
@@ -171,18 +173,18 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
 };
 
 /**
- * حذف صورة من Cloudinary
- * @param publicId المعرّف العام للصورة
- * @returns وعد يحتوي على نتيجة الحذف
+ * Delete an image from Cloudinary
+ * @param publicId The public ID of the image
+ * @returns Promise containing the deletion result
  */
 export const deleteImage = async (publicId: string) => {
   try {
-    // نحذف فقط إذا كان هناك معرّف عام
+    // Only delete if there's a public ID
     if (!publicId) {
       return { success: false, error: 'No public ID provided' };
     }
 
-    // حذف الصورة من Cloudinary
+    // Delete the image from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
     
     return {
@@ -199,9 +201,9 @@ export const deleteImage = async (publicId: string) => {
 };
 
 /**
- * استخراج المعرّف العام من عنوان URL للصورة
- * @param url عنوان URL للصورة من Cloudinary
- * @returns المعرّف العام للصورة، أو فراغ إذا لم يكن URL من Cloudinary
+ * Extract the public ID from a Cloudinary image URL
+ * @param url The Cloudinary image URL
+ * @returns The public ID of the image, or empty string if URL is not from Cloudinary
  */
 export const extractPublicIdFromUrl = (url: string): string => {
   if (!url || !url.includes('cloudinary.com')) {
@@ -209,8 +211,8 @@ export const extractPublicIdFromUrl = (url: string): string => {
   }
   
   try {
-    // استخراج المعرّف العام من عنوان URL
-    // مثال: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.jpg
+    // Extract the public ID from the URL
+    // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.jpg
     const matches = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
     return matches ? matches[1] : '';
   } catch (error) {
@@ -219,5 +221,5 @@ export const extractPublicIdFromUrl = (url: string): string => {
   }
 };
 
-// تصدير الكائن cloudinary للاستخدام المباشر إذا لزم الأمر
+// Export the cloudinary object for direct use if needed
 export { cloudinary };

@@ -18,7 +18,7 @@ export const translations = {
     howItWorksButton: "How Does It Work?"
   },
   features: {
-    title: "Why Buy from Unity?",
+    title: "Why Buy from Jaberco?",
     subtitle: "We offer the best Amazon return pallets at competitive prices and guaranteed quality",
     items: [
       {
@@ -56,7 +56,7 @@ export const translations = {
   },
   about: {
     title: "About Us",
-    description: "At Unity, we strive to provide authentic products at discounted prices through Amazon return pallets to customers in Saudi Arabia. We believe in delivering value and quality simultaneously.",
+    description: "At Jaberco, we strive to provide authentic products at discounted prices through Amazon return pallets to customers in Saudi Arabia. We believe in delivering value and quality simultaneously.",
     vision: {
       title: "Our Vision",
       description: "To be the primary destination for consumers seeking great deals and investment opportunities in e-commerce returns."
@@ -155,7 +155,7 @@ export const translations = {
       },
       email: {
         label: "Email",
-        value: "info@unity-pallets.com"
+        value: "info@jaberco.com"
       },
       whatsapp: {
         label: "WhatsApp",
@@ -177,7 +177,7 @@ export const translations = {
     quickLinks: "Quick Links",
     categories: "Product Categories",
     contact: "Contact Us",
-    copyright: "© 2023 Unity. All rights reserved."
+    copyright: "© 2023 Jaberco. All rights reserved."
   },
   admin: {
     login: {
@@ -189,7 +189,7 @@ export const translations = {
     },
     dashboard: {
       title: "Dashboard",
-      welcome: "Welcome to Unity Control Panel",
+      welcome: "Welcome to Jaberco Control Panel",
       stats: {
         products: "Products",
         contacts: "Messages",

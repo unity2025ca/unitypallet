@@ -358,8 +358,8 @@ const AdminDashboard = () => {
                 <p className="mt-1">Please report any security concerns to the administrator.</p>
               </div>
               <div className="text-right">
-                <p>Unity Admin Panel v1.0</p>
-                <p className="mt-1">© {new Date().getFullYear()} Unity Inc. All rights reserved.</p>
+                <p>Jaberco Admin Panel v1.0</p>
+                <p className="mt-1">© {new Date().getFullYear()} Jaberco Inc. All rights reserved.</p>
               </div>
             </div>
           </div>
