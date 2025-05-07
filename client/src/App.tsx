@@ -39,6 +39,7 @@ import AdminShipping from "@/pages/admin/shipping";
 import AdminHomepage from "@/pages/admin/homepage";
 import AdminCategories from "@/pages/admin/categories";
 import AdminAllowedCities from "@/pages/admin/allowed-cities";
+import AdminContacts from "@/pages/admin/contacts";
 import TestNotificationsPage from "@/pages/admin/test-notifications";
 import TestOrdersPage from "@/pages/admin/test-orders";
 import { useLocation } from "wouter";
@@ -82,6 +83,7 @@ function Router() {
         <AdminProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
         <PublisherProtectedRoute path="/admin/products" component={AdminProducts} />
         <PublisherProtectedRoute path="/admin/orders" component={AdminOrders} />
+        <PublisherProtectedRoute path="/admin/contacts" component={AdminContacts} />
         <AdminProtectedRoute path="/admin/newsletter" component={AdminNewsletter} />
         <AdminProtectedRoute path="/admin/sms" component={AdminSms} />
         <PublisherProtectedRoute path="/admin/faqs" component={AdminFaqs} />

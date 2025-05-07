@@ -123,6 +123,7 @@ export const contacts = pgTable("contacts", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
