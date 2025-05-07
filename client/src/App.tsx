@@ -58,9 +58,9 @@ function AppContent() {
   // استخدام هوك تتبع الزيارات
   useVisitorTracking();
   
-  // عرض شاشة التحميل أثناء تحميل الإعدادات
+  // Display loading screen while loading settings
   if (isLoading) {
-    return <LoadingScreen message="جاري تحميل الموقع..." />;
+    return <LoadingScreen message="Loading website..." />;
   }
   
   return (
