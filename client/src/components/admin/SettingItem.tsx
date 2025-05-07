@@ -65,28 +65,28 @@ export default function SettingItem({ setting }: SettingItemProps) {
     setIsChanged(false);
   };
   
-  // وظيفة للتعامل مع رفع الشعار
+  // Function to handle logo upload
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // التحقق من نوع الملف
+    // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     if (!validTypes.includes(file.type)) {
       toast({
-        title: "نوع ملف غير صالح",
-        description: "يرجى تحميل ملف صورة صالح (JPEG, PNG, GIF, WEBP, SVG)",
+        title: "Invalid file type",
+        description: "Please upload a valid image file (JPEG, PNG, GIF, WEBP, SVG)",
         variant: "destructive"
       });
       return;
     }
     
-    // التحقق من حجم الملف (5 ميجابايت كحد أقصى)
+    // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       toast({
-        title: "حجم الملف كبير جداً",
-        description: "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+        title: "File too large",
+        description: "Image must be less than 5MB",
         variant: "destructive"
       });
       return;
@@ -95,11 +95,11 @@ export default function SettingItem({ setting }: SettingItemProps) {
     try {
       setIsUploading(true);
       
-      // إنشاء كائن FormData
+      // Create FormData object
       const formData = new FormData();
       formData.append('logo', file);
       
-      // رفع الشعار
+      // Upload the logo
       const response = await fetch('/api/settings/upload-logo', {
         method: 'POST',
         body: formData,
@@ -112,21 +112,21 @@ export default function SettingItem({ setting }: SettingItemProps) {
       const result = await response.json();
       
       if (result.success) {
-        // تحديث قيمة الشعار بالرابط الجديد
+        // Update logo value with the new URL
         setValue(result.logoUrl);
         setIsChanged(result.logoUrl !== setting.value);
         
-        // إعادة تعيين الحقل
+        // Reset the file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
         
         toast({
-          title: "تم رفع الشعار بنجاح",
-          description: "تم تحديث شعار الموقع بنجاح",
+          title: "Logo uploaded successfully",
+          description: "The website logo has been updated successfully",
         });
         
-        // تحديث الكاش
+        // Update the cache
         queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
       } else {
         throw new Error(result.message || 'Unknown error occurred');
@@ -134,8 +134,8 @@ export default function SettingItem({ setting }: SettingItemProps) {
     } catch (error: any) {
       console.error('Logo upload error:', error);
       toast({
-        title: "فشل رفع الشعار",
-        description: error.message || "حدث خطأ أثناء رفع الشعار",
+        title: "Failed to upload logo",
+        description: error.message || "An error occurred while uploading the logo",
         variant: "destructive"
       });
     } finally {
@@ -191,9 +191,9 @@ export default function SettingItem({ setting }: SettingItemProps) {
             )}
           </div>
           
-          {/* إضافة قسم رفع الملف */}
+          {/* Add file upload section */}
           <div className="space-y-2">
-            <div className="text-sm text-gray-500">أو رفع شعار جديد مباشرة:</div>
+            <div className="text-sm text-gray-500">Or upload a new logo directly:</div>
             <div className="flex space-x-2">
               <input
                 type="file"
@@ -216,7 +216,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
                 ) : (
                   <Upload className="mr-2 h-4 w-4" />
                 )}
-                {isUploading ? "جاري الرفع..." : "تحميل الشعار"}
+                {isUploading ? "Uploading..." : "Upload Logo"}
               </Button>
             </div>
           </div>
