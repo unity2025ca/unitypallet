@@ -49,12 +49,12 @@ const Header = () => {
               {getSettingValue("site_logo") ? (
                 <img 
                   src={getSettingValue("site_logo")} 
-                  alt={getSettingValue("site_name", "Unity")} 
+                  alt={getSettingValue("site_name", "Jaberco")} 
                   className="h-10 mr-2" 
                 />
               ) : (
                 <span className="text-3xl font-bold text-primary">
-                  {getSettingValue("site_name", "Unity")}
+                  {getSettingValue("site_name", "Jaberco")}
                 </span>
               )}
             </Link>
