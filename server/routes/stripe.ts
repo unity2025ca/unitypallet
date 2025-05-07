@@ -74,7 +74,7 @@ router.post("/create-payment-intent", requireCustomer, async (req, res) => {
         currency: 'cad',
         product_data: {
           name: `Order #${orderId} - ${orderItems.length} items`,
-          description: `Purchase from Unity Pallets`,
+          description: `Purchase from Jaberco Pallets`,
         },
         unit_amount: productTotalInCents, // Product amount in cents
       },
