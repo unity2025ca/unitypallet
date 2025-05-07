@@ -1,6 +1,16 @@
 // Utility functions for formatting various data types
 
 /**
+ * Format a currency value to a fixed decimal format
+ * @param amount The amount to format
+ * @param decimalPlaces The number of decimal places to display
+ * @returns The formatted amount as a string
+ */
+export function formatCurrency(amount: number, decimalPlaces: number = 2): string {
+  return amount.toFixed(decimalPlaces);
+}
+
+/**
  * Format a phone number to ensure it's in international format
  * @param phone The phone number to format
  * @returns The formatted phone number
