@@ -761,41 +761,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication routes with improved error handling
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
-      if (err) {
-        console.error("Login error:", err);
-        return res.status(500).json({ 
-          success: false, 
-          message: "Internal server error during login" 
-        });
-      }
-      
-      if (!user) {
-        return res.status(401).json({ 
-          success: false, 
-          message: info?.message || "Invalid username or password" 
-        });
-      }
-      
-      // Log in the user
-      req.login(user, (loginErr) => {
-        if (loginErr) {
-          console.error("Session creation error:", loginErr);
+    import("passport").then(passportModule => {
+      const passport = passportModule.default;
+      passport.authenticate("local", (err: any, user: any, info: any) => {
+        if (err) {
+          console.error("Login error:", err);
           return res.status(500).json({ 
             success: false, 
-            message: "Failed to create session" 
+            message: "Internal server error during login" 
           });
         }
         
-        // Successfully logged in
-        console.log("User logged in successfully:", user.username);
-        return res.status(200).json({ 
-          success: true, 
-          message: "Login successful", 
-          user 
+        if (!user) {
+          return res.status(401).json({ 
+            success: false, 
+            message: info?.message || "Invalid username or password" 
+          });
+        }
+        
+        // Log in the user
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Session creation error:", loginErr);
+            return res.status(500).json({ 
+              success: false, 
+              message: "Failed to create session" 
+            });
+          }
+          
+          // Successfully logged in
+          console.log("User logged in successfully:", user.username);
+          return res.status(200).json({ 
+            success: true, 
+            message: "Login successful", 
+            user 
+          });
         });
-      });
-    })(req, res, next);
+      })(req, res, next);
+    });
   });
   
   app.post("/api/logout", (req, res) => {
