@@ -626,8 +626,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Extract emails from subscribers
-      const emails = subscribers.map(subscriber => subscriber.email);
+      // Extract emails from subscribers, filtering out null values
+      const emails = subscribers.map(subscriber => subscriber.email).filter(Boolean) as string[];
       console.log(`Processing ${emails.length} subscriber emails`);
       
       // Send email to all subscribers
@@ -724,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Upload the image to Cloudinary with a unique identifier for the logo
-      const logoPublicId = `unity_site_logo_${Date.now()}`;
+      const logoPublicId = `jaberco_site_logo_${Date.now()}`;
       const uploadResult = await uploadImage(req.file.path, logoPublicId);
       
       // Delete the temporary file after upload
