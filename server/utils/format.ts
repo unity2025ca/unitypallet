@@ -70,15 +70,6 @@ export function formatPrice(cents: number, currencySymbol: string = 'C$'): strin
 }
 
 /**
- * Format a currency value to a string with 2 decimal places
- * @param amount The amount to format (already in main currency units, not cents)
- * @returns The formatted currency value as a string with 2 decimal places
- */
-export function formatCurrency(amount: number): string {
-  return amount.toFixed(2);
-}
-
-/**
  * Truncate a string to a certain length and add ellipsis if needed
  * @param str The string to truncate
  * @param length The maximum length
