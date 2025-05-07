@@ -3,10 +3,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SettingsProvider } from "@/hooks/use-settings";
+import { SettingsProvider, useSettings } from "@/hooks/use-settings";
 import { CustomerAuthProvider } from "@/hooks/use-customer-auth";
 import { Providers } from "@/components/ui/providers";
 import DynamicStyles from "@/components/layout/DynamicStyles";
+import LoadingScreen from "@/components/layout/LoadingScreen";
 import NotFound from "@/pages/not-found";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -49,12 +50,18 @@ import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
 import { AdminProtectedRoute, PublisherProtectedRoute } from "@/lib/admin-protected-route";
 
-function Router() {
+function AppContent() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith("/admin");
+  const { isLoading } = useSettings();
   
   // استخدام هوك تتبع الزيارات
   useVisitorTracking();
+  
+  // عرض شاشة التحميل أثناء تحميل الإعدادات
+  if (isLoading) {
+    return <LoadingScreen message="جاري تحميل الموقع..." />;
+  }
   
   return (
     <>
@@ -106,6 +113,10 @@ function Router() {
       {!isAdminRoute && <CartBubble />}
     </>
   );
+}
+
+function Router() {
+  return <AppContent />;
 }
 
 function App() {
