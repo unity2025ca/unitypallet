@@ -214,7 +214,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-8">
               <span className="text-2xl font-bold text-sidebar-primary">
-                Unity Admin
+                Jaberco Admin
               </span>
               
               {isMobile && (
