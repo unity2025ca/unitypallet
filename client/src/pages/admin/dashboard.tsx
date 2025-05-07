@@ -251,7 +251,7 @@ const AdminDashboard = () => {
                 </Card>
                 
                 <Card className="border cursor-pointer hover:shadow-md transition-all" 
-                      onClick={() => window.location.href = "/admin/orders"}>
+                      onClick={() => window.location.href = "/admin/contacts"}>
                   <CardContent className="p-4 flex items-center">
                     <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center mr-4">
                       <Mail className="h-6 w-6 text-amber-600" />

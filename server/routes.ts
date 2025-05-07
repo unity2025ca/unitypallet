@@ -215,6 +215,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a specific contact by ID
+  app.get("/api/admin/contacts/:id", canViewContacts, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const contact = await storage.getContactById(contactId);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      res.json(contact);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch contact" });
+    }
+  });
+  
+  // Mark a contact as read
+  app.patch("/api/admin/contacts/:id/read", requireAdmin, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      const { isRead } = req.body;
+      
+      const contact = await storage.getContactById(contactId);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      const updatedContact = await storage.updateContactReadStatus(contactId, isRead);
+      res.json(updatedContact);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update contact read status" });
+    }
+  });
+  
+  // Delete a contact
+  app.delete("/api/admin/contacts/:id", requireAdmin, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.id);
+      
+      const contact = await storage.getContactById(contactId);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      await storage.deleteContact(contactId);
+      res.json({ success: true, message: "Contact deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete contact" });
+    }
+  });
+  
   // Subscriber routes
   app.post("/api/subscribe", async (req, res) => {
     try {

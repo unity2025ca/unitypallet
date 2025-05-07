@@ -94,6 +94,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
         { 
           name: translations.admin.sidebar.orders, 
           href: "/admin/orders", 
+          icon: "fas fa-shopping-cart",
+          roles: ["admin", "publisher"] // Admin and publisher can access
+        },
+        { 
+          name: "Messages", 
+          href: "/admin/contacts", 
           icon: "fas fa-envelope",
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
