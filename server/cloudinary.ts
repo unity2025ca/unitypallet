@@ -74,7 +74,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
   try {
     console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
     
-    // التحقق من تكوين Cloudinary
+    // Verify Cloudinary configuration
     if (!cloudName || !apiKey || !apiSecret) {
       console.error('Cloudinary configuration is incomplete:');
       console.error(`- cloud_name exists: ${Boolean(cloudName)}`);
@@ -86,7 +86,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // تحقق من وجود المسار
+    // Check if file path exists
     if (!filePath) {
       console.error('No file path provided for upload');
       return {
@@ -95,7 +95,7 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // التحقق من وجود الملف
+    // Check if file exists
     if (!fs.existsSync(filePath)) {
       console.error(`File not found at path: ${filePath}`);
       return {
@@ -104,12 +104,12 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
       };
     }
     
-    // طريقة بديلة: استخدام stream بدلاً من base64
+    // Alternative method: Using stream instead of base64
     return new Promise<CloudinaryUploadResult>((resolve) => {
       const options: any = {
         folder: PRODUCT_IMAGES_FOLDER,
         resource_type: 'auto',
-        // تحسين للأداء وتقليل حجم الصورة
+        // Optimize performance and reduce image size
         quality: 'auto',
         fetch_format: 'auto',
       };
