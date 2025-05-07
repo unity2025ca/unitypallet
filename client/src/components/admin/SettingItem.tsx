@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Setting } from "@shared/schema";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CheckIcon, XIcon, AlertOctagon } from "lucide-react";
+import { CheckIcon, XIcon, AlertOctagon, Upload, Loader2 } from "lucide-react";
 
 interface SettingItemProps {
   setting: Setting;
@@ -17,6 +17,8 @@ export default function SettingItem({ setting }: SettingItemProps) {
   const [value, setValue] = useState(setting.value);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +64,84 @@ export default function SettingItem({ setting }: SettingItemProps) {
     setValue(setting.value);
     setIsChanged(false);
   };
+  
+  // وظيفة للتعامل مع رفع الشعار
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // التحقق من نوع الملف
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "نوع ملف غير صالح",
+        description: "يرجى تحميل ملف صورة صالح (JPEG, PNG, GIF, WEBP, SVG)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // التحقق من حجم الملف (5 ميجابايت كحد أقصى)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "حجم الملف كبير جداً",
+        description: "يجب أن يكون حجم الصورة أقل من 5 ميجابايت",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // إنشاء كائن FormData
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      // رفع الشعار
+      const response = await fetch('/api/settings/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // تحديث قيمة الشعار بالرابط الجديد
+        setValue(result.logoUrl);
+        setIsChanged(result.logoUrl !== setting.value);
+        
+        // إعادة تعيين الحقل
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        toast({
+          title: "تم رفع الشعار بنجاح",
+          description: "تم تحديث شعار الموقع بنجاح",
+        });
+        
+        // تحديث الكاش
+        queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      } else {
+        throw new Error(result.message || 'Unknown error occurred');
+      }
+    } catch (error: any) {
+      console.error('Logo upload error:', error);
+      toast({
+        title: "فشل رفع الشعار",
+        description: error.message || "حدث خطأ أثناء رفع الشعار",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Render different inputs based on setting type
   const renderInput = () => {
@@ -95,19 +175,51 @@ export default function SettingItem({ setting }: SettingItemProps) {
       );
     } else if (setting.type === "url" && setting.key === "site_logo") {
       inputElement = (
-        <div className="space-y-3">
-          <Input 
-            type="url"
-            id={setting.key} 
-            value={value} 
-            onChange={handleInputChange}
-            placeholder="https://example.com/logo.png"
-          />
-          {value && (
-            <div className="flex justify-center p-2 bg-gray-50 rounded-md">
-              <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <Input 
+              type="url"
+              id={setting.key} 
+              value={value} 
+              onChange={handleInputChange}
+              placeholder="https://example.com/logo.png"
+            />
+            {value && (
+              <div className="flex justify-center p-2 bg-gray-50 rounded-md">
+                <img src={value} alt="Logo Preview" className="h-12 object-contain" />
+              </div>
+            )}
+          </div>
+          
+          {/* إضافة قسم رفع الملف */}
+          <div className="space-y-2">
+            <div className="text-sm text-gray-500">أو رفع شعار جديد مباشرة:</div>
+            <div className="flex space-x-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLogoUpload}
+                accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                className="hidden"
+                id={`${setting.key}-upload`}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {isUploading ? "جاري الرفع..." : "تحميل الشعار"}
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       );
     } else if (setting.type === "textarea") {

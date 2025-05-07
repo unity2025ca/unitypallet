@@ -716,6 +716,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // إنشاء مسار لرفع شعار الموقع
+  app.post("/api/settings/upload-logo", requireAdmin, upload.single('logo'), handleUploadError, async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
+      
+      // رفع الصورة إلى Cloudinary بمعرّف فريد للشعار
+      const logoPublicId = `unity_site_logo_${Date.now()}`;
+      const uploadResult = await uploadImage(req.file.path, logoPublicId);
+      
+      // حذف الملف المؤقت بعد الرفع
+      fs.unlinkSync(req.file.path);
+      
+      if (!uploadResult.success) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to upload logo to cloud storage',
+          error: uploadResult.error
+        });
+      }
+      
+      // الحصول على عنوان URL من Cloudinary
+      const logoUrl = uploadResult.imageUrl || '';
+      
+      // تحديث إعداد شعار الموقع
+      const setting = await storage.updateSetting('site_logo', logoUrl);
+      
+      if (!setting) {
+        return res.status(404).json({ success: false, message: 'Site logo setting not found' });
+      }
+      
+      res.json({
+        success: true,
+        setting: setting,
+        logoUrl: logoUrl
+      });
+    } catch (error) {
+      console.error('Error uploading site logo:', error);
+      res.status(500).json({ success: false, message: 'Error uploading site logo' });
+    }
+  });
+  
   // Authentication routes with improved error handling
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
