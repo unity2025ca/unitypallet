@@ -96,7 +96,7 @@ export async function sendSMS(to: string, body: string) {
 export async function sendBulkSMS(to: string[], body: string) {
   const results = [];
   
-  // التحقق من وجود عميل Twilio
+  // Check if Twilio client exists
   if (!client) {
     console.error('Twilio client not initialized');
     return to.map(recipient => ({
