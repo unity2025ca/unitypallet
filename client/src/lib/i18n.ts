@@ -155,7 +155,7 @@ export const translations = {
       },
       email: {
         label: "Email",
-        value: "info@unity-pallets.com"
+        value: "info@jaberco.com"
       },
       whatsapp: {
         label: "WhatsApp",
@@ -177,7 +177,7 @@ export const translations = {
     quickLinks: "Quick Links",
     categories: "Product Categories",
     contact: "Contact Us",
-    copyright: "© 2023 Unity. All rights reserved."
+    copyright: "© 2023 Jaberco. All rights reserved."
   },
   admin: {
     login: {
@@ -189,7 +189,7 @@ export const translations = {
     },
     dashboard: {
       title: "Dashboard",
-      welcome: "Welcome to Unity Control Panel",
+      welcome: "Welcome to Jaberco Control Panel",
       stats: {
         products: "Products",
         contacts: "Messages",
