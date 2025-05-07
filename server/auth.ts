@@ -70,14 +70,21 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Generate a cryptographically secure random session secret if not provided
+  const generateSecureSecret = () => {
+    const bytes = randomBytes(32); // 256 bits of entropy
+    return 'jaberco-secure-key-' + bytes.toString('hex');
+  };
+  
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'jaberco-secure-random-key-' + Math.random().toString(36).slice(2),
+    secret: process.env.SESSION_SECRET || generateSecureSecret(),
     resave: false,
     saveUninitialized: false,
     cookie: { 
       secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      httpOnly: true // Prevents client-side JS from reading the cookie
     },
     store: storage.sessionStore,
   };

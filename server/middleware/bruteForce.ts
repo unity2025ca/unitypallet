@@ -19,13 +19,15 @@ const ATTEMPT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds - window to cou
  */
 function cleanupLoginAttempts() {
   const now = Date.now();
-  for (const [key, attempt] of loginAttempts.entries()) {
+  
+  // Convert entries to array to avoid iteration issues
+  loginAttempts.forEach((attempt, key) => {
     // Remove entries where lock has expired or last attempt is older than our tracking window
     if ((attempt.lockUntil !== null && attempt.lockUntil < now) || 
         (attempt.lastAttempt < now - ATTEMPT_WINDOW)) {
       loginAttempts.delete(key);
     }
-  }
+  });
 }
 
 // Run cleanup every hour

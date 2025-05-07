@@ -2,10 +2,20 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
+import { securityHeaders, corsHeaders } from "./middleware/security";
+import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply security headers to all responses
+app.use(securityHeaders);
+app.use(corsHeaders);
+
+// Apply brute force protection to auth routes
+app.use(usernameBruteForceProtection());
+app.use(ipBruteForceProtection());
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -42,10 +52,28 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    
+    // In production, don't expose detailed error messages
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const message = isDevelopment 
+      ? (err.message || "Internal Server Error") 
+      : "Internal Server Error";
+    
+    // Log the full error in server logs but don't expose in response
+    console.error("[ERROR]", err);
+    
+    // Send appropriate response based on environment
+    const response: { message: string, stack?: string, details?: any } = { message };
+    
+    // Only include stack trace and details in development
+    if (isDevelopment) {
+      response.stack = err.stack;
+      if (err.details) {
+        response.details = err.details;
+      }
+    }
 
-    res.status(status).json({ message });
-    throw err;
+    res.status(status).json(response);
   });
 
   // importantly only setup vite in development and after
