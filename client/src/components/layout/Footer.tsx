@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* About Section */}
           <div>
-            <h3 className="text-xl font-bold mb-4 font-primary">Jaberco</h3>
+            <h3 className="text-xl font-bold mb-4 font-primary">Unity</h3>
             <p className="text-gray-400 mb-4">{translations.footer.description}</p>
             <div className="flex space-x-4">
               <a 

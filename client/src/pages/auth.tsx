@@ -311,7 +311,7 @@ export default function AuthPage() {
         {/* Right Column: Hero/Information */}
         <div className="flex flex-col space-y-6 justify-center text-center md:text-left">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-            Jaberco Electronics & Products
+            Unity Electronics & Products
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl max-w-[600px] mx-auto md:mx-0">
             Create your account now and enjoy access to all our premium products and exclusive offers.

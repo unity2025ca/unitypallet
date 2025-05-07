@@ -4,19 +4,19 @@ import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 import { uploadImage } from './cloudinary';
 
-// Use a temporary uploads folder for storage before uploading to Cloudinary
+// نستخدم مجلد uploads مؤقت للتخزين المؤقت قبل الرفع على Cloudinary
 const uploadsDir = path.join(process.cwd(), 'tmp/uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure temporary storage - this will only be used to store files temporarily before uploading to Cloudinary
+// تكوين التخزين المؤقت - سيتم استخدام هذا التخزين فقط لحفظ الملفات مؤقتًا قبل رفعها على Cloudinary
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    // Create a unique filename with the original file extension
+    // إنشاء اسم ملف فريد مع امتداد الملف الأصلي
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
     cb(null, uniqueSuffix + ext);

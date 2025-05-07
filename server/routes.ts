@@ -626,8 +626,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Extract emails from subscribers, filtering out null values
-      const emails = subscribers.map(subscriber => subscriber.email).filter(Boolean) as string[];
+      // Extract emails from subscribers
+      const emails = subscribers.map(subscriber => subscriber.email);
       console.log(`Processing ${emails.length} subscriber emails`);
       
       // Send email to all subscribers
@@ -716,89 +716,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Create route for uploading the site logo
-  app.post("/api/settings/upload-logo", requireAdmin, upload.single('logo'), handleUploadError, async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No file uploaded' });
-      }
-      
-      // Upload the image to Cloudinary with a unique identifier for the logo
-      const logoPublicId = `jaberco_site_logo_${Date.now()}`;
-      const uploadResult = await uploadImage(req.file.path, logoPublicId);
-      
-      // Delete the temporary file after upload
-      fs.unlinkSync(req.file.path);
-      
-      if (!uploadResult.success) {
-        return res.status(500).json({ 
-          success: false, 
-          message: 'Failed to upload logo to cloud storage',
-          error: uploadResult.error
-        });
-      }
-      
-      // Get the URL from Cloudinary
-      const logoUrl = uploadResult.imageUrl || '';
-      
-      // Update the site logo setting
-      const setting = await storage.updateSetting('site_logo', logoUrl);
-      
-      if (!setting) {
-        return res.status(404).json({ success: false, message: 'Site logo setting not found' });
-      }
-      
-      res.json({
-        success: true,
-        setting: setting,
-        logoUrl: logoUrl
-      });
-    } catch (error) {
-      console.error('Error uploading site logo:', error);
-      res.status(500).json({ success: false, message: 'Error uploading site logo' });
-    }
-  });
-  
   // Authentication routes with improved error handling
   app.post("/api/login", (req, res, next) => {
-    import("passport").then(passportModule => {
-      const passport = passportModule.default;
-      passport.authenticate("local", (err: any, user: any, info: any) => {
-        if (err) {
-          console.error("Login error:", err);
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Internal server error during login" 
+        });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ 
+          success: false, 
+          message: info?.message || "Invalid username or password" 
+        });
+      }
+      
+      // Log in the user
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Session creation error:", loginErr);
           return res.status(500).json({ 
             success: false, 
-            message: "Internal server error during login" 
+            message: "Failed to create session" 
           });
         }
         
-        if (!user) {
-          return res.status(401).json({ 
-            success: false, 
-            message: info?.message || "Invalid username or password" 
-          });
-        }
-        
-        // Log in the user
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error("Session creation error:", loginErr);
-            return res.status(500).json({ 
-              success: false, 
-              message: "Failed to create session" 
-            });
-          }
-          
-          // Successfully logged in
-          console.log("User logged in successfully:", user.username);
-          return res.status(200).json({ 
-            success: true, 
-            message: "Login successful", 
-            user 
-          });
+        // Successfully logged in
+        console.log("User logged in successfully:", user.username);
+        return res.status(200).json({ 
+          success: true, 
+          message: "Login successful", 
+          user 
         });
-      })(req, res, next);
-    });
+      });
+    })(req, res, next);
   });
   
   app.post("/api/logout", (req, res) => {

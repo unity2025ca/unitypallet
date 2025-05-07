@@ -1,15 +1,15 @@
 import twilio from 'twilio';
 
-// Check for required environment variables
+// التحقق من وجود متغيرات البيئة المطلوبة
 if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
   console.error('Missing required Twilio environment variables');
 }
 
-// Create Twilio client only if environment variables are valid
+// إنشاء عميل Twilio فقط إذا كانت المتغيرات البيئية صحيحة
 let client: twilio.Twilio | null = null;
 
 try {
-  // Verify that the account SID starts with 'AC'
+  // التحقق من أن معرف الحساب يبدأ بـ AC
   const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
   if (accountSid && accountSid.startsWith('AC')) {
     client = twilio(accountSid, process.env.TWILIO_AUTH_TOKEN || '');
@@ -22,14 +22,14 @@ try {
 }
 
 /**
- * Function to send an SMS to a specific phone number
- * @param to Recipient phone number (in international format, e.g., +1234567890)
- * @param body Message text
- * @returns Promise containing information about the sent message
+ * وظيفة لإرسال رسالة نصية إلى رقم هاتف محدد
+ * @param to رقم الهاتف المستلم (بتنسيق دولي، مثل +1234567890)
+ * @param body نص الرسالة
+ * @returns وعد يحتوي على معلومات الرسالة المرسلة
  */
 export async function sendSMS(to: string, body: string) {
   try {
-    // Check if Twilio client exists
+    // التحقق من وجود عميل Twilio
     if (!client) {
       console.error('Twilio client not initialized');
       return {
@@ -49,7 +49,7 @@ export async function sendSMS(to: string, body: string) {
     console.log(`Attempting to send SMS to ${formattedNumber} using Twilio number ${process.env.TWILIO_PHONE_NUMBER}`);
     console.log(`SMS content: "${body.substring(0, 50)}${body.length > 50 ? '...' : ''}"`);
     
-    // Since we've already verified that client is not null, we can safely use it
+    // نظرًا لأننا تحققنا بالفعل أن client ليس null، يمكننا استخدامه بأمان
     const message = await client.messages.create({
       body,
       from: process.env.TWILIO_PHONE_NUMBER!,
@@ -88,15 +88,15 @@ export async function sendSMS(to: string, body: string) {
 }
 
 /**
- * Function to send an SMS to multiple phone numbers
- * @param to Array of recipient phone numbers (in international format)
- * @param body Message text
- * @returns Promise containing information about the sent messages
+ * وظيفة لإرسال رسالة نصية إلى عدة أرقام هواتف
+ * @param to مصفوفة من أرقام الهواتف المستلمة (بتنسيق دولي)
+ * @param body نص الرسالة
+ * @returns وعد يحتوي على معلومات الرسائل المرسلة
  */
 export async function sendBulkSMS(to: string[], body: string) {
   const results = [];
   
-  // Check if Twilio client exists
+  // التحقق من وجود عميل Twilio
   if (!client) {
     console.error('Twilio client not initialized');
     return to.map(recipient => ({
@@ -109,7 +109,7 @@ export async function sendBulkSMS(to: string[], body: string) {
   
   for (const recipient of to) {
     try {
-      // Since we've already verified that client is not null, we can safely use it
+      // نظرًا لأننا تحققنا بالفعل أن client ليس null، يمكننا استخدامه بأمان
       const message = await client.messages.create({
         body,
         from: process.env.TWILIO_PHONE_NUMBER!,
