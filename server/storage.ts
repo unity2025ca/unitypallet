@@ -94,6 +94,9 @@ export interface IStorage {
   // Contact methods
   createContact(contact: InsertContact): Promise<Contact>;
   getAllContacts(): Promise<Contact[]>;
+  getContactById(id: number): Promise<Contact | undefined>;
+  updateContactReadStatus(id: number, isRead: boolean): Promise<Contact>;
+  deleteContact(id: number): Promise<boolean>;
   
   // Subscriber methods
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
@@ -462,6 +465,30 @@ export class DatabaseStorage implements IStorage {
   
   async getAllContacts(): Promise<Contact[]> {
     return db.select().from(contacts).orderBy(asc(contacts.id));
+  }
+  
+  async getContactById(id: number): Promise<Contact | undefined> {
+    const result = await db.select().from(contacts).where(eq(contacts.id, id));
+    return result[0];
+  }
+  
+  async updateContactReadStatus(id: number, isRead: boolean): Promise<Contact> {
+    const result = await db
+      .update(contacts)
+      .set({ isRead })
+      .where(eq(contacts.id, id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async deleteContact(id: number): Promise<boolean> {
+    const result = await db
+      .delete(contacts)
+      .where(eq(contacts.id, id))
+      .returning({ id: contacts.id });
+    
+    return result.length > 0;
   }
   
   // Subscriber methods
