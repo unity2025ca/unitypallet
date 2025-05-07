@@ -716,18 +716,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // إنشاء مسار لرفع شعار الموقع
+  // Create route for uploading the site logo
   app.post("/api/settings/upload-logo", requireAdmin, upload.single('logo'), handleUploadError, async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
       }
       
-      // رفع الصورة إلى Cloudinary بمعرّف فريد للشعار
+      // Upload the image to Cloudinary with a unique identifier for the logo
       const logoPublicId = `unity_site_logo_${Date.now()}`;
       const uploadResult = await uploadImage(req.file.path, logoPublicId);
       
-      // حذف الملف المؤقت بعد الرفع
+      // Delete the temporary file after upload
       fs.unlinkSync(req.file.path);
       
       if (!uploadResult.success) {
@@ -738,10 +738,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // الحصول على عنوان URL من Cloudinary
+      // Get the URL from Cloudinary
       const logoUrl = uploadResult.imageUrl || '';
       
-      // تحديث إعداد شعار الموقع
+      // Update the site logo setting
       const setting = await storage.updateSetting('site_logo', logoUrl);
       
       if (!setting) {

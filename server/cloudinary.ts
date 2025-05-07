@@ -1,15 +1,15 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
-// تكوين Cloudinary
+// Cloudinary configuration
 let cloudName, apiKey, apiSecret;
 
-// يمكن تكوين Cloudinary إما عبر متغيرات البيئة المنفصلة أو عبر CLOUDINARY_URL
+// Cloudinary can be configured either through separate environment variables or via CLOUDINARY_URL
 if (process.env.CLOUDINARY_URL) {
   console.log('Using CLOUDINARY_URL for configuration');
-  // استخراج التكوين من CLOUDINARY_URL
+  // Extract configuration from CLOUDINARY_URL
   try {
-    // تنسيق URL: cloudinary://api_key:api_secret@cloud_name
+    // URL format: cloudinary://api_key:api_secret@cloud_name
     const cloudinaryUrl = process.env.CLOUDINARY_URL;
     const match = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
     
@@ -33,7 +33,7 @@ if (process.env.CLOUDINARY_URL) {
   console.error('Missing required Cloudinary environment variables');
 }
 
-// تكوين Cloudinary
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: cloudName,
   api_key: apiKey,
@@ -41,17 +41,17 @@ cloudinary.config({
   secure: true,
 });
 
-// عرض رسالة تأكيد لمساعدة في تصحيح الأخطاء
+// Display confirmation message to help with debugging
 console.log(`Cloudinary initialized with:
 - cloud_name: ${cloudName}
 - api_key exists: ${Boolean(apiKey)}
 - api_secret exists: ${Boolean(apiSecret)}
 `);
 
-// المجلد الافتراضي لتخزين صور المنتجات
+// Default folder for storing product images
 const PRODUCT_IMAGES_FOLDER = 'unity_ecommerce/products';
 
-// واجهة لنتيجة التحميل
+// Interface for upload result
 export interface CloudinaryUploadResult {
   success: boolean;
   imageUrl?: string;
@@ -63,10 +63,10 @@ export interface CloudinaryUploadResult {
 }
 
 /**
- * رفع صورة إلى Cloudinary
- * @param filePath مسار الملف المؤقت على الخادم
- * @param publicId معرّف عام للصورة (اختياري)
- * @returns وعد يحتوي على نتيجة التحميل
+ * Upload an image to Cloudinary
+ * @param filePath Path to the temporary file on the server
+ * @param publicId Public ID for the image (optional)
+ * @returns Promise containing the upload result
  */
 export const uploadImage = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
   try {

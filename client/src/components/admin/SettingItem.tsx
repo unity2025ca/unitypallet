@@ -173,7 +173,7 @@ export default function SettingItem({ setting }: SettingItemProps) {
           />
         </div>
       );
-    } else if (setting.type === "url" && setting.key === "site_logo") {
+    } else if ((setting.type === "url" || setting.type === "image") && setting.key === "site_logo") {
       inputElement = (
         <div className="space-y-4">
           <div className="space-y-3">
