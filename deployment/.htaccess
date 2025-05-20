@@ -1,18 +1,30 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   
-  # Si el archivo solicitado existe, sírvelo directamente
+  # إذا كان الطلب لملف موجود، قدمه مباشرة
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
   
-  # Si la solicitud es para archivos estáticos, sírvelos desde dist/public
+  # توجيه الطلبات للملفات الثابتة
   RewriteRule ^(assets|images|css|js|fonts|favicon\.ico)(.*)$ dist/public/$1$2 [L]
   
-  # Redirigir solicitudes de API a Node.js
-  RewriteRule ^api(/.*)?$ http://localhost:3000/api$1 [P,L]
+  # توجيه طلبات API إلى تطبيق Node.js
+  # استخدم دالة RewriteCond للتحقق من المنفذ المستخدم من cPanel
+  # ملاحظة: يجب تحديث المنفذ هنا ليتوافق مع المنفذ المعين في cPanel
+  RewriteCond %{HTTP_HOST} ^(.*)$
+  RewriteRule ^api(/.*)?$ http://127.0.0.1:3000/api$1 [P,L]
   
-  # Para todo lo demás, servir index.html (para React Router)
+  # إضافة قاعدة احتياطية إذا فشلت القاعدة السابقة
+  RewriteCond %{REQUEST_URI} ^/api
+  RewriteRule ^api(/.*)?$ http://%{HTTP_HOST}:3000/api$1 [P,L]
+  
+  # لكل الطلبات الأخرى، قدم ملف index.html
   RewriteRule ^ dist/public/index.html [L]
+  
+  # إضافة قواعد لمعالجة أخطاء المنفذ
+  # هذه القواعد تساعد في حالة وجود مشاكل في توجيه API
+  ErrorDocument 503 /dist/public/index.html
+  ErrorDocument 502 /dist/public/index.html
 </IfModule>
 
 # Evitar acceso a archivos sensibles
