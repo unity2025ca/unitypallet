@@ -85,8 +85,8 @@ export function setupAuth(app: Express) {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       httpOnly: true // Prevents client-side JS from reading the cookie
-    },
-    store: storage.sessionStore,
+    }
+    // Temporarily removed session store to avoid database quota issues
   };
 
   // Trust proxy to allow secure cookies behind a reverse proxy
