@@ -76,6 +76,9 @@ export function setupAuth(app: Express) {
     return 'jaberco-secure-key-' + bytes.toString('hex');
   };
   
+  // Create memory store for sessions
+  const MemoryStore = session.MemoryStore;
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || generateSecureSecret(),
     resave: false,
@@ -85,8 +88,8 @@ export function setupAuth(app: Express) {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       httpOnly: true // Prevents client-side JS from reading the cookie
-    }
-    // Temporarily removed session store to avoid database quota issues
+    },
+    store: new MemoryStore()
   };
 
   // Trust proxy to allow secure cookies behind a reverse proxy
