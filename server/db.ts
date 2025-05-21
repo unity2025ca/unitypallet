@@ -1,84 +1,72 @@
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-// MySQL connection configuration
+// PostgreSQL connection using environment variables provided by Replit
 const dbConfig = {
-  host: 'localhost',
-  port: 3306,
-  database: 'jabex_jaber', // Adjust if your database name is different
-  user: 'jabex_jaberco',   // Adjust if your MySQL username is different
-  password: 'r@RZHD5]cTqz', // Adjust if your MySQL password is different
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
 };
 
-console.log('Attempting to connect to MySQL database...');
+console.log('Attempting to connect to PostgreSQL database...');
 
-// Create a MySQL connection pool
-export let pool: mysql.Pool;
+// Create a PostgreSQL connection pool
+export const pool = new Pool(dbConfig);
 
-// Try to establish connection
-async function initializeDatabase() {
-  try {
-    pool = mysql.createPool(dbConfig);
-    
-    // Test the connection
-    const [rows] = await pool.query('SELECT NOW() as now');
-    console.log('Successfully connected to MySQL database');
-    console.log('Database time:', rows[0].now);
-    
-    return true;
-  } catch (err) {
-    console.error('Database connection error:', err);
+// Test the database connection
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Database connection error:', err.message);
     console.log('Using in-memory database as fallback');
     setupInMemoryDB();
-    return false;
+  } else {
+    console.log('Successfully connected to PostgreSQL database');
+    
+    if (client) {
+      client.query('SELECT NOW() as now', (err, result) => {
+        if (err) {
+          console.error('Error executing query:', err.message);
+        } else {
+          console.log('Database time:', result.rows[0].now);
+        }
+        release();
+      });
+    }
   }
-}
+});
 
-// Initialize connection
-initializeDatabase();
+// Initialize Drizzle ORM with the database
+export const drizzleDb = drizzle(pool, { schema });
 
 // Simple query function for direct SQL queries
-export const query = async (text: string, params?: any[]) => {
-  try {
-    if (pool) {
-      const [rows] = await pool.query(text, params);
-      return { rows };
-    }
-    return { rows: [] };
-  } catch (error) {
-    console.error('Query error:', error);
-    return { rows: [] };
-  }
-};
+export const query = (text: string, params?: any[]) => pool.query(text, params);
 
-// Setup DB functions for compatibility with the code that uses Drizzle ORM
-export const db = {
+// Use Drizzle ORM with the initialized database
+export const db = drizzleDb;
+
+// Add compatibility layer for existing code that expects drizzle-style db
+Object.assign(db, {
+  query: async (sql: string, params?: any[]) => {
+    return await pool.query(sql, params);
+  },
   insert: (table: any) => ({
     values: (data: any) => ({
       returning: async () => {
-        const tableName = table._.name || 'users';
-        const keys = Object.keys(data);
-        const values = Object.values(data);
-        
-        if (keys.length === 0) return [{}];
-        
-        const placeholders = keys.map(() => '?').join(', ');
-        const sql = `INSERT INTO \`${tableName}\` (${keys.map(k => `\`${k}\``).join(', ')}) VALUES (${placeholders})`;
-        
         try {
-          if (!pool) return [data];
+          const tableName = table && table._ && table._.name ? table._.name : 'users';
+          const keys = Object.keys(data);
+          const values = Object.values(data);
           
-          const result = await pool.execute(sql, values);
-          const insertId = result[0].insertId;
+          if (keys.length === 0) return [{}];
           
-          // Get the inserted data
-          const [rows] = await pool.query(`SELECT * FROM \`${tableName}\` WHERE id = ?`, [insertId]);
-          return rows;
+          // Build PostgreSQL-compatible placeholders
+          const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
+          const query = `INSERT INTO "${tableName}" (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
+          
+          const result = await pool.query(query, values);
+          return result.rows || [];
         } catch (error) {
-          console.error(`Error inserting into ${tableName}:`, error);
+          console.error('Error in db.insert:', error);
           return [data]; // Return data as fallback
         }
       }
@@ -98,37 +86,31 @@ export const db = {
         where: (condition: any) => ({
           orderBy: async () => {
             try {
-              if (!pool) return [];
-              
               // Simple version without specific condition
-              const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
-              return rows;
+              const result = await pool.query(`SELECT * FROM "${tableName}"`);
+              return result.rows;
             } catch (error) {
-              console.error(`Error selecting from ${tableName}:`, error);
+              console.error(`Error in db.select from ${tableName}:`, error);
               return [];
             }
           }
         }),
         orderBy: async () => {
           try {
-            if (!pool) return [];
-            
-            const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
-            return rows;
+            const result = await pool.query(`SELECT * FROM "${tableName}"`);
+            return result.rows;
           } catch (error) {
-            console.error(`Error selecting from ${tableName}:`, error);
+            console.error(`Error in db.select from ${tableName}:`, error);
             return [];
           }
         },
         groupBy: () => ({
           orderBy: async () => {
             try {
-              if (!pool) return [];
-              
-              const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
-              return rows;
+              const result = await pool.query(`SELECT * FROM "${tableName}"`);
+              return result.rows;
             } catch (error) {
-              console.error(`Error selecting from ${tableName}:`, error);
+              console.error(`Error in db.select grouped from ${tableName}:`, error);
               return [];
             }
           }
@@ -141,22 +123,19 @@ export const db = {
       where: (condition: any) => ({
         returning: async () => {
           try {
-            if (!pool) return [data];
-            
-            const tableName = table._.name || 'users';
+            const tableName = table && table._ && table._.name ? table._.name : 'users';
             const keys = Object.keys(data);
             const values = Object.values(data);
             
             if (keys.length === 0) return [{}];
             
-            // Simple update without specific condition for now
-            const setClause = keys.map(key => `\`${key}\` = ?`).join(', ');
-            const sql = `UPDATE \`${tableName}\` SET ${setClause}`;
+            const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+            const query = `UPDATE "${tableName}" SET ${setClause} RETURNING *`;
             
-            await pool.execute(sql, values);
-            return [data]; // Since MySQL doesn't have RETURNING clause
+            const result = await pool.query(query, values);
+            return result.rows;
           } catch (error) {
-            console.error(`Error updating:`, error);
+            console.error(`Error in db.update:`, error);
             return [data]; // Return data as fallback
           }
         }
@@ -167,49 +146,44 @@ export const db = {
     where: (condition: any) => ({
       returning: async () => {
         try {
-          if (!pool) return [];
+          const tableName = table && table._ && table._.name ? table._.name : 'users';
           
-          const tableName = table._.name || 'users';
-          
-          // Simple delete
-          const sql = `DELETE FROM \`${tableName}\``;
-          await pool.execute(sql);
-          return [];
+          // Simple delete without conditions
+          const query = `DELETE FROM "${tableName}" RETURNING *`;
+          const result = await pool.query(query);
+          return result.rows;
         } catch (error) {
-          console.error(`Error deleting:`, error);
+          console.error(`Error in db.delete:`, error);
           return [];
         }
       }
     })
   }),
   transaction: async (fn: Function) => {
-    if (!pool) return fn(db);
-    
-    const connection = await pool.getConnection();
+    const client = await pool.connect();
     try {
-      await connection.beginTransaction();
+      await client.query('BEGIN');
       const result = await fn(db);
-      await connection.commit();
+      await client.query('COMMIT');
       return result;
     } catch (error) {
-      await connection.rollback();
+      await client.query('ROLLBACK');
       throw error;
     } finally {
-      connection.release();
+      client.release();
     }
   },
-  query: async (sql: string, params?: any[]) => {
-    if (!pool) return { rows: [] };
-    
+  // Provide a direct way to create the tables
+  createTable: async (sql: string) => {
     try {
-      const [rows] = await pool.query(sql, params);
-      return { rows };
+      await pool.query(sql);
+      return true;
     } catch (error) {
-      console.error('Query error:', error);
-      return { rows: [] };
+      console.error('Error creating table:', error);
+      return false;
     }
   }
-};
+});
 
 // In-memory database fallback
 function setupInMemoryDB() {
