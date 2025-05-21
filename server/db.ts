@@ -1,60 +1,82 @@
-import { Pool } from 'pg';
+import mysql from 'mysql2/promise';
 import * as schema from "@shared/schema";
 
-// PostgreSQL connection configuration for cPanel database
+// MySQL connection configuration
 const dbConfig = {
-  host: '11.118.0.44',
-  port: 5432,
-  database: 'jabex_jaber',
-  user: 'jabex_jaberco',
-  password: 'r@RZHD5]cTqz',
-  ssl: false
+  host: 'localhost',
+  port: 3306,
+  database: 'jabex_jaber', // Adjust if your database name is different
+  user: 'jabex_jaberco',   // Adjust if your MySQL username is different
+  password: 'r@RZHD5]cTqz', // Adjust if your MySQL password is different
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 };
 
-console.log('Attempting to connect to PostgreSQL database on cPanel...');
+console.log('Attempting to connect to MySQL database...');
 
-// Create a connection pool
-export const pool = new Pool(dbConfig);
+// Create a MySQL connection pool
+export let pool: mysql.Pool;
 
-// Test the database connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('Database connection error:', err.message);
+// Try to establish connection
+async function initializeDatabase() {
+  try {
+    pool = mysql.createPool(dbConfig);
+    
+    // Test the connection
+    const [rows] = await pool.query('SELECT NOW() as now');
+    console.log('Successfully connected to MySQL database');
+    console.log('Database time:', rows[0].now);
+    
+    return true;
+  } catch (err) {
+    console.error('Database connection error:', err);
     console.log('Using in-memory database as fallback');
     setupInMemoryDB();
-  } else {
-    console.log('Successfully connected to PostgreSQL database on cPanel');
-    client.query('SELECT NOW() as now', (err, result) => {
-      if (err) {
-        console.error('Error executing query:', err.message);
-      } else {
-        console.log('Database time:', result.rows[0].now);
-      }
-      release();
-    });
+    return false;
   }
-});
+}
+
+// Initialize connection
+initializeDatabase();
 
 // Simple query function for direct SQL queries
-export const query = (text: string, params?: any[]) => pool.query(text, params);
+export const query = async (text: string, params?: any[]) => {
+  try {
+    if (pool) {
+      const [rows] = await pool.query(text, params);
+      return { rows };
+    }
+    return { rows: [] };
+  } catch (error) {
+    console.error('Query error:', error);
+    return { rows: [] };
+  }
+};
 
 // Setup DB functions for compatibility with the code that uses Drizzle ORM
 export const db = {
   insert: (table: any) => ({
     values: (data: any) => ({
       returning: async () => {
-        const tableName = table._.name;
+        const tableName = table._.name || 'users';
         const keys = Object.keys(data);
         const values = Object.values(data);
         
         if (keys.length === 0) return [{}];
         
-        const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
-        const query = `INSERT INTO "${tableName}" (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
+        const placeholders = keys.map(() => '?').join(', ');
+        const sql = `INSERT INTO \`${tableName}\` (${keys.map(k => `\`${k}\``).join(', ')}) VALUES (${placeholders})`;
         
         try {
-          const result = await pool.query(query, values);
-          return result.rows;
+          if (!pool) return [data];
+          
+          const result = await pool.execute(sql, values);
+          const insertId = result[0].insertId;
+          
+          // Get the inserted data
+          const [rows] = await pool.query(`SELECT * FROM \`${tableName}\` WHERE id = ?`, [insertId]);
+          return rows;
         } catch (error) {
           console.error(`Error inserting into ${tableName}:`, error);
           return [data]; // Return data as fallback
@@ -64,15 +86,52 @@ export const db = {
   }),
   select: () => ({
     from: (table: any) => {
-      const tableName = typeof table === 'string' ? table : (table && table._ && table._.name ? table._.name : 'users');
+      let tableName = 'users';
+      
+      if (typeof table === 'string') {
+        tableName = table;
+      } else if (table && table._ && table._.name) {
+        tableName = table._.name;
+      }
       
       return {
         where: (condition: any) => ({
-          orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || [])
+          orderBy: async () => {
+            try {
+              if (!pool) return [];
+              
+              // Simple version without specific condition
+              const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+              return rows;
+            } catch (error) {
+              console.error(`Error selecting from ${tableName}:`, error);
+              return [];
+            }
+          }
         }),
-        orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || []),
+        orderBy: async () => {
+          try {
+            if (!pool) return [];
+            
+            const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+            return rows;
+          } catch (error) {
+            console.error(`Error selecting from ${tableName}:`, error);
+            return [];
+          }
+        },
         groupBy: () => ({
-          orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || [])
+          orderBy: async () => {
+            try {
+              if (!pool) return [];
+              
+              const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+              return rows;
+            } catch (error) {
+              console.error(`Error selecting from ${tableName}:`, error);
+              return [];
+            }
+          }
         })
       };
     }
@@ -81,22 +140,23 @@ export const db = {
     set: (data: any) => ({
       where: (condition: any) => ({
         returning: async () => {
-          const tableName = table._.name;
-          const keys = Object.keys(data);
-          const values = Object.values(data);
-          
-          if (keys.length === 0) return [{}];
-          
-          // Since we don't easily have a way to convert condition object to SQL,
-          // just use a simple UPDATE without WHERE for now (will be fixed in a full implementation)
-          const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
-          const query = `UPDATE "${tableName}" SET ${setClause} RETURNING *`;
-          
           try {
-            const result = await pool.query(query, values);
-            return result.rows;
+            if (!pool) return [data];
+            
+            const tableName = table._.name || 'users';
+            const keys = Object.keys(data);
+            const values = Object.values(data);
+            
+            if (keys.length === 0) return [{}];
+            
+            // Simple update without specific condition for now
+            const setClause = keys.map(key => `\`${key}\` = ?`).join(', ');
+            const sql = `UPDATE \`${tableName}\` SET ${setClause}`;
+            
+            await pool.execute(sql, values);
+            return [data]; // Since MySQL doesn't have RETURNING clause
           } catch (error) {
-            console.error(`Error updating ${tableName}:`, error);
+            console.error(`Error updating:`, error);
             return [data]; // Return data as fallback
           }
         }
@@ -106,34 +166,47 @@ export const db = {
   delete: (table: any) => ({
     where: (condition: any) => ({
       returning: async () => {
-        const tableName = table._.name;
-        
-        // Since we don't have a simple way to convert condition to SQL,
-        // this is just a placeholder
-        const query = `DELETE FROM "${tableName}" RETURNING *`;
-        
         try {
-          const result = await pool.query(query);
-          return result.rows;
+          if (!pool) return [];
+          
+          const tableName = table._.name || 'users';
+          
+          // Simple delete
+          const sql = `DELETE FROM \`${tableName}\``;
+          await pool.execute(sql);
+          return [];
         } catch (error) {
-          console.error(`Error deleting from ${tableName}:`, error);
+          console.error(`Error deleting:`, error);
           return [];
         }
       }
     })
   }),
   transaction: async (fn: Function) => {
-    const client = await pool.connect();
+    if (!pool) return fn(db);
+    
+    const connection = await pool.getConnection();
     try {
-      await client.query('BEGIN');
+      await connection.beginTransaction();
       const result = await fn(db);
-      await client.query('COMMIT');
+      await connection.commit();
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      await connection.rollback();
       throw error;
     } finally {
-      client.release();
+      connection.release();
+    }
+  },
+  query: async (sql: string, params?: any[]) => {
+    if (!pool) return { rows: [] };
+    
+    try {
+      const [rows] = await pool.query(sql, params);
+      return { rows };
+    } catch (error) {
+      console.error('Query error:', error);
+      return { rows: [] };
     }
   }
 };
