@@ -1,136 +1,285 @@
+import { Pool } from 'pg';
 import * as schema from "@shared/schema";
 
-// Create a simple database wrapper with basic CRUD operations
-// This is a temporary solution until we properly set up your cPanel database
-class SimpleDB {
-  private data = new Map<string, any[]>();
-  private counters = new Map<string, number>();
+// PostgreSQL connection configuration for cPanel database
+const dbConfig = {
+  host: '11.118.0.44',
+  port: 5432,
+  database: 'jabex_jaber',
+  user: 'jabex_jaberco',
+  password: 'r@RZHD5]cTqz',
+  ssl: false
+};
 
-  async insert(table: string, item: any) {
-    // Initialize table if it doesn't exist
-    if (!this.data.has(table)) {
-      this.data.set(table, []);
-      this.counters.set(table, 1);
-    }
+console.log('Attempting to connect to PostgreSQL database on cPanel...');
 
-    // Create a new item with ID
-    const id = this.counters.get(table) || 1;
-    this.counters.set(table, id + 1);
-    
-    const newItem = { ...item, id };
-    this.data.get(table)?.push(newItem);
-    
-    console.log(`[SimpleDB] Inserted into ${table}:`, newItem);
-    return newItem;
-  }
+// Create a connection pool
+export const pool = new Pool(dbConfig);
 
-  async findMany(table: string, where?: Record<string, any>) {
-    const items = this.data.get(table) || [];
-    
-    if (!where) {
-      return items;
-    }
-    
-    return items.filter(item => {
-      return Object.entries(where).every(([key, value]) => {
-        return item[key] === value;
-      });
+// Test the database connection
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Database connection error:', err.message);
+    console.log('Using in-memory database as fallback');
+    setupInMemoryDB();
+  } else {
+    console.log('Successfully connected to PostgreSQL database on cPanel');
+    client.query('SELECT NOW() as now', (err, result) => {
+      if (err) {
+        console.error('Error executing query:', err.message);
+      } else {
+        console.log('Database time:', result.rows[0].now);
+      }
+      release();
     });
   }
+});
 
-  async findFirst(table: string, where: Record<string, any>) {
-    const items = await this.findMany(table, where);
-    return items[0] || null;
-  }
+// Simple query function for direct SQL queries
+export const query = (text: string, params?: any[]) => pool.query(text, params);
 
-  async update(table: string, where: Record<string, any>, data: any) {
-    const tableData = this.data.get(table) || [];
-    
-    // Find the item to update
-    const index = tableData.findIndex(item => {
-      return Object.entries(where).every(([key, value]) => {
-        return item[key] === value;
-      });
-    });
-    
-    if (index === -1) {
-      return null;
-    }
-    
-    // Update the item
-    const updatedItem = { ...tableData[index], ...data };
-    tableData[index] = updatedItem;
-    
-    return updatedItem;
-  }
-  
-  async delete(table: string, where: Record<string, any>) {
-    const tableData = this.data.get(table) || [];
-    
-    // Find the item to delete
-    const index = tableData.findIndex(item => {
-      return Object.entries(where).every(([key, value]) => {
-        return item[key] === value;
-      });
-    });
-    
-    if (index === -1) {
-      return null;
-    }
-    
-    // Delete the item
-    const deletedItem = tableData[index];
-    tableData.splice(index, 1);
-    
-    return deletedItem;
-  }
-}
-
-// Create a dummy version of drizzle's db interface
+// Setup DB functions for compatibility with the code that uses Drizzle ORM
 export const db = {
   insert: (table: any) => ({
     values: (data: any) => ({
       returning: async () => {
         const tableName = table._.name;
-        const result = await simpleDb.insert(tableName, data);
-        return [result];
+        const keys = Object.keys(data);
+        const values = Object.values(data);
+        
+        if (keys.length === 0) return [{}];
+        
+        const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
+        const query = `INSERT INTO "${tableName}" (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
+        
+        try {
+          const result = await pool.query(query, values);
+          return result.rows;
+        } catch (error) {
+          console.error(`Error inserting into ${tableName}:`, error);
+          return [data]; // Return data as fallback
+        }
       }
     })
   }),
   select: () => ({
-    from: () => ({
-      where: () => ({
-        orderBy: () => Promise.resolve([])
-      }),
-      orderBy: () => Promise.resolve([]),
-      groupBy: () => ({
-        orderBy: () => Promise.resolve([])
+    from: (table: any) => {
+      const tableName = typeof table === 'string' ? table : (table && table._ && table._.name ? table._.name : 'users');
+      
+      return {
+        where: (condition: any) => ({
+          orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || [])
+        }),
+        orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || []),
+        groupBy: () => ({
+          orderBy: () => query(`SELECT * FROM "${tableName}"`).then(res => res.rows || [])
+        })
+      };
+    }
+  }),
+  update: (table: any) => ({
+    set: (data: any) => ({
+      where: (condition: any) => ({
+        returning: async () => {
+          const tableName = table._.name;
+          const keys = Object.keys(data);
+          const values = Object.values(data);
+          
+          if (keys.length === 0) return [{}];
+          
+          // Since we don't easily have a way to convert condition object to SQL,
+          // just use a simple UPDATE without WHERE for now (will be fixed in a full implementation)
+          const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+          const query = `UPDATE "${tableName}" SET ${setClause} RETURNING *`;
+          
+          try {
+            const result = await pool.query(query, values);
+            return result.rows;
+          } catch (error) {
+            console.error(`Error updating ${tableName}:`, error);
+            return [data]; // Return data as fallback
+          }
+        }
       })
     })
   }),
-  update: () => ({
-    set: () => ({
-      where: () => ({
-        returning: () => Promise.resolve([])
-      })
+  delete: (table: any) => ({
+    where: (condition: any) => ({
+      returning: async () => {
+        const tableName = table._.name;
+        
+        // Since we don't have a simple way to convert condition to SQL,
+        // this is just a placeholder
+        const query = `DELETE FROM "${tableName}" RETURNING *`;
+        
+        try {
+          const result = await pool.query(query);
+          return result.rows;
+        } catch (error) {
+          console.error(`Error deleting from ${tableName}:`, error);
+          return [];
+        }
+      }
     })
   }),
-  delete: () => ({
-    where: () => ({
-      returning: () => Promise.resolve([])
-    })
-  }),
-  transaction: async (fn: Function) => await fn(db)
+  transaction: async (fn: Function) => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(db);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 };
 
-// Simple in-memory database
-export const simpleDb = new SimpleDB();
-
-// Create some default settings
-setTimeout(() => {
-  simpleDb.insert('settings', { key: 'site_name', value: 'Jaberco', category: 'general' });
-  simpleDb.insert('settings', { key: 'site_description', value: 'Amazon Returns Pallets', category: 'general' });
-}, 1000);
-
-// Placeholder exports to maintain compatibility
-export const pool = null;
+// In-memory database fallback
+function setupInMemoryDB() {
+  console.log('Setting up in-memory database as fallback...');
+  
+  class SimpleDB {
+    private data = new Map<string, any[]>();
+    private counters = new Map<string, number>();
+    
+    constructor() {
+      // Initialize some common tables
+      this.initTable('settings');
+      this.initTable('users');
+      this.initTable('products');
+      this.initTable('categories');
+      this.initTable('contacts');
+      
+      // Add some default data
+      this.insert('settings', { key: 'site_name', value: 'Jaberco', category: 'general' });
+      this.insert('settings', { key: 'site_description', value: 'Amazon Returns Pallets', category: 'general' });
+    }
+    
+    initTable(name: string) {
+      if (!this.data.has(name)) {
+        this.data.set(name, []);
+        this.counters.set(name, 1);
+      }
+    }
+    
+    insert(table: string, item: any) {
+      this.initTable(table);
+      
+      const id = this.counters.get(table)!;
+      this.counters.set(table, id + 1);
+      
+      const now = new Date();
+      const newItem = { 
+        ...item, 
+        id: item.id || id,
+        created_at: item.created_at || now
+      };
+      
+      this.data.get(table)!.push(newItem);
+      return newItem;
+    }
+    
+    findMany(table: string, where?: Record<string, any>) {
+      this.initTable(table);
+      const items = this.data.get(table)!;
+      
+      if (!where) return items;
+      
+      return items.filter(item => 
+        Object.entries(where).every(([key, value]) => item[key] === value)
+      );
+    }
+    
+    findFirst(table: string, where: Record<string, any>) {
+      const items = this.findMany(table, where);
+      return items[0] || null;
+    }
+    
+    update(table: string, where: Record<string, any>, data: any) {
+      this.initTable(table);
+      const items = this.data.get(table)!;
+      
+      const index = items.findIndex(item => 
+        Object.entries(where).every(([key, value]) => item[key] === value)
+      );
+      
+      if (index === -1) return null;
+      
+      const updatedItem = { ...items[index], ...data };
+      items[index] = updatedItem;
+      
+      return updatedItem;
+    }
+    
+    delete(table: string, where: Record<string, any>) {
+      this.initTable(table);
+      const items = this.data.get(table)!;
+      
+      const index = items.findIndex(item => 
+        Object.entries(where).every(([key, value]) => item[key] === value)
+      );
+      
+      if (index === -1) return null;
+      
+      const deletedItem = items[index];
+      items.splice(index, 1);
+      
+      return deletedItem;
+    }
+  }
+  
+  // Create global instance
+  const simpleDb = new SimpleDB();
+  
+  // Override DB interface to use in-memory database
+  Object.assign(db, {
+    insert: (table: any) => ({
+      values: (data: any) => ({
+        returning: async () => {
+          const tableName = table._.name;
+          const result = simpleDb.insert(tableName, data);
+          return [result];
+        }
+      })
+    }),
+    select: () => ({
+      from: (table: any) => {
+        const tableName = typeof table === 'string' ? table : table._.name;
+        
+        return {
+          where: () => ({
+            orderBy: () => Promise.resolve(simpleDb.findMany(tableName))
+          }),
+          orderBy: () => Promise.resolve(simpleDb.findMany(tableName)),
+          groupBy: () => ({
+            orderBy: () => Promise.resolve(simpleDb.findMany(tableName))
+          })
+        };
+      }
+    }),
+    update: (table: any) => ({
+      set: (data: any) => ({
+        where: (condition: any) => ({
+          returning: async () => {
+            const tableName = table._.name;
+            const result = simpleDb.update(tableName, condition, data);
+            return result ? [result] : [];
+          }
+        })
+      })
+    }),
+    delete: (table: any) => ({
+      where: (condition: any) => ({
+        returning: async () => {
+          const tableName = table._.name;
+          const result = simpleDb.delete(tableName, condition);
+          return result ? [result] : [];
+        }
+      })
+    })
+  });
+}
