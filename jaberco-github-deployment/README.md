@@ -1,88 +1,73 @@
 # Jaberco E-commerce Platform
 
-Advanced Arabic e-commerce platform specializing in Amazon return pallets and liquidation inventory.
+Advanced Arabic e-commerce platform specializing in Amazon return pallets and liquidation inventory, providing a comprehensive marketplace solution with intelligent customer experience and robust data management.
 
 ## Features
 
-- React.js frontend with TypeScript and Shadcn UI
-- Express.js backend with PostgreSQL database
-- Multilingual support (Arabic and English)
-- Cloudinary image management
-- Stripe payment integration
-- Comprehensive admin panel
-- Automated backup system
-- Real-time inventory management
+### Core Platform
+- **Multilingual Support**: Complete Arabic and English localization
+- **Product Management**: Advanced catalog with image management via Cloudinary
+- **Shopping Experience**: Cart, checkout, and order management
+- **Payment Processing**: Secure Stripe integration
+- **User Authentication**: Customer and admin role-based access
 
-## Quick Deploy to WSA
+### Advanced Features
+- **Admin Dashboard**: Comprehensive management panel
+- **Publisher Access**: Content management permissions
+- **Automated Backups**: Scheduled database backups
+- **SMS Notifications**: Twilio integration for order updates
+- **Email System**: SendGrid for customer communications
+- **Analytics**: Visitor tracking and business insights
 
-### 1. Clone Repository
+### Technical Stack
+- **Frontend**: React.js with TypeScript and Shadcn UI
+- **Backend**: Express.js with advanced authentication
+- **Database**: PostgreSQL with Drizzle ORM
+- **Cloud Services**: Cloudinary, Stripe, Twilio, SendGrid
+- **Security**: Comprehensive middleware and brute force protection
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL database
+- AWS account (for Parameter Store)
+
+### Installation
 ```bash
-git clone https://github.com/yourusername/jaberco-ecommerce.git
-cd jaberco-ecommerce
-```
-
-### 2. Environment Setup
-```bash
-cp .env.example .env
-# Edit .env with your actual values
-```
-
-### 3. Install and Build
-```bash
+git clone [repository-url]
+cd jaberco-github-deployment
 npm install
-npm run build
 ```
 
-### 4. Start with PM2
+### Configuration
+1. Set up AWS Parameter Store (see `AWS_PARAMETER_STORE_SETUP.md`)
+2. Configure environment variables
+3. Build and deploy
+
+### Deployment
 ```bash
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
+npm run build
+pm2 start ecosystem.config.js --env production
 ```
 
-## Required API Keys and Services
+## Documentation
+- `DEPLOYMENT_INSTRUCTIONS.md` - Complete deployment guide
+- `AWS_PARAMETER_STORE_SETUP.md` - AWS secrets management
+- `.env.example` - Environment variables reference
 
-This application requires the following external services:
+## Architecture
+- Modern React frontend with TypeScript
+- Express.js REST API backend
+- PostgreSQL with Drizzle ORM
+- AWS Parameter Store for secrets
+- PM2 for process management
 
-### Database
-- **PostgreSQL**: Database for storing products, orders, users
-- Configure `DATABASE_URL` connection string
+## Security
+- All sensitive data managed via AWS Parameter Store
+- Security headers and CORS protection
+- Brute force protection
+- Role-based access control
 
-### Image Management
-- **Cloudinary**: Product images and logo storage
-- Sign up at: https://cloudinary.com
-- Configure: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-
-### Payment Processing
-- **Stripe**: Credit card payments and subscriptions
-- Sign up at: https://stripe.com
-- Configure: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`
-
-### Communications
-- **Twilio**: SMS notifications to customers
-- Sign up at: https://console.twilio.com
-- Configure: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
-
-- **SendGrid**: Email notifications and marketing
-- Sign up at: https://sendgrid.com
-- Configure: `SENDGRID_API_KEY`
-
-### Security
-- **Session Secret**: Generate strong random string for `SESSION_SECRET`
-
-See `SECRETS_SETUP_GUIDE.md` for detailed configuration instructions.
-
-## Scripts
-
-- `npm start` - Start production server
-- `npm run dev` - Start development server
-- `npm run build` - Build frontend for production
-- `npm run db:push` - Push database schema
-
-## Admin Access
-
-Default admin credentials need to be created after deployment.
-
-## Support
-
-Contact support for deployment assistance.
+## License
+Proprietary - Jaberco E-commerce Platform
