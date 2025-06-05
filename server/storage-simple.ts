@@ -249,7 +249,37 @@ class SimpleMemoryStorage implements IStorage {
       { key: 'maintenance_mode', value: 'false', category: 'maintenance', label: 'Maintenance Mode', type: 'boolean', description: 'Enable maintenance mode' },
       { key: 'maintenance_message', value: 'We are currently performing scheduled maintenance. Please check back soon.', category: 'maintenance', label: 'Maintenance Message', type: 'textarea', description: 'Message during maintenance' },
       { key: 'backup_frequency', value: 'daily', category: 'maintenance', label: 'Backup Frequency', type: 'select', description: 'Automated backup schedule' },
-      { key: 'debug_mode', value: 'false', category: 'maintenance', label: 'Debug Mode', type: 'boolean', description: 'Enable debug logging' }
+      { key: 'debug_mode', value: 'false', category: 'maintenance', label: 'Debug Mode', type: 'boolean', description: 'Enable debug logging' },
+
+      // System Settings
+      { key: 'admin_email', value: 'admin@jaberco.com', category: 'system', label: 'Admin Email', type: 'email', description: 'Main administrator email' },
+      { key: 'max_upload_size', value: '10', category: 'system', label: 'Max Upload Size (MB)', type: 'number', description: 'Maximum file upload size' },
+      { key: 'session_timeout', value: '3600', category: 'system', label: 'Session Timeout (seconds)', type: 'number', description: 'User session timeout' },
+      { key: 'auto_backup', value: 'true', category: 'system', label: 'Auto Backup', type: 'boolean', description: 'Enable automatic backups' },
+
+      // About Us Settings
+      { key: 'about_title', value: 'About Jaberco', category: 'about', label: 'About Page Title', type: 'text', description: 'Title for about page' },
+      { key: 'about_description', value: 'Jaberco is your trusted partner for premium Amazon return pallets in Ontario, Canada.', category: 'about', label: 'About Description', type: 'textarea', description: 'Main about description' },
+      { key: 'company_story', value: 'Founded with a mission to provide quality liquidation merchandise at unbeatable prices.', category: 'about', label: 'Company Story', type: 'textarea', description: 'Company background story' },
+      { key: 'our_mission', value: 'To deliver exceptional value through premium Amazon return pallets.', category: 'about', label: 'Our Mission', type: 'textarea', description: 'Company mission statement' },
+      { key: 'years_experience', value: '5', category: 'about', label: 'Years of Experience', type: 'number', description: 'Years in business' },
+
+      // How It Works Settings
+      { key: 'how_it_works_title', value: 'How It Works', category: 'how_it_works', label: 'Page Title', type: 'text', description: 'How it works page title' },
+      { key: 'step1_title', value: 'Browse Our Pallets', category: 'how_it_works', label: 'Step 1 Title', type: 'text', description: 'First step title' },
+      { key: 'step1_description', value: 'Explore our curated selection of Amazon return pallets with detailed descriptions and photos.', category: 'how_it_works', label: 'Step 1 Description', type: 'textarea', description: 'First step description' },
+      { key: 'step2_title', value: 'Place Your Order', category: 'how_it_works', label: 'Step 2 Title', type: 'text', description: 'Second step title' },
+      { key: 'step2_description', value: 'Select your desired pallets and complete the secure checkout process with multiple payment options.', category: 'how_it_works', label: 'Step 2 Description', type: 'textarea', description: 'Second step description' },
+      { key: 'step3_title', value: 'Fast Delivery', category: 'how_it_works', label: 'Step 3 Title', type: 'text', description: 'Third step title' },
+      { key: 'step3_description', value: 'Receive your pallets with our reliable delivery service throughout Ontario.', category: 'how_it_works', label: 'Step 3 Description', type: 'textarea', description: 'Third step description' },
+
+      // Appointments Settings
+      { key: 'appointments_enabled', value: 'true', category: 'appointments', label: 'Enable Appointments', type: 'boolean', description: 'Allow customers to book appointments' },
+      { key: 'appointment_duration', value: '60', category: 'appointments', label: 'Default Duration (minutes)', type: 'number', description: 'Default appointment length' },
+      { key: 'working_hours_start', value: '09:00', category: 'appointments', label: 'Working Hours Start', type: 'time', description: 'Business hours start time' },
+      { key: 'working_hours_end', value: '17:00', category: 'appointments', label: 'Working Hours End', type: 'time', description: 'Business hours end time' },
+      { key: 'max_appointments_per_day', value: '8', category: 'appointments', label: 'Max Appointments/Day', type: 'number', description: 'Maximum daily appointments' },
+      { key: 'appointment_advance_booking', value: '24', category: 'appointments', label: 'Advance Booking (hours)', type: 'number', description: 'Minimum advance booking time' }
     ];
 
     defaultSettings.forEach(setting => {
@@ -754,6 +784,18 @@ class SimpleMemoryStorage implements IStorage {
     const newSetting = { id, ...setting, updatedAt: new Date() };
     this.data.settings.set(setting.key, newSetting);
     return newSetting;
+  }
+
+  async getSettingsByCategory(category: string): Promise<Setting[]> {
+    return Array.from(this.data.settings.values()).filter(s => s.category === category);
+  }
+
+  async updateSubscriber(id: number, updates: Partial<InsertSubscriber>): Promise<Subscriber | undefined> {
+    const existing = this.data.subscribers.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...updates };
+    this.data.subscribers.set(id, updated);
+    return updated;
   }
 
   // Placeholder implementations for compatibility
