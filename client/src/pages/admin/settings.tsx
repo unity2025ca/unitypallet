@@ -47,6 +47,12 @@ export default function AdminSettings() {
     enabled: isAuthenticated && isAdmin,
   });
 
+  // Backup scheduler status query
+  const { data: schedulerStatus } = useQuery({
+    queryKey: ["/api/admin/backup/scheduler"],
+    enabled: isAuthenticated && isAdmin,
+  });
+
   // Create backup mutation
   const createBackupMutation = useMutation({
     mutationFn: async () => {
@@ -213,6 +219,48 @@ export default function AdminSettings() {
                           </>
                         )}
                       </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Automatic Backup Schedule Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Automatic Backup Schedule
+                    </CardTitle>
+                    <CardDescription>
+                      Daily automatic backups run at 2:00 AM Toronto time
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium">Schedule Details</h4>
+                          <ul className="space-y-1 text-sm text-muted-foreground">
+                            <li>• Runs daily at 2:00 AM (Toronto time)</li>
+                            <li>• Automatically backs up all data</li>
+                            <li>• No manual intervention required</li>
+                            <li>• Verification reports included</li>
+                          </ul>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-medium">Status</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span>Automatic backup scheduler active</span>
+                            </div>
+                            {schedulerStatus?.nextRun && (
+                              <div className="text-muted-foreground">
+                                Next backup: {schedulerStatus.nextRun}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

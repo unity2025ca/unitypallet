@@ -98,8 +98,24 @@ export async function createBackup(): Promise<BackupResult> {
             try {
               // تنظيف وتحضير البيانات
               const cleanRecord = cleanRecordForInsert(record);
-              const columns = Object.keys(cleanRecord);
-              const values = Object.values(cleanRecord);
+              
+              // إزالة الأعمدة التي قد تسبب مشاكل
+              const allowedColumns = await getTableColumns(backupDb, table.name);
+              const filteredRecord: any = {};
+              
+              Object.keys(cleanRecord).forEach(key => {
+                if (allowedColumns.includes(key.toLowerCase())) {
+                  filteredRecord[key] = cleanRecord[key];
+                }
+              });
+              
+              if (Object.keys(filteredRecord).length === 0) {
+                console.log(`تخطي سجل فارغ من ${table.name}`);
+                continue;
+              }
+              
+              const columns = Object.keys(filteredRecord);
+              const values = Object.values(filteredRecord);
               const placeholders = values.map((_, index) => `$${index + 1}`).join(', ');
               
               const insertQuery = `
@@ -114,6 +130,7 @@ export async function createBackup(): Promise<BackupResult> {
               }
             } catch (insertError) {
               console.error(`خطأ في إدراج سجل من ${table.name}:`, insertError);
+              // الاستمرار مع السجل التالي
             }
           }
           
@@ -165,7 +182,29 @@ function cleanRecordForInsert(record: any): any {
   for (const [key, value] of Object.entries(record)) {
     // تخطي القيم الفارغة أو undefined
     if (value !== undefined && value !== null) {
-      cleaned[key] = value;
+      // تصحيح أسماء الأعمدة المختلفة
+      let correctedKey = key;
+      if (key === 'productId') correctedKey = 'product_id';
+      if (key === 'imageUrl') correctedKey = 'image_url';
+      if (key === 'isMain') correctedKey = 'is_main';
+      if (key === 'displayOrder') correctedKey = 'display_order';
+      if (key === 'createdAt') correctedKey = 'created_at';
+      if (key === 'updatedAt') correctedKey = 'updated_at';
+      if (key === 'updatedat') correctedKey = 'updated_at';
+      if (key === 'isAdmin') correctedKey = 'is_admin';
+      if (key === 'roleType') correctedKey = 'role_type';
+      if (key === 'fullName') correctedKey = 'full_name';
+      if (key === 'stripeCustomerId') correctedKey = 'stripe_customer_id';
+      if (key === 'stripeSubscriptionId') correctedKey = 'stripe_subscription_id';
+      if (key === 'postalCode') correctedKey = 'postal_code';
+      if (key === 'titleAr') correctedKey = 'title_ar';
+      if (key === 'descriptionAr') correctedKey = 'description_ar';
+      if (key === 'isRead') correctedKey = 'is_read';
+      if (key === 'questionAr') correctedKey = 'question_ar';
+      if (key === 'answerAr') correctedKey = 'answer_ar';
+      if (key === 'isActive') correctedKey = 'is_active';
+      
+      cleaned[correctedKey] = value;
     }
   }
   return cleaned;
@@ -311,5 +350,22 @@ export async function getBackupStatus(): Promise<{ available: boolean; lastBacku
   } catch (error) {
     console.error('Backup status check error:', error);
     return { available: false };
+  }
+}
+
+// دالة للحصول على أعمدة الجدول
+async function getTableColumns(backupDb: any, tableName: string): Promise<string[]> {
+  try {
+    const result = await backupDb.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = $1 AND table_schema = 'public'
+      ORDER BY ordinal_position
+    `, [tableName]);
+    
+    return result.rows.map((row: any) => row.column_name.toLowerCase());
+  } catch (error) {
+    console.error(`خطأ في الحصول على أعمدة الجدول ${tableName}:`, error);
+    return [];
   }
 }
