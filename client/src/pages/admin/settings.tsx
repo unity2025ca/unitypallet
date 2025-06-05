@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Redirect } from "wouter";
 import { 
   Tabs, 
@@ -10,18 +10,27 @@ import {
 import {
   Loader2,
   Settings2,
-  Menu
+  Menu,
+  Database,
+  Download,
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Sidebar from "@/components/admin/Sidebar";
 import SettingItem from "@/components/admin/SettingItem";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { type Setting } from "@shared/schema";
 
 export default function AdminSettings() {
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState("appearance");
+  const [activeTab, setActiveTab] = useState("backup");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,6 +39,43 @@ export default function AdminSettings() {
   const { data: settings, isLoading } = useQuery<Setting[]>({
     queryKey: ["/api/settings"],
     enabled: isAuthenticated,
+  });
+
+  // Backup status query
+  const { data: backupStatus, refetch: refetchBackupStatus } = useQuery({
+    queryKey: ["/api/admin/backup/status"],
+    enabled: isAuthenticated && isAdmin,
+  });
+
+  // Create backup mutation
+  const createBackupMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/backup/create");
+      return response.json();
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        toast({
+          title: "Backup Created Successfully",
+          description: result.message,
+          variant: "default",
+        });
+        refetchBackupStatus();
+      } else {
+        toast({
+          title: "Backup Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Backup Error",
+        description: error.message || "Failed to create backup",
+        variant: "destructive",
+      });
+    },
   });
   
   // Show loading state
@@ -79,6 +125,7 @@ export default function AdminSettings() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="overflow-x-auto pb-2 -mx-2 px-2">
               <TabsList className="mb-4 md:mb-8 justify-start w-max min-w-full flex flex-nowrap">
+                <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="backup">Backup</TabsTrigger>
                 <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="system">System</TabsTrigger>
                 <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="appointments">Appointments</TabsTrigger>
                 <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="appearance">Appearance</TabsTrigger>

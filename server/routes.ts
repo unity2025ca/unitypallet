@@ -30,6 +30,7 @@ import fs from "fs";
 import * as crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
 import { setupAuth, hashPassword } from "./auth";
+import { createBackup, getBackupStatus } from "./backup";
 
 // Setup authentication is now done in auth.ts
 
@@ -1532,6 +1533,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Backup system API routes
+  app.get("/api/admin/backup/status", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const status = await getBackupStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error checking backup status:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to check backup status" 
+      });
+    }
+  });
+
+  app.post("/api/admin/backup/create", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      console.log("Creating backup requested by user:", req.user?.username);
+      const result = await createBackup();
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error: any) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to create backup",
+        error: error.message 
+      });
     }
   });
 
