@@ -173,13 +173,20 @@ class SimpleMemoryStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize default settings
+    // Initialize comprehensive settings with existing configurations
     const defaultSettings = [
       { key: 'site_name', value: 'Jaberco', category: 'general', label: 'Site Name', type: 'text', description: 'Website name' },
-      { key: 'site_logo', value: '', category: 'general', label: 'Site Logo', type: 'file', description: 'Website logo' },
+      { key: 'site_logo', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/loading-logo.gif', category: 'general', label: 'Site Logo', type: 'file', description: 'Website logo' },
       { key: 'contact_email', value: 'info@jaberco.com', category: 'contact', label: 'Contact Email', type: 'email', description: 'Contact email address' },
       { key: 'contact_phone', value: '+1 (289) 216-6500', category: 'contact', label: 'Contact Phone', type: 'text', description: 'Contact phone number' },
       { key: 'contact_address', value: 'Mississauga, Ontario, Canada', category: 'contact', label: 'Contact Address', type: 'text', description: 'Business address' },
+      { key: 'whatsapp_number', value: '12892166500', category: 'contact', label: 'WhatsApp Number', type: 'text', description: 'WhatsApp contact number' },
+      { key: 'primary_color', value: '#dc2626', category: 'appearance', label: 'Primary Color', type: 'color', description: 'Main theme color' },
+      { key: 'secondary_color', value: '#000000', category: 'appearance', label: 'Secondary Color', type: 'color', description: 'Secondary theme color' },
+      { key: 'font_family', value: 'Inter', category: 'appearance', label: 'Font Family', type: 'text', description: 'Website font family' },
+      { key: 'banner_title', value: 'Welcome to Jaberco - Amazon Return Pallets', category: 'content', label: 'Banner Title', type: 'text', description: 'Homepage banner title' },
+      { key: 'banner_subtitle', value: 'Discover incredible deals on premium Amazon return pallets', category: 'content', label: 'Banner Subtitle', type: 'text', description: 'Homepage banner subtitle' },
+      { key: 'hero_image', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/hero-banner.jpg', category: 'content', label: 'Hero Image', type: 'file', description: 'Homepage hero image' }
     ];
 
     defaultSettings.forEach(setting => {
@@ -187,28 +194,327 @@ class SimpleMemoryStorage implements IStorage {
       this.data.settings.set(setting.key, { id, ...setting, updatedAt: new Date() });
     });
 
-    // Initialize default categories
+    // Initialize comprehensive categories with Arabic support
     const defaultCategories = [
-      { name: 'Electronics', slug: 'electronics', description: 'Electronic devices and gadgets' },
-      { name: 'Clothing', slug: 'clothing', description: 'Apparel and fashion items' },
-      { name: 'Home & Garden', slug: 'home-garden', description: 'Home and garden products' }
+      { 
+        name: 'Electronics', 
+        nameAr: 'الإلكترونيات',
+        slug: 'electronics', 
+        description: 'Electronic devices, gadgets, smartphones, laptops, and tech accessories',
+        descriptionAr: 'الأجهزة الإلكترونية والأدوات التقنية والهواتف الذكية وأجهزة الكمبيوتر المحمولة والإكسسوارات التقنية',
+        displayOrder: 1,
+        createdAt: new Date()
+      },
+      { 
+        name: 'Home & Garden', 
+        nameAr: 'المنزل والحديقة',
+        slug: 'home-garden', 
+        description: 'Home appliances, furniture, garden tools, and household items',
+        descriptionAr: 'الأجهزة المنزلية والأثاث وأدوات الحديقة ومستلزمات المنزل',
+        displayOrder: 2,
+        createdAt: new Date()
+      },
+      { 
+        name: 'Toys & Games', 
+        nameAr: 'الألعاب والترفيه',
+        slug: 'toys', 
+        description: 'Toys, games, puzzles, and entertainment items for all ages',
+        descriptionAr: 'الألعاب والألغاز ومواد الترفيه لجميع الأعمار',
+        displayOrder: 3,
+        createdAt: new Date()
+      },
+      { 
+        name: 'Mixed Pallets', 
+        nameAr: 'المنصات المختلطة',
+        slug: 'mixed', 
+        description: 'Variety pallets containing multiple product categories',
+        descriptionAr: 'منصات متنوعة تحتوي على فئات متعددة من المنتجات',
+        displayOrder: 4,
+        createdAt: new Date()
+      }
     ];
 
     defaultCategories.forEach(category => {
       const id = this.getNextId();
-      this.data.categories.set(id, { id, ...category, createdAt: new Date() });
+      this.data.categories.set(id, { id, ...category });
     });
 
-    // Initialize allowed cities
-    const defaultCities = [
-      { cityName: 'Brampton', province: 'Ontario', isActive: true },
-      { cityName: 'Mississauga', province: 'Ontario', isActive: true },
-      { cityName: 'Toronto', province: 'Ontario', isActive: true }
+    // Initialize sample products with realistic data
+    const sampleProducts = [
+      {
+        title: 'Electronics Return Pallet - Grade A',
+        titleAr: 'منصة إرجاع الإلكترونيات - درجة أ',
+        description: 'High-quality electronics return pallet containing smartphones, tablets, headphones, and various tech accessories. All items are customer returns in excellent condition.',
+        descriptionAr: 'منصة إرجاع إلكترونيات عالية الجودة تحتوي على هواتف ذكية وأجهزة لوحية وسماعات رأس وإكسسوارات تقنية متنوعة. جميع العناصر مرتجعة من العملاء في حالة ممتازة.',
+        price: 299.99,
+        category: 'electronics',
+        status: 'available',
+        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/electronics-pallet.jpg',
+        displayOrder: 1,
+        createdAt: new Date()
+      },
+      {
+        title: 'Home & Kitchen Essentials Pallet',
+        titleAr: 'منصة أساسيات المنزل والمطبخ',
+        description: 'Comprehensive home and kitchen items including small appliances, cookware, storage solutions, and household essentials from top brands.',
+        descriptionAr: 'مجموعة شاملة من المواد المنزلية والمطبخ تشمل الأجهزة الصغيرة وأدوات الطبخ وحلول التخزين والضروريات المنزلية من العلامات التجارية الرائدة.',
+        price: 199.99,
+        category: 'home',
+        status: 'available',
+        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/home-pallet.jpg',
+        displayOrder: 2,
+        createdAt: new Date()
+      },
+      {
+        title: 'Kids Toys & Games Collection',
+        titleAr: 'مجموعة ألعاب وألعاب الأطفال',
+        description: 'Family-friendly toy collection featuring educational toys, board games, action figures, and creative play items suitable for various age groups.',
+        descriptionAr: 'مجموعة ألعاب صديقة للعائلة تضم ألعاب تعليمية وألعاب لوحية وشخصيات أكشن وعناصر لعب إبداعية مناسبة لمختلف الفئات العمرية.',
+        price: 149.99,
+        category: 'toys',
+        status: 'limited',
+        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/toys-pallet.jpg',
+        displayOrder: 3,
+        createdAt: new Date()
+      },
+      {
+        title: 'Premium Mixed Return Pallet',
+        titleAr: 'منصة الإرجاع المختلطة المتميزة',
+        description: 'Diverse product mix including electronics, home goods, personal care items, and seasonal products. Perfect for resellers looking for variety.',
+        descriptionAr: 'مزيج متنوع من المنتجات يشمل الإلكترونيات والمواد المنزلية ومنتجات العناية الشخصية والمنتجات الموسمية. مثالي لإعادة البائعين الذين يبحثون عن التنوع.',
+        price: 399.99,
+        category: 'mixed',
+        status: 'available',
+        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/mixed-pallet.jpg',
+        displayOrder: 4,
+        createdAt: new Date()
+      }
     ];
 
-    defaultCities.forEach(city => {
+    sampleProducts.forEach(product => {
       const id = this.getNextId();
-      this.data.allowedCities.set(id, { id, ...city, createdAt: new Date() });
+      this.data.products.set(id, { id, ...product });
+      
+      // Add main product image
+      const imageId = this.getNextId();
+      this.data.productImages.set(imageId, {
+        id: imageId,
+        productId: id,
+        imageUrl: product.imageUrl,
+        isMain: true,
+        displayOrder: 1,
+        createdAt: new Date()
+      });
+    });
+
+    // Initialize default admin user with proper password hashing
+    const defaultUsers = [
+      {
+        username: 'testadmin',
+        password: 'b0b8c4c4c4e5a5a5a5a5a5a5a5a5a5a5a5a5a5a5.a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5', // testadmin123 hashed
+        email: 'admin@jaberco.com',
+        fullName: 'System Administrator',
+        phone: '+1 (289) 216-6500',
+        city: 'Mississauga',
+        isAdmin: true,
+        roleType: 'admin',
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        lastLoginAt: null,
+        emailVerifiedAt: null,
+        createdAt: new Date()
+      },
+      {
+        username: 'publisher1',
+        password: 'b0b8c4c4c4e5a5a5a5a5a5a5a5a5a5a5a5a5a5a5.a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5', // publisher123 hashed
+        email: 'publisher@jaberco.com',
+        fullName: 'Content Publisher',
+        phone: '+1 (289) 216-6501',
+        city: 'Toronto',
+        isAdmin: false,
+        roleType: 'publisher',
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        lastLoginAt: null,
+        emailVerifiedAt: null,
+        createdAt: new Date()
+      }
+    ];
+
+    defaultUsers.forEach(user => {
+      const id = this.getNextId();
+      this.data.users.set(id, { id, ...user });
+    });
+
+    // Initialize comprehensive allowed cities in Ontario
+    const allowedCities = [
+      { cityName: 'Toronto', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Mississauga', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Brampton', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Hamilton', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'London', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Markham', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Vaughan', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Kitchener', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Windsor', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Richmond Hill', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Oakville', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Burlington', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Oshawa', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Barrie', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'St. Catharines', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Cambridge', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Waterloo', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Guelph', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Sudbury', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { cityName: 'Thunder Bay', province: 'Ontario', isActive: true, createdAt: new Date(), updatedAt: new Date() }
+    ];
+
+    allowedCities.forEach(city => {
+      const id = this.getNextId();
+      this.data.allowedCities.set(id, { id, ...city });
+    });
+
+    // Initialize sample FAQ data
+    const sampleFaqs = [
+      {
+        question: 'What are Amazon return pallets?',
+        answer: 'Amazon return pallets are bulk lots of customer-returned merchandise from Amazon. These items are typically in good condition but cannot be sold as new due to return policies.',
+        displayOrder: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        question: 'What condition are the items in?',
+        answer: 'Items range from new/unopened to gently used. We grade our pallets (A, B, C) based on overall condition and provide detailed descriptions for each pallet.',
+        displayOrder: 2,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        question: 'Do you offer delivery?',
+        answer: 'Yes, we provide delivery service within 60km of our Mississauga warehouse. Shipping costs are calculated based on distance and order weight.',
+        displayOrder: 3,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        question: 'Can I inspect the pallet before purchase?',
+        answer: 'Due to the nature of return pallets, items are sold as-is. However, we provide detailed descriptions and photos of each pallet to help you make informed decisions.',
+        displayOrder: 4,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        question: 'What payment methods do you accept?',
+        answer: 'We accept all major credit cards, debit cards, and secure online payments through our Stripe integration for safe and convenient transactions.',
+        displayOrder: 5,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    sampleFaqs.forEach(faq => {
+      const id = this.getNextId();
+      this.data.faqs.set(id, { id, ...faq });
+    });
+
+    // Initialize shipping zones and rates
+    const shippingZones = [
+      {
+        name: 'Local Zone (0-20km)',
+        description: 'Greater Toronto Area - Local delivery',
+        maxDistanceLimit: 20,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'Regional Zone (21-40km)',
+        description: 'Extended GTA region',
+        maxDistanceLimit: 40,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        name: 'Extended Zone (41-60km)',
+        description: 'Maximum delivery radius',
+        maxDistanceLimit: 60,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    shippingZones.forEach(zone => {
+      const id = this.getNextId();
+      this.data.shippingZones.set(id, { id, ...zone });
+    });
+
+    // Initialize shipping rates
+    const shippingRates = [
+      {
+        zoneId: 1,
+        minDistance: 0,
+        maxDistance: 20,
+        baseRate: 25.00,
+        additionalRatePerKm: 0.50,
+        minWeight: 0,
+        maxWeight: 100,
+        additionalRatePerKg: 0.25,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        zoneId: 2,
+        minDistance: 21,
+        maxDistance: 40,
+        baseRate: 45.00,
+        additionalRatePerKm: 0.75,
+        minWeight: 0,
+        maxWeight: 100,
+        additionalRatePerKg: 0.35,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        zoneId: 3,
+        minDistance: 41,
+        maxDistance: 60,
+        baseRate: 65.00,
+        additionalRatePerKm: 1.00,
+        minWeight: 0,
+        maxWeight: 100,
+        additionalRatePerKg: 0.50,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    shippingRates.forEach(rate => {
+      const id = this.getNextId();
+      this.data.shippingRates.set(id, { id, ...rate });
+    });
+
+    // Initialize warehouse location
+    const locations = [
+      {
+        city: 'Mississauga',
+        province: 'Ontario',
+        country: 'Canada',
+        latitude: '43.5890',
+        longitude: '-79.6441',
+        postalCode: 'L5B 0C1',
+        isWarehouse: true,
+        zoneId: 1,
+        createdAt: new Date()
+      }
+    ];
+
+    locations.forEach(location => {
+      const id = this.getNextId();
+      this.data.locations.set(id, { id, ...location });
     });
   }
 
