@@ -63,6 +63,7 @@ export interface IStorage {
   // Settings methods
   getAllSettings(): Promise<Setting[]>;
   getSettingByKey(key: string): Promise<Setting | undefined>;
+  getSetting(key: string): Promise<Setting | undefined>;
   updateSetting(key: string, value: string): Promise<Setting>;
   createSetting(setting: InsertSetting): Promise<Setting>;
   
@@ -727,6 +728,10 @@ class SimpleMemoryStorage implements IStorage {
   }
 
   async getSettingByKey(key: string): Promise<Setting | undefined> {
+    return this.data.settings.get(key);
+  }
+
+  async getSetting(key: string): Promise<Setting | undefined> {
     return this.data.settings.get(key);
   }
 
