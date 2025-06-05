@@ -1,11 +1,11 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import loadingGif from "@assets/IMG_2944_1749106310066.gif";
 
 interface LoadingScreenProps {
   message?: string;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Loading...' }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'جاري التحميل...' }) => {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
       <div className="mb-6 flex flex-col items-center justify-center">
@@ -14,7 +14,11 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message = 'Loading...' })
       </div>
       
       <div className="mb-6">
-        <Loader2 className="h-12 w-12 animate-spin text-red-600" />
+        <img 
+          src={loadingGif} 
+          alt="جاري التحميل..." 
+          className="w-24 h-24 object-contain"
+        />
       </div>
       
       <p className="text-gray-700 font-medium">{message}</p>

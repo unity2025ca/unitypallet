@@ -10,6 +10,7 @@ import { Product } from "@shared/schema";
 import { Activity, Calendar, Users, Package, Mail, Settings, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminPageLoading } from "@/components/ui/loading";
 
 // Define admin user type to match what Header component expects
 interface AdminUser {
@@ -71,14 +72,9 @@ const AdminDashboard = () => {
   // 5. Loading state handling - always include the same hooks
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
+      <AdminPageLoading>
         <Sidebar isMobileOpen={isMobileMenuOpen} toggleMobile={toggleMobileMenu} />
-        <div className="flex-1 p-4 md:p-8 md:ml-64">
-          <div className="flex justify-center items-center h-full">
-            <div className="w-16 h-16 border-4 border-primary border-solid rounded-full border-t-transparent animate-spin"></div>
-          </div>
-        </div>
-      </div>
+      </AdminPageLoading>
     );
   }
   
