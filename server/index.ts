@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
+import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
 
@@ -98,5 +99,8 @@ app.use((req, res, next) => {
     
     // Schedule the order cleanup job to run every 15 minutes
     scheduleOrderCleanupJob(15);
+    
+    // Start automatic backup scheduler (runs daily at 2:00 AM Toronto time)
+    startBackupScheduler();
   });
 })();

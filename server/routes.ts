@@ -31,6 +31,7 @@ import * as crypto from "crypto";
 import { uploadImage, deleteImage, extractPublicIdFromUrl } from "./cloudinary";
 import { setupAuth, hashPassword } from "./auth";
 import { createBackup, getBackupStatus } from "./backup";
+import { getBackupSchedulerStatus } from "./jobs/backup-scheduler";
 
 // Setup authentication is now done in auth.ts
 
@@ -1565,6 +1566,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "Failed to create backup",
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/admin/backup/scheduler", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const schedulerStatus = getBackupSchedulerStatus();
+      res.json(schedulerStatus);
+    } catch (error: any) {
+      console.error("Error getting scheduler status:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to get scheduler status",
         error: error.message 
       });
     }
