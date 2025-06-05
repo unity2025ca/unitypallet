@@ -189,6 +189,12 @@ export interface IStorage {
   calculateShippingCost(fromLocationId: number, toLocationId: number, weight?: number): Promise<number>;
   calculateShippingCostByCoordinates(fromLat: number, fromLng: number, toLat: number, toLng: number, zoneId?: number, weight?: number): Promise<number>;
   
+  // Backup methods for data export
+  getAllProductImages(): Promise<ProductImage[]>;
+  getAllOrderItems(): Promise<OrderItem[]>;
+  getAllOrders(): Promise<Order[]>;
+  getAllNotifications(): Promise<Notification[]>;
+  
   // Session store
   sessionStore: any; // Simplify type for session store
 }
@@ -1638,6 +1644,23 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error initializing allowed cities:', error);
     }
+  }
+
+  // Backup methods for data export
+  async getAllProductImages(): Promise<ProductImage[]> {
+    return db.select().from(productImages).orderBy(asc(productImages.id));
+  }
+
+  async getAllOrderItems(): Promise<OrderItem[]> {
+    return db.select().from(orderItems).orderBy(asc(orderItems.id));
+  }
+
+  async getAllOrders(): Promise<Order[]> {
+    return db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getAllNotifications(): Promise<Notification[]> {
+    return db.select().from(notifications).orderBy(desc(notifications.createdAt));
   }
 }
 
