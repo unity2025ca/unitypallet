@@ -139,7 +139,10 @@ export async function getBackupStatus(): Promise<{ available: boolean; lastBacku
   try {
     const backupUrl = process.env.NEW_DATABASE_URL;
     
+    console.log('Checking backup URL availability:', !!backupUrl);
+    
     if (!backupUrl) {
+      console.log('NEW_DATABASE_URL not found');
       return { available: false };
     }
 
@@ -148,11 +151,21 @@ export async function getBackupStatus(): Promise<{ available: boolean; lastBacku
       ...neonConfig
     });
 
-    // فحص وجود البيانات في قاعدة البيانات الاحتياطية
-    const result = await backupDb.query('SELECT COUNT(*) as count FROM users');
-    await backupDb.end();
+    // فحص الاتصال بقاعدة البيانات الاحتياطية
+    const testQuery = await backupDb.query('SELECT 1 as test');
+    console.log('Backup database connection test:', testQuery.rows[0]);
 
-    const hasData = parseInt(result.rows[0].count) > 0;
+    // فحص وجود جدول المستخدمين
+    let hasData = false;
+    try {
+      const result = await backupDb.query('SELECT COUNT(*) as count FROM users');
+      hasData = parseInt(result.rows[0].count) > 0;
+      console.log('Users in backup database:', result.rows[0].count);
+    } catch (tableError) {
+      console.log('Users table does not exist in backup database yet');
+    }
+
+    await backupDb.end();
 
     return {
       available: true,
@@ -160,6 +173,7 @@ export async function getBackupStatus(): Promise<{ available: boolean; lastBacku
     };
 
   } catch (error) {
+    console.error('Backup status check error:', error);
     return { available: false };
   }
 }
