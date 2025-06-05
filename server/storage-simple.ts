@@ -239,7 +239,7 @@ class SimpleMemoryStorage implements IStorage {
       this.data.categories.set(id, { id, ...category });
     });
 
-    // Initialize sample products with realistic data
+    // Initialize sample products with realistic data and working image URLs
     const sampleProducts = [
       {
         title: 'Electronics Return Pallet - Grade A',
@@ -249,7 +249,7 @@ class SimpleMemoryStorage implements IStorage {
         price: 299.99,
         category: 'electronics',
         status: 'available',
-        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/electronics-pallet.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500',
         displayOrder: 1,
         createdAt: new Date()
       },
@@ -261,7 +261,7 @@ class SimpleMemoryStorage implements IStorage {
         price: 199.99,
         category: 'home',
         status: 'available',
-        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/home-pallet.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500',
         displayOrder: 2,
         createdAt: new Date()
       },
@@ -273,7 +273,7 @@ class SimpleMemoryStorage implements IStorage {
         price: 149.99,
         category: 'toys',
         status: 'limited',
-        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/toys-pallet.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500',
         displayOrder: 3,
         createdAt: new Date()
       },
@@ -285,7 +285,7 @@ class SimpleMemoryStorage implements IStorage {
         price: 399.99,
         category: 'mixed',
         status: 'available',
-        imageUrl: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/mixed-pallet.jpg',
+        imageUrl: 'https://images.unsplash.com/photo-1586880244406-556ebe35f282?w=500',
         displayOrder: 4,
         createdAt: new Date()
       }
@@ -307,11 +307,11 @@ class SimpleMemoryStorage implements IStorage {
       });
     });
 
-    // Initialize default admin user with proper password hashing
+    // Initialize default admin user with correct scrypt password hashing
     const defaultUsers = [
       {
         username: 'testadmin',
-        password: 'b0b8c4c4c4e5a5a5a5a5a5a5a5a5a5a5a5a5a5a5.a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5', // testadmin123 hashed
+        password: '13ee8e22b5632af4603e55da52b6c193934d8a79400724c1204ff44a862e4a2f650ee14cf241e928ed27504822d5fbb7757d5e6e9ccfaf338e6a9b92e4d265d2.8299834f58e2f45ce24dd7c55931db1f', // testadmin123 
         email: 'admin@jaberco.com',
         fullName: 'System Administrator',
         phone: '+1 (289) 216-6500',
@@ -326,7 +326,7 @@ class SimpleMemoryStorage implements IStorage {
       },
       {
         username: 'publisher1',
-        password: 'b0b8c4c4c4e5a5a5a5a5a5a5a5a5a5a5a5a5a5a5.a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5', // publisher123 hashed
+        password: '53d9640815da243d62abebb7b4c3277415ec83575c8c6e88042ce96e6a5962c63be874f04380cb9ef782ae6c9fa3c62f4af101887ac7a30a33509ce4d7214c6d.566cb410c1123cce41483aa3cffb74fd', // publisher123
         email: 'publisher@jaberco.com',
         fullName: 'Content Publisher',
         phone: '+1 (289) 216-6501',
