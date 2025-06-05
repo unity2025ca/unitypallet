@@ -138,6 +138,16 @@ export interface IStorage {
   updateAllowedCity(id: number, city: Partial<InsertAllowedCity>): Promise<AllowedCity | undefined>;
   deleteAllowedCity(id: number): Promise<boolean>;
   isCityAllowed(cityName: string): Promise<boolean>;
+  
+  // Cart methods
+  getCartByUserId(userId: number): Promise<Cart | undefined>;
+  getCartBySessionId(sessionId: string): Promise<Cart | undefined>;
+  createCart(cart: InsertCart): Promise<Cart>;
+  getCartItems(cartId: number): Promise<CartItem[]>;
+  addCartItem(item: InsertCartItem): Promise<CartItem>;
+  updateCartItem(id: number, quantity: number): Promise<CartItem | undefined>;
+  removeCartItem(id: number): Promise<boolean>;
+  clearCart(cartId: number): Promise<boolean>;
 }
 
 class SimpleMemoryStorage implements IStorage {
@@ -158,7 +168,9 @@ class SimpleMemoryStorage implements IStorage {
     shippingZones: new Map<number, any>(),
     shippingRates: new Map<number, any>(),
     locations: new Map<number, any>(),
-    allowedCities: new Map<number, any>()
+    allowedCities: new Map<number, any>(),
+    carts: new Map<number, any>(),
+    cartItems: new Map<number, any>()
   };
   
   private nextId = 1;
@@ -730,6 +742,60 @@ class SimpleMemoryStorage implements IStorage {
     defaultOrders.forEach(order => {
       const id = this.getNextId();
       this.data.orders.set(id, { id, ...order });
+    });
+
+    // Initialize cart data from migrated database
+    const defaultCarts = [
+      {
+        userId: null,
+        sessionId: "f622328159c27c5b74764b0e986a228d",
+        createdAt: new Date('2025-05-01T04:05:58.201Z'),
+        updatedAt: new Date('2025-05-01T04:05:58.201Z')
+      },
+      {
+        userId: null,
+        sessionId: "51b9a5e3e5b8f806ac74021e95fd490f",
+        createdAt: new Date('2025-05-01T04:12:16.549Z'),
+        updatedAt: new Date('2025-05-01T04:12:16.549Z')
+      },
+      {
+        userId: 17,
+        sessionId: null,
+        createdAt: new Date('2025-05-01T04:12:19.134Z'),
+        updatedAt: new Date('2025-05-01T04:12:19.134Z')
+      }
+    ];
+
+    defaultCarts.forEach(cart => {
+      const id = this.getNextId();
+      this.data.carts.set(id, { id, ...cart });
+    });
+
+    // Initialize cart items from migrated database
+    const defaultCartItems = [
+      {
+        cartId: 1,
+        productId: 103, // Map to existing product
+        quantity: 1,
+        addedAt: new Date('2025-05-01T04:05:58.280Z')
+      },
+      {
+        cartId: 2,
+        productId: 105, // Map to existing product
+        quantity: 1,
+        addedAt: new Date('2025-05-02T01:08:07.504Z')
+      },
+      {
+        cartId: 3,
+        productId: 107, // Map to existing product
+        quantity: 2,
+        addedAt: new Date('2025-05-02T03:15:27.597Z')
+      }
+    ];
+
+    defaultCartItems.forEach(item => {
+      const id = this.getNextId();
+      this.data.cartItems.set(id, { id, ...item });
     });
 
     // Initialize shipping zones and rates
@@ -1365,6 +1431,59 @@ class SimpleMemoryStorage implements IStorage {
       }
     }
     return false;
+  }
+
+  // Cart implementation
+  async getCartByUserId(userId: number): Promise<Cart | undefined> {
+    for (const cart of this.data.carts.values()) {
+      if (cart.userId === userId) return cart;
+    }
+    return undefined;
+  }
+
+  async getCartBySessionId(sessionId: string): Promise<Cart | undefined> {
+    for (const cart of this.data.carts.values()) {
+      if (cart.sessionId === sessionId) return cart;
+    }
+    return undefined;
+  }
+
+  async createCart(cart: InsertCart): Promise<Cart> {
+    const id = this.getNextId();
+    const newCart = { id, ...cart, createdAt: new Date(), updatedAt: new Date() };
+    this.data.carts.set(id, newCart);
+    return newCart;
+  }
+
+  async getCartItems(cartId: number): Promise<CartItem[]> {
+    return Array.from(this.data.cartItems.values()).filter(item => item.cartId === cartId);
+  }
+
+  async addCartItem(item: InsertCartItem): Promise<CartItem> {
+    const id = this.getNextId();
+    const newItem = { id, ...item, addedAt: new Date() };
+    this.data.cartItems.set(id, newItem);
+    return newItem;
+  }
+
+  async updateCartItem(id: number, quantity: number): Promise<CartItem | undefined> {
+    const existing = this.data.cartItems.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, quantity };
+    this.data.cartItems.set(id, updated);
+    return updated;
+  }
+
+  async removeCartItem(id: number): Promise<boolean> {
+    return this.data.cartItems.delete(id);
+  }
+
+  async clearCart(cartId: number): Promise<boolean> {
+    const items = await this.getCartItems(cartId);
+    for (const item of items) {
+      this.data.cartItems.delete(item.id);
+    }
+    return true;
   }
 }
 
