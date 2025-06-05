@@ -40,25 +40,37 @@ pm2 save
 pm2 startup
 ```
 
-## Environment Variables
+## Required API Keys and Services
 
-Create `.env` file with:
+This application requires the following external services:
 
-```env
-DATABASE_URL=postgresql://username:password@localhost:5432/jaberco_db
-SESSION_SECRET=your-super-secret-session-key
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_SECRET_KEY=sk_live_...
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-TWILIO_PHONE_NUMBER=your-phone-number
-SENDGRID_API_KEY=your-sendgrid-key
-NODE_ENV=production
-PORT=3000
-```
+### Database
+- **PostgreSQL**: Database for storing products, orders, users
+- Configure `DATABASE_URL` connection string
+
+### Image Management
+- **Cloudinary**: Product images and logo storage
+- Sign up at: https://cloudinary.com
+- Configure: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+### Payment Processing
+- **Stripe**: Credit card payments and subscriptions
+- Sign up at: https://stripe.com
+- Configure: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`
+
+### Communications
+- **Twilio**: SMS notifications to customers
+- Sign up at: https://console.twilio.com
+- Configure: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+
+- **SendGrid**: Email notifications and marketing
+- Sign up at: https://sendgrid.com
+- Configure: `SENDGRID_API_KEY`
+
+### Security
+- **Session Secret**: Generate strong random string for `SESSION_SECRET`
+
+See `SECRETS_SETUP_GUIDE.md` for detailed configuration instructions.
 
 ## Scripts
 
