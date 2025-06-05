@@ -592,6 +592,45 @@ class SimpleMemoryStorage implements IStorage {
       this.data.faqs.set(id, { id, ...faq });
     });
 
+    // Initialize appointments data
+    const defaultAppointments = [
+      {
+        name: 'John Smith',
+        email: 'john.smith@email.com',
+        phone: '+1-416-555-0101',
+        date: new Date().toISOString().split('T')[0],
+        time: '14:00',
+        message: 'I would like to inspect the electronics pallets before purchasing.',
+        status: 'pending',
+        createdAt: new Date()
+      },
+      {
+        name: 'Lisa Wong',
+        email: 'lisa.wong@business.ca',
+        phone: '+1-647-555-0202',
+        date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        time: '10:30',
+        message: 'Business consultation for bulk purchasing agreement.',
+        status: 'confirmed',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
+      },
+      {
+        name: 'Robert Johnson',
+        email: 'rjohnson@retail.com',
+        phone: '+1-905-555-0303',
+        date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        time: '11:00',
+        message: 'Warehouse visit to discuss regular supply partnership.',
+        status: 'confirmed',
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
+      }
+    ];
+
+    defaultAppointments.forEach(appointment => {
+      const id = this.getNextId();
+      this.data.appointments.set(id, { id, ...appointment });
+    });
+
     // Initialize shipping zones and rates
     const shippingZones = [
       {
