@@ -350,6 +350,54 @@ class SimpleMemoryStorage implements IStorage {
         imageUrl: 'https://images.unsplash.com/photo-1586880244406-556ebe35f282?w=500',
         displayOrder: 4,
         createdAt: new Date()
+      },
+      {
+        title: 'Health & Beauty Return Pallet',
+        titleAr: 'منصة إرجاع الصحة والجمال',
+        description: 'Premium health and beauty products including skincare, cosmetics, personal care items, and wellness products from leading brands.',
+        descriptionAr: 'منتجات صحية وجمالية متميزة تشمل منتجات العناية بالبشرة ومستحضرات التجميل ومنتجات العناية الشخصية ومنتجات العافية من العلامات التجارية الرائدة.',
+        price: 249.99,
+        category: 'other',
+        status: 'available',
+        imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500',
+        displayOrder: 5,
+        createdAt: new Date()
+      },
+      {
+        title: 'Sports & Outdoors Collection',
+        titleAr: 'مجموعة الرياضة والأنشطة الخارجية',
+        description: 'Athletic equipment, outdoor gear, fitness accessories, and sporting goods from top brands. Perfect for resellers in the sports market.',
+        descriptionAr: 'معدات رياضية وأدوات خارجية وإكسسوارات لياقة بدنية وسلع رياضية من أفضل العلامات التجارية. مثالي لإعادة البائعين في السوق الرياضي.',
+        price: 329.99,
+        category: 'other',
+        status: 'limited',
+        imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500',
+        displayOrder: 6,
+        createdAt: new Date()
+      },
+      {
+        title: 'Books & Media Pallet',
+        titleAr: 'منصة الكتب والوسائط',
+        description: 'Educational books, novels, DVDs, video games, and digital media products. Great variety for book and media retailers.',
+        descriptionAr: 'كتب تعليمية وروايات وأقراص DVD وألعاب فيديو ومنتجات وسائط رقمية. تنوع كبير لتجار الكتب والوسائط.',
+        price: 179.99,
+        category: 'other',
+        status: 'available',
+        imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=500',
+        displayOrder: 7,
+        createdAt: new Date()
+      },
+      {
+        title: 'Fashion & Apparel Returns',
+        titleAr: 'مرتجعات الموضة والملابس',
+        description: 'Clothing, shoes, accessories, and fashion items from various brands. Mixed sizes and styles suitable for fashion retailers.',
+        descriptionAr: 'ملابس وأحذية وإكسسوارات ومواد أزياء من علامات تجارية مختلفة. أحجام وأساليب مختلطة مناسبة لتجار الأزياء.',
+        price: 199.99,
+        category: 'other',
+        status: 'available',
+        imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500',
+        displayOrder: 8,
+        createdAt: new Date()
       }
     ];
 
@@ -437,11 +485,11 @@ class SimpleMemoryStorage implements IStorage {
       this.data.allowedCities.set(id, { id, ...city });
     });
 
-    // Initialize sample FAQ data
+    // Initialize comprehensive FAQ data with all previous entries
     const sampleFaqs = [
       {
         question: 'What are Amazon return pallets?',
-        answer: 'Amazon return pallets are bulk lots of customer-returned merchandise from Amazon. These items are typically in good condition but cannot be sold as new due to return policies.',
+        answer: 'Amazon return pallets are bulk lots of customer-returned merchandise from Amazon. These items are typically in good condition but cannot be sold as new due to return policies. We source directly from Amazon liquidation centers to provide authentic products at wholesale prices.',
         displayOrder: 1,
         createdAt: new Date(),
         updatedAt: new Date()
