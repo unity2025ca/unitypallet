@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { Loading } from "@/components/ui/loading";
 
 // Admin index page - redirects to login or dashboard
 const AdminIndex = () => {
@@ -22,7 +23,7 @@ const AdminIndex = () => {
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-16 h-16 border-4 border-primary border-solid rounded-full border-t-transparent animate-spin"></div>
+      <Loading size="lg" />
     </div>
   );
 };
