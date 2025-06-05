@@ -55,37 +55,36 @@ export async function createBackup(): Promise<BackupResult> {
         // الحصول على البيانات من التخزين المحلي
         let data: any[] = [];
         
-        switch (table.name) {
-          case 'users':
-            data = await storage.getAllUsers();
-            break;
-          case 'products':
-            data = await storage.getAllProducts();
-            break;
-          case 'product_images':
-            data = await storage.getAllProductImages();
-            break;
-          case 'settings':
-            data = await storage.getAllSettings();
-            break;
-          case 'orders':
-            data = await storage.getAllOrders();
-            break;
-          case 'order_items':
-            data = await storage.getAllOrderItems();
-            break;
-          case 'contacts':
-            data = await storage.getAllContacts();
-            break;
-          case 'appointments':
-            data = await storage.getAllAppointments();
-            break;
-          case 'faqs':
-            data = await storage.getAllFaqs();
-            break;
-          case 'notifications':
-            data = await storage.getAllNotifications();
-            break;
+        try {
+          switch (table.name) {
+            case 'users':
+              data = await storage.getAllUsers();
+              break;
+            case 'products':
+              data = await storage.getAllProducts();
+              break;
+            case 'product_images':
+              data = await storage.getAllProductImages();
+              break;
+            case 'settings':
+              data = await storage.getAllSettings();
+              break;
+            case 'contacts':
+              data = await storage.getAllContacts();
+              break;
+            case 'appointments':
+              data = await storage.getAllAppointments();
+              break;
+            case 'faqs':
+              data = await storage.getAllFaqs();
+              break;
+            default:
+              console.log(`Skipping table ${table.name} - method not available`);
+              continue;
+          }
+        } catch (methodError) {
+          console.log(`Method not available for ${table.name}, skipping...`);
+          continue;
         }
 
         if (data.length > 0) {
