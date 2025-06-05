@@ -631,6 +631,107 @@ class SimpleMemoryStorage implements IStorage {
       this.data.appointments.set(id, { id, ...appointment });
     });
 
+    // Initialize contacts data
+    const defaultContacts = [
+      {
+        name: 'Ahmed Mohamed',
+        email: 'ahmed.mohamed@gmail.com',
+        phone: '+1-416-555-1001',
+        message: 'I am interested in purchasing electronics pallets. Can you provide more information about current availability and pricing?',
+        isRead: false,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+      },
+      {
+        name: 'Sarah Johnson',
+        email: 'sarah.j@retailbusiness.ca',
+        phone: '+1-647-555-1002',
+        message: 'We are a retail business looking for regular pallet suppliers. What are your bulk pricing options?',
+        isRead: true,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000)
+      },
+      {
+        name: 'Michael Chen',
+        email: 'mchen@reseller.com',
+        phone: '+1-905-555-1003',
+        message: 'Can I schedule a warehouse visit to see the pallets before making a purchase decision?',
+        isRead: false,
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+      },
+      {
+        name: 'Jennifer Smith',
+        email: 'jen.smith@startup.ca',
+        phone: '+1-437-555-1004',
+        message: 'New business inquiry: What is the minimum order quantity and do you offer financing options?',
+        isRead: false,
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000)
+      }
+    ];
+
+    defaultContacts.forEach(contact => {
+      const id = this.getNextId();
+      this.data.contacts.set(id, { id, ...contact });
+    });
+
+    // Initialize orders data
+    const defaultOrders = [
+      {
+        userId: 17,
+        status: 'completed',
+        paymentStatus: 'paid',
+        paymentIntentId: 'pi_3PE8xbP8X7EYQQyb1QH5gUvB',
+        total: 182500,
+        subtotal: 180000,
+        shippingCost: 2500,
+        shippingAddress: '300 ray Lawson',
+        shippingCity: 'Brampton',
+        shippingProvince: 'Ontario',
+        shippingPostalCode: 'L6Y 5H5',
+        shippingCountry: 'Canada',
+        notes: 'Order completed successfully',
+        createdAt: new Date('2025-05-01T10:30:00.000Z'),
+        updatedAt: new Date('2025-05-01T15:45:00.000Z')
+      },
+      {
+        userId: 8,
+        status: 'processing',
+        paymentStatus: 'paid',
+        paymentIntentId: 'pi_3PE9xbP8X7EYQQyb2QH6hUvC',
+        total: 178500,
+        subtotal: 175000,
+        shippingCost: 3500,
+        shippingAddress: '123 Main St',
+        shippingCity: 'Toronto',
+        shippingProvince: 'Ontario',
+        shippingPostalCode: 'M5V 3A1',
+        shippingCountry: 'Canada',
+        notes: 'Order in processing',
+        createdAt: new Date('2025-05-02T14:20:00.000Z'),
+        updatedAt: new Date('2025-05-02T14:20:00.000Z')
+      },
+      {
+        userId: 10,
+        status: 'completed',
+        paymentStatus: 'paid',
+        paymentIntentId: 'pi_3PEAxbP8X7EYQQyb3QH7iUvD',
+        total: 228000,
+        subtotal: 225000,
+        shippingCost: 3000,
+        shippingAddress: '456 Oak Ave',
+        shippingCity: 'Mississauga',
+        shippingProvince: 'Ontario',
+        shippingPostalCode: 'L5B 2K1',
+        shippingCountry: 'Canada',
+        notes: 'Order shipped and delivered',
+        createdAt: new Date('2025-05-03T09:15:00.000Z'),
+        updatedAt: new Date('2025-05-03T16:30:00.000Z')
+      }
+    ];
+
+    defaultOrders.forEach(order => {
+      const id = this.getNextId();
+      this.data.orders.set(id, { id, ...order });
+    });
+
     // Initialize shipping zones and rates
     const shippingZones = [
       {
