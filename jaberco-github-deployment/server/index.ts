@@ -5,6 +5,7 @@ import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
 import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
+import { loadSecretsFromAWS } from "../aws-secrets.js";
 
 const app = express();
 app.use(express.json());
