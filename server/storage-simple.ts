@@ -103,6 +103,7 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   getUserNotifications(userId: number): Promise<Notification[]>;
   getUnreadNotifications(userId: number): Promise<Notification[]>;
+  getNotificationsByUserId(userId: number): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<boolean>;
   markAllNotificationsAsRead(userId: number): Promise<boolean>;
   deleteNotification(id: number): Promise<boolean>;
@@ -834,6 +835,10 @@ class SimpleMemoryStorage implements IStorage {
     return Array.from(this.data.notifications.values())
       .filter(n => n.userId === userId && !n.isRead)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  async getNotificationsByUserId(userId: number): Promise<Notification[]> {
+    return this.getUserNotifications(userId);
   }
 
   async markNotificationAsRead(id: number): Promise<boolean> {
