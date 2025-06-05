@@ -27,7 +27,7 @@ const PARAMETER_NAMES = {
  * @param {boolean} withDecryption - Whether to decrypt the parameter
  * @returns {Promise<string>} The parameter value
  */
-export async function getParameter(parameterName, withDecryption = true) {
+async function getParameter(parameterName, withDecryption = true) {
   try {
     const command = new GetParameterCommand({
       Name: parameterName,
@@ -48,7 +48,7 @@ export async function getParameter(parameterName, withDecryption = true) {
  * @param {boolean} withDecryption - Whether to decrypt the parameters
  * @returns {Promise<Object>} Object with parameter names as keys and values
  */
-export async function getParameters(parameterNames, withDecryption = true) {
+async function getParameters(parameterNames, withDecryption = true) {
   try {
     const command = new GetParametersCommand({
       Names: parameterNames,
@@ -78,7 +78,7 @@ export async function getParameters(parameterNames, withDecryption = true) {
  * Load all Jaberco application secrets from AWS Systems Manager
  * and set them as environment variables
  */
-export async function loadSecretsFromAWS() {
+async function loadSecretsFromAWS() {
   try {
     console.log('Loading secrets from AWS Systems Manager...');
     
@@ -98,4 +98,10 @@ export async function loadSecretsFromAWS() {
   }
 }
 
-export { PARAMETER_NAMES };
+// Export functions for CommonJS
+module.exports = {
+  getParameter,
+  getParameters,
+  loadSecretsFromAWS,
+  PARAMETER_NAMES
+};

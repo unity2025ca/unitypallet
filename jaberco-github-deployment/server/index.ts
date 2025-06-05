@@ -5,7 +5,7 @@ import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
 import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
-import { loadSecretsFromAWS } from "../aws-secrets.js";
+const { loadSecretsFromAWS } = require("../aws-secrets.js");
 
 const app = express();
 app.use(express.json());
@@ -50,6 +50,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Load secrets from AWS Systems Manager if available
+  if (process.env.AWS_ACCESS_KEY_ID || process.env.AWS_PROFILE || process.env.AWS_REGION) {
+    try {
+      console.log("Loading secrets from AWS Systems Manager Parameter Store...");
+      await loadSecretsFromAWS();
+      console.log("Successfully loaded secrets from AWS SSM");
+    } catch (error: any) {
+      console.warn("Failed to load secrets from AWS SSM, using environment variables:", error.message);
+    }
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
