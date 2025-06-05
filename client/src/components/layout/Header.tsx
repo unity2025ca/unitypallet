@@ -32,7 +32,6 @@ const Header = () => {
     { name: translations.navItems.howItWorks, href: "/how-it-works" },
     { name: translations.navItems.faq, href: "/faq" },
     { name: translations.navItems.contact, href: "/contact" },
-    { name: translations.navItems.admin, href: "/admin" },
   ];
 
   const toggleMobileMenu = () => {
