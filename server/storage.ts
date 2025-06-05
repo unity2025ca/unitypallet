@@ -1660,7 +1660,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllNotifications(): Promise<Notification[]> {
-    return db.select().from(notifications).orderBy(desc(notifications.createdAt));
+    return db.select().from(notifications).orderBy(desc(notifications.created_at));
   }
 }
 

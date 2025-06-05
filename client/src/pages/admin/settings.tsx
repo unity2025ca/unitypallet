@@ -137,6 +137,120 @@ export default function AdminSettings() {
               </TabsList>
             </div>
             
+            <TabsContent value="backup" className="space-y-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">Database Backup</h2>
+                <p className="text-slate-600">Create and manage database backups to secure your website data</p>
+              </div>
+
+              <div className="grid gap-6">
+                {/* Backup Status Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Backup Status
+                    </CardTitle>
+                    <CardDescription>
+                      Current status of your backup system
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {backupStatus?.available ? (
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Backup system is ready and configured properly.
+                          {backupStatus?.lastBackup && (
+                            <span className="block mt-1 text-sm text-muted-foreground">
+                              Last backup: {new Date(backupStatus.lastBackup).toLocaleString()}
+                            </span>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Backup system is not configured. Please set up NEW_DATABASE_URL environment variable.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Create Backup Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Download className="h-5 w-5" />
+                      Create New Backup
+                    </CardTitle>
+                    <CardDescription>
+                      Save all your website data to the backup database
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        This will backup all users, products, images, settings, orders, and other important data 
+                        to your configured backup database.
+                      </p>
+                      <Button 
+                        onClick={() => createBackupMutation.mutate()}
+                        disabled={createBackupMutation.isPending || !backupStatus?.available}
+                        className="w-full md:w-auto"
+                      >
+                        {createBackupMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating Backup...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="mr-2 h-4 w-4" />
+                            Create Backup Now
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Backup Information Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>What Gets Backed Up</CardTitle>
+                    <CardDescription>
+                      Complete list of data included in your backup
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Core Data</h4>
+                        <ul className="space-y-1 text-muted-foreground">
+                          <li>• All user accounts and permissions</li>
+                          <li>• Products and their details</li>
+                          <li>• Product images and media</li>
+                          <li>• Website settings and configuration</li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Business Data</h4>
+                        <ul className="space-y-1 text-muted-foreground">
+                          <li>• Customer orders and history</li>
+                          <li>• Contact form submissions</li>
+                          <li>• Appointments and bookings</li>
+                          <li>• FAQ content and notifications</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            
             <TabsContent value="system" className="space-y-4">
               <p className="text-slate-600 mb-4 md:mb-6">Manage system settings and maintenance mode</p>
               {systemSettings.map(setting => (
