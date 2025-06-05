@@ -174,20 +174,81 @@ class SimpleMemoryStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize comprehensive settings with existing configurations
+    // Initialize comprehensive settings with all admin configurations
     const defaultSettings = [
+      // General Settings
       { key: 'site_name', value: 'Jaberco', category: 'general', label: 'Site Name', type: 'text', description: 'Website name' },
+      { key: 'site_description', value: 'Premium Amazon return pallets - unbeatable deals on quality merchandise', category: 'general', label: 'Site Description', type: 'textarea', description: 'Website description for SEO' },
       { key: 'site_logo', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/loading-logo.gif', category: 'general', label: 'Site Logo', type: 'file', description: 'Website logo' },
-      { key: 'contact_email', value: 'info@jaberco.com', category: 'contact', label: 'Contact Email', type: 'email', description: 'Contact email address' },
-      { key: 'contact_phone', value: '+1 (289) 216-6500', category: 'contact', label: 'Contact Phone', type: 'text', description: 'Contact phone number' },
-      { key: 'contact_address', value: 'Mississauga, Ontario, Canada', category: 'contact', label: 'Contact Address', type: 'text', description: 'Business address' },
-      { key: 'whatsapp_number', value: '12892166500', category: 'contact', label: 'WhatsApp Number', type: 'text', description: 'WhatsApp contact number' },
-      { key: 'primary_color', value: '#dc2626', category: 'appearance', label: 'Primary Color', type: 'color', description: 'Main theme color' },
-      { key: 'secondary_color', value: '#000000', category: 'appearance', label: 'Secondary Color', type: 'color', description: 'Secondary theme color' },
-      { key: 'font_family', value: 'Inter', category: 'appearance', label: 'Font Family', type: 'text', description: 'Website font family' },
-      { key: 'banner_title', value: 'Welcome to Jaberco - Amazon Return Pallets', category: 'content', label: 'Banner Title', type: 'text', description: 'Homepage banner title' },
-      { key: 'banner_subtitle', value: 'Discover incredible deals on premium Amazon return pallets', category: 'content', label: 'Banner Subtitle', type: 'text', description: 'Homepage banner subtitle' },
-      { key: 'hero_image', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/hero-banner.jpg', category: 'content', label: 'Hero Image', type: 'file', description: 'Homepage hero image' }
+      { key: 'favicon', value: '/favicon.ico', category: 'general', label: 'Favicon', type: 'file', description: 'Website favicon' },
+      { key: 'timezone', value: 'America/Toronto', category: 'general', label: 'Timezone', type: 'select', description: 'Default timezone' },
+      { key: 'currency', value: 'CAD', category: 'general', label: 'Currency', type: 'select', description: 'Default currency' },
+      { key: 'language', value: 'en', category: 'general', label: 'Default Language', type: 'select', description: 'Website default language' },
+      
+      // Contact Information
+      { key: 'contact_email', value: 'info@jaberco.com', category: 'contact', label: 'Contact Email', type: 'email', description: 'Primary contact email' },
+      { key: 'support_email', value: 'support@jaberco.com', category: 'contact', label: 'Support Email', type: 'email', description: 'Customer support email' },
+      { key: 'contact_phone', value: '+1 (289) 216-6500', category: 'contact', label: 'Contact Phone', type: 'text', description: 'Main contact phone number' },
+      { key: 'whatsapp_number', value: '12892166500', category: 'contact', label: 'WhatsApp Number', type: 'text', description: 'WhatsApp business number' },
+      { key: 'contact_address', value: 'Mississauga, Ontario, Canada', category: 'contact', label: 'Business Address', type: 'textarea', description: 'Full business address' },
+      { key: 'business_hours', value: 'Monday-Friday: 9:00 AM - 6:00 PM EST', category: 'contact', label: 'Business Hours', type: 'text', description: 'Operating hours' },
+      
+      // Appearance & Branding
+      { key: 'primary_color', value: '#dc2626', category: 'appearance', label: 'Primary Color', type: 'color', description: 'Main brand color' },
+      { key: 'secondary_color', value: '#000000', category: 'appearance', label: 'Secondary Color', type: 'color', description: 'Secondary accent color' },
+      { key: 'accent_color', value: '#ffffff', category: 'appearance', label: 'Accent Color', type: 'color', description: 'Text and accent color' },
+      { key: 'font_family', value: 'Inter', category: 'appearance', label: 'Font Family', type: 'select', description: 'Main website font' },
+      { key: 'header_style', value: 'modern', category: 'appearance', label: 'Header Style', type: 'select', description: 'Website header design' },
+      { key: 'footer_style', value: 'standard', category: 'appearance', label: 'Footer Style', type: 'select', description: 'Website footer design' },
+      
+      // Homepage Content
+      { key: 'banner_title', value: 'Welcome to Jaberco - Amazon Return Pallets', category: 'content', label: 'Hero Banner Title', type: 'text', description: 'Main homepage title' },
+      { key: 'banner_subtitle', value: 'Discover incredible deals on premium Amazon return pallets', category: 'content', label: 'Hero Banner Subtitle', type: 'text', description: 'Homepage subtitle' },
+      { key: 'hero_image', value: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200', category: 'content', label: 'Hero Background Image', type: 'file', description: 'Homepage hero section background' },
+      { key: 'about_section', value: 'We specialize in high-quality Amazon return pallets, offering unbeatable deals on merchandise from trusted brands.', category: 'content', label: 'About Section', type: 'textarea', description: 'Homepage about content' },
+      { key: 'features_section', value: 'Quality Guaranteed|Fast Shipping|Competitive Prices|Expert Support', category: 'content', label: 'Key Features', type: 'text', description: 'Pipe-separated feature list' },
+      { key: 'call_to_action', value: 'Shop Now', category: 'content', label: 'Main CTA Button', type: 'text', description: 'Primary call-to-action text' },
+      
+      // Business Settings
+      { key: 'max_delivery_distance', value: '60', category: 'business', label: 'Max Delivery Distance (km)', type: 'number', description: 'Maximum delivery radius' },
+      { key: 'min_order_amount', value: '100', category: 'business', label: 'Minimum Order Amount', type: 'number', description: 'Minimum order value in CAD' },
+      { key: 'tax_rate', value: '13', category: 'business', label: 'Tax Rate (%)', type: 'number', description: 'HST/tax percentage' },
+      { key: 'shipping_calculation', value: 'distance_weight', category: 'business', label: 'Shipping Method', type: 'select', description: 'Shipping cost calculation method' },
+      { key: 'payment_methods', value: 'stripe,cash', category: 'business', label: 'Payment Methods', type: 'text', description: 'Accepted payment methods' },
+      { key: 'order_processing_time', value: '1-2', category: 'business', label: 'Processing Time (days)', type: 'text', description: 'Order processing timeframe' },
+      
+      // SEO Settings
+      { key: 'meta_title', value: 'Jaberco - Premium Amazon Return Pallets in Canada', category: 'seo', label: 'Meta Title', type: 'text', description: 'Default page title for SEO' },
+      { key: 'meta_description', value: 'Shop premium Amazon return pallets in Ontario. Quality merchandise at unbeatable prices with fast delivery.', category: 'seo', label: 'Meta Description', type: 'textarea', description: 'Default meta description' },
+      { key: 'meta_keywords', value: 'amazon returns, pallets, liquidation, wholesale, Ontario, Canada', category: 'seo', label: 'Meta Keywords', type: 'text', description: 'SEO keywords' },
+      { key: 'google_analytics', value: '', category: 'seo', label: 'Google Analytics ID', type: 'text', description: 'GA tracking ID' },
+      { key: 'facebook_pixel', value: '', category: 'seo', label: 'Facebook Pixel ID', type: 'text', description: 'Facebook tracking pixel' },
+      
+      // Email Settings
+      { key: 'smtp_host', value: '', category: 'email', label: 'SMTP Host', type: 'text', description: 'Email server hostname' },
+      { key: 'smtp_port', value: '587', category: 'email', label: 'SMTP Port', type: 'number', description: 'Email server port' },
+      { key: 'smtp_user', value: '', category: 'email', label: 'SMTP Username', type: 'text', description: 'Email server username' },
+      { key: 'smtp_from_name', value: 'Jaberco Team', category: 'email', label: 'From Name', type: 'text', description: 'Email sender name' },
+      { key: 'email_notifications', value: 'true', category: 'email', label: 'Enable Notifications', type: 'boolean', description: 'Send email notifications' },
+      
+      // Social Media
+      { key: 'facebook_url', value: '', category: 'social', label: 'Facebook URL', type: 'url', description: 'Facebook business page' },
+      { key: 'instagram_url', value: '', category: 'social', label: 'Instagram URL', type: 'url', description: 'Instagram business account' },
+      { key: 'twitter_url', value: '', category: 'social', label: 'Twitter URL', type: 'url', description: 'Twitter business account' },
+      { key: 'linkedin_url', value: '', category: 'social', label: 'LinkedIn URL', type: 'url', description: 'LinkedIn company page' },
+      { key: 'youtube_url', value: '', category: 'social', label: 'YouTube URL', type: 'url', description: 'YouTube channel' },
+      
+      // Security Settings
+      { key: 'enable_captcha', value: 'true', category: 'security', label: 'Enable CAPTCHA', type: 'boolean', description: 'Enable form protection' },
+      { key: 'max_login_attempts', value: '5', category: 'security', label: 'Max Login Attempts', type: 'number', description: 'Login attempt limit' },
+      { key: 'session_timeout', value: '7200', category: 'security', label: 'Session Timeout (seconds)', type: 'number', description: 'User session duration' },
+      { key: 'password_min_length', value: '8', category: 'security', label: 'Min Password Length', type: 'number', description: 'Minimum password characters' },
+      
+      // Maintenance
+      { key: 'maintenance_mode', value: 'false', category: 'maintenance', label: 'Maintenance Mode', type: 'boolean', description: 'Enable maintenance mode' },
+      { key: 'maintenance_message', value: 'We are currently performing scheduled maintenance. Please check back soon.', category: 'maintenance', label: 'Maintenance Message', type: 'textarea', description: 'Message during maintenance' },
+      { key: 'backup_frequency', value: 'daily', category: 'maintenance', label: 'Backup Frequency', type: 'select', description: 'Automated backup schedule' },
+      { key: 'debug_mode', value: 'false', category: 'maintenance', label: 'Debug Mode', type: 'boolean', description: 'Enable debug logging' }
     ];
 
     defaultSettings.forEach(setting => {
