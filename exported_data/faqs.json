@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "question": "What is an Amazon Returns Pallet?",
+    "answer": "An Amazon Returns Pallet is a collection of products that have been returned to Amazon by customers. These items are typically resold at a significant discount from their original price.",
+    "display_order": 1,
+    "created_at": "2025-04-22T02:30:26.033Z",
+    "updated_at": "2025-04-22T02:30:26.033Z"
+  },
+  {
+    "id": 2,
+    "question": "How does the buying process work?",
+    "answer": "Visit Our Location\nAll pallets are stored at our facility. You’re welcome to visit, browse the available pallets in person, and choose the one that best suits your needs.\n\t\n\t2.\tSelect Your Pallet\nOnce you find the right pallet, let us know. We’ll confirm availability and answer any questions you may have.\n\t3.\tSecure Payment\nMake your payment through our secure payment system.\n\t4.\tPickup or Delivery\nYou can pick up your pallet directly from our location. If needed, delivery can be arranged depending on your location—just ask us for a quote.\n\t5.\tLet’s Stay in Touch\nWe regularly update our inventory, so follow us on social media or join our mailing list to stay informed about new arrivals and special deals.",
+    "display_order": 2,
+    "created_at": "2025-04-22T02:30:26.033Z",
+    "updated_at": "2025-04-23T01:13:10.299Z"
+  },
+  {
+    "id": 3,
+    "question": "What condition are the items in?",
+    "answer": "The items can vary widely in condition, ranging from brand new and unused to gently used or previously owned. Some products may have minor cosmetic flaws or functional issues that can be easily repaired, while others are in excellent, like-new condition and ready for immediate use or resale.",
+    "display_order": 3,
+    "created_at": "2025-04-22T02:30:26.033Z",
+    "updated_at": "2025-04-23T01:15:19.232Z"
+  },
+  {
+    "id": 4,
+    "question": "Do you offer shipping?",
+    "answer": "Yes, we offer shipping throughout Canada. Shipping costs depend on the destination and the size of the pallet.",
+    "display_order": 4,
+    "created_at": "2025-04-22T02:30:26.033Z",
+    "updated_at": "2025-04-22T02:30:26.033Z"
+  },
+  {
+    "id": 5,
+    "question": "Can I inspect the pallet before buying?",
+    "answer": "Yes, you can schedule an appointment to come inspect the pallets in person before making a purchase. Contact us to arrange a viewing.",
+    "display_order": 5,
+    "created_at": "2025-04-22T02:30:26.033Z",
+    "updated_at": "2025-04-22T02:30:26.033Z"
+  }
+]

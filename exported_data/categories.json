@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "Electronics",
+    "name_ar": "الإلكترونيات",
+    "slug": "electronics",
+    "description": "Electronic items and gadgets",
+    "description_ar": "المنتجات والأجهزة الإلكترونية",
+    "display_order": 1,
+    "created_at": "2025-05-03T02:39:05.687Z"
+  },
+  {
+    "id": 2,
+    "name": "Home",
+    "name_ar": "المنزل",
+    "slug": "home",
+    "description": "Home goods and furniture",
+    "description_ar": "أغراض المنزل والأثاث",
+    "display_order": 2,
+    "created_at": "2025-05-03T02:39:05.687Z"
+  },
+  {
+    "id": 3,
+    "name": "Toys",
+    "name_ar": "ألعاب",
+    "slug": "toys",
+    "description": "Toys and games",
+    "description_ar": "الألعاب والألعاب",
+    "display_order": 3,
+    "created_at": "2025-05-03T02:39:05.687Z"
+  },
+  {
+    "id": 4,
+    "name": "Mixed",
+    "name_ar": "متنوع",
+    "slug": "mixed",
+    "description": "Mixed pallets with various items",
+    "description_ar": "منصات متنوعة تحتوي على مختلف العناصر",
+    "display_order": 4,
+    "created_at": "2025-05-03T02:39:05.687Z"
+  },
+  {
+    "id": 5,
+    "name": "Other",
+    "name_ar": "أخرى",
+    "slug": "other",
+    "description": "Other miscellaneous items",
+    "description_ar": "عناصر متنوعة أخرى",
+    "display_order": 5,
+    "created_at": "2025-05-03T02:39:05.687Z"
+  }
+]

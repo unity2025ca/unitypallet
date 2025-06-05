@@ -5,9 +5,13 @@
  * Database Migration Script - Complete Data Transfer
  */
 
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import fs from 'fs/promises';
 import path from 'path';
+import ws from 'ws';
+
+// تكوين WebSocket لـ Neon
+neonConfig.webSocketConstructor = ws;
 
 // إعداد الاتصال بقاعدة البيانات القديمة
 const oldDatabaseUrl = process.env.OLD_DATABASE_URL || process.env.DATABASE_URL;

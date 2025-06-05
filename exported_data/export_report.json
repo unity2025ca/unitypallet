@@ -1,0 +1,85 @@
+{
+  "exportDate": "2025-06-05T01:26:47.023Z",
+  "totalTables": 19,
+  "existingTables": 20,
+  "exportedTables": 17,
+  "totalRecords": 1683,
+  "tableDetails": {
+    "users": {
+      "recordCount": 5,
+      "status": "exported"
+    },
+    "products": {
+      "recordCount": 6,
+      "status": "exported"
+    },
+    "categories": {
+      "recordCount": 5,
+      "status": "exported"
+    },
+    "product_images": {
+      "recordCount": 28,
+      "status": "exported"
+    },
+    "settings": {
+      "recordCount": 83,
+      "status": "exported"
+    },
+    "contacts": {
+      "recordCount": 0,
+      "status": "empty"
+    },
+    "faqs": {
+      "recordCount": 5,
+      "status": "exported"
+    },
+    "appointments": {
+      "recordCount": 0,
+      "status": "empty"
+    },
+    "subscribers": {
+      "recordCount": 4,
+      "status": "exported"
+    },
+    "visitor_stats": {
+      "recordCount": 1173,
+      "status": "exported"
+    },
+    "notifications": {
+      "recordCount": 86,
+      "status": "exported"
+    },
+    "orders": {
+      "recordCount": 27,
+      "status": "exported"
+    },
+    "order_items": {
+      "recordCount": 26,
+      "status": "exported"
+    },
+    "shipping_zones": {
+      "recordCount": 1,
+      "status": "exported"
+    },
+    "shipping_rates": {
+      "recordCount": 1,
+      "status": "exported"
+    },
+    "locations": {
+      "recordCount": 1,
+      "status": "exported"
+    },
+    "allowed_cities": {
+      "recordCount": 3,
+      "status": "exported"
+    },
+    "carts": {
+      "recordCount": 223,
+      "status": "exported"
+    },
+    "cart_items": {
+      "recordCount": 6,
+      "status": "exported"
+    }
+  }
+}
