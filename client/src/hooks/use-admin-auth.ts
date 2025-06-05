@@ -97,6 +97,7 @@ export const useAdminAuth = () => {
   return {
     user: session?.user,
     isAdmin: session?.user?.isAdmin || false,
+    isPublisher: session?.user?.roleType === 'publisher' || false,
     isAuthenticated: session?.authenticated || false,
     isLoading,
     login,

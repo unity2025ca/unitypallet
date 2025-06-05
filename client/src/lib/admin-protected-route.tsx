@@ -9,7 +9,7 @@ export function AdminProtectedRoute({
   path: string;
   component: React.ComponentType<any>;
 }) {
-  const { isAuthenticated, isAdmin, isLoading } = useAdminAuth();
+  const { isAuthenticated, isAdmin, isPublisher, isLoading } = useAdminAuth();
 
   if (isLoading) {
     return (
@@ -21,8 +21,8 @@ export function AdminProtectedRoute({
     );
   }
 
-  // User is not authenticated or is not an admin, redirect to admin login
-  if (!isAuthenticated || !isAdmin) {
+  // User is not authenticated or is neither admin nor publisher, redirect to admin login
+  if (!isAuthenticated || (!isAdmin && !isPublisher)) {
     return (
       <Route path={path}>
         <Redirect to="/admin/login" />
@@ -44,9 +44,7 @@ export function PublisherProtectedRoute({
   path: string;
   component: React.ComponentType<any>;
 }) {
-  const { isAuthenticated, isAdmin, isLoading } = useAdminAuth();
-  // Check if user is a publisher based on role type
-  const isPublisher = isAuthenticated && !isAdmin && true; // Default to true for now as fallback
+  const { isAuthenticated, isAdmin, isPublisher, isLoading } = useAdminAuth();
 
   if (isLoading) {
     return (
