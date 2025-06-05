@@ -180,14 +180,14 @@ class SimpleMemoryStorage implements IStorage {
       // General Settings
       { key: 'site_name', value: 'Jaberco', category: 'general', label: 'Site Name', type: 'text', description: 'Website name' },
       { key: 'site_description', value: 'Premium Amazon return pallets - unbeatable deals on quality merchandise', category: 'general', label: 'Site Description', type: 'textarea', description: 'Website description for SEO' },
-      { key: 'site_logo', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746723682/jaberco/loading-logo.gif', category: 'general', label: 'Site Logo', type: 'file', description: 'Website logo' },
+      { key: 'site_logo', value: 'https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg', category: 'appearance', label: 'Site Logo', type: 'image', description: 'Website logo' },
       { key: 'favicon', value: '/favicon.ico', category: 'general', label: 'Favicon', type: 'file', description: 'Website favicon' },
       { key: 'timezone', value: 'America/Toronto', category: 'general', label: 'Timezone', type: 'select', description: 'Default timezone' },
       { key: 'currency', value: 'CAD', category: 'general', label: 'Currency', type: 'select', description: 'Default currency' },
       { key: 'language', value: 'en', category: 'general', label: 'Default Language', type: 'select', description: 'Website default language' },
       
       // Contact Information
-      { key: 'contact_email', value: 'info@jaberco.com', category: 'contact', label: 'Contact Email', type: 'email', description: 'Primary contact email' },
+      { key: 'contact_email', value: 'info@jaberco.ca', category: 'contact', label: 'Contact Email', type: 'email', description: 'Primary contact email' },
       { key: 'support_email', value: 'support@jaberco.com', category: 'contact', label: 'Support Email', type: 'email', description: 'Customer support email' },
       { key: 'contact_phone', value: '+1 (289) 216-6500', category: 'contact', label: 'Contact Phone', type: 'text', description: 'Main contact phone number' },
       { key: 'whatsapp_number', value: '12892166500', category: 'contact', label: 'WhatsApp Number', type: 'text', description: 'WhatsApp business number' },
