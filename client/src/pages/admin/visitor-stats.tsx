@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { AdminPageLoading, Loading } from "@/components/ui/loading";
 
 import Sidebar from '@/components/admin/Sidebar';
 import { useAdminAuth } from '@/hooks/use-admin-auth';

@@ -9,6 +9,7 @@ import { ar } from "date-fns/locale";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Order as SchemaOrder } from "@shared/schema";
+import { AdminPageLoading } from "@/components/ui/loading";
 
 // Extended Order type for admin panel with customer information from API
 interface OrderWithCustomer {
@@ -218,14 +219,9 @@ const AdminOrders = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
+      <AdminPageLoading>
         <Sidebar />
-        <div className="flex-1 p-8 mr-64">
-          <div className="flex justify-center items-center h-full">
-            <div className="w-16 h-16 border-4 border-primary border-solid rounded-full border-t-transparent animate-spin"></div>
-          </div>
-        </div>
-      </div>
+      </AdminPageLoading>
     );
   }
   
