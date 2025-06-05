@@ -309,6 +309,17 @@ export function setupAuth(app: Express) {
     if (req.isAuthenticated()) {
       const user = req.user as SelectUser;
       console.log("Session check - authenticated:", user.username);
+      
+      // Check if user has admin dashboard access (admin or publisher)
+      const hasAdminAccess = user.isAdmin || user.roleType === 'admin' || user.roleType === 'publisher';
+      
+      if (!hasAdminAccess && req.path?.startsWith('/admin')) {
+        console.log("Non-admin user attempting to access admin dashboard, rejecting");
+        return res.json({
+          authenticated: false
+        });
+      }
+      
       return res.json({
         authenticated: true,
         user: {
