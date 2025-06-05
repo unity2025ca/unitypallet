@@ -180,6 +180,7 @@ class SimpleMemoryStorage implements IStorage {
     const MemoryStore = createMemoryStore(session);
     this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
     this.initializeData();
+    this.loadCompleteExternalData();
   }
 
   private getNextId(): number {
@@ -1484,6 +1485,205 @@ class SimpleMemoryStorage implements IStorage {
       this.data.cartItems.delete(item.id);
     }
     return true;
+  }
+
+  // تحميل البيانات الكاملة من قاعدة البيانات الخارجية
+  private loadCompleteExternalData() {
+    try {
+      console.log('بدء تحميل البيانات الكاملة من قاعدة البيانات الخارجية...');
+      console.log('Loading complete data from external database...');
+
+      // قراءة البيانات المستوردة من الملف
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(__dirname, '../exported_data/complete_database_export.json');
+      
+      if (fs.existsSync(filePath)) {
+        const rawData = fs.readFileSync(filePath, 'utf8');
+        const externalData = JSON.parse(rawData);
+        
+        // تحميل بيانات المستخدمين الإضافية
+        if (externalData.users && Array.isArray(externalData.users)) {
+          externalData.users.forEach((user: any) => {
+            if (!this._users.has(user.id)) {
+              const userRecord = {
+                id: user.id,
+                username: user.username,
+                password: user.password,
+                email: user.email || null,
+                fullName: user.full_name || null,
+                phone: user.phone || null,
+                isAdmin: user.is_admin || false,
+                roleType: user.role_type || 'user',
+                stripeCustomerId: user.stripe_customer_id || null,
+                stripeSubscriptionId: user.stripe_subscription_id || null,
+                address: user.address || null,
+                city: user.city || null,
+                postalCode: user.postal_code || null,
+                country: user.country || null,
+                createdAt: user.created_at ? new Date(user.created_at) : new Date()
+              };
+              this._users.set(user.id, userRecord);
+            }
+          });
+        }
+
+        // تحميل جهات الاتصال الإضافية
+        if (externalData.contacts && Array.isArray(externalData.contacts)) {
+          externalData.contacts.forEach((contact: any) => {
+            if (!this._contacts.has(contact.id)) {
+              const contactRecord = {
+                id: contact.id,
+                name: contact.name,
+                email: contact.email || null,
+                phone: contact.phone || null,
+                message: contact.message || null,
+                createdAt: contact.created_at ? new Date(contact.created_at) : new Date()
+              };
+              this._contacts.set(contact.id, contactRecord);
+            }
+          });
+        }
+
+        // تحميل المواعيد الإضافية
+        if (externalData.appointments && Array.isArray(externalData.appointments)) {
+          externalData.appointments.forEach((appointment: any) => {
+            if (!this._appointments.has(appointment.id)) {
+              const appointmentRecord = {
+                id: appointment.id,
+                name: appointment.name,
+                email: appointment.email,
+                phone: appointment.phone,
+                date: appointment.date,
+                time: appointment.time,
+                message: appointment.message || null,
+                status: appointment.status || 'pending',
+                createdAt: appointment.created_at ? new Date(appointment.created_at) : new Date()
+              };
+              this._appointments.set(appointment.id, appointmentRecord);
+            }
+          });
+        }
+
+        // تحميل إحصائيات الزوار الإضافية
+        if (externalData.visitor_stats && Array.isArray(externalData.visitor_stats)) {
+          externalData.visitor_stats.forEach((stat: any) => {
+            if (!this._visitorStats.has(stat.id)) {
+              const statRecord = {
+                id: stat.id,
+                visitDate: stat.visit_date ? new Date(stat.visit_date) : new Date(),
+                pageUrl: stat.page_url,
+                visitorIp: stat.visitor_ip,
+                userAgent: stat.user_agent || null,
+                referrer: stat.referrer || null,
+                countryCode: stat.country_code || null,
+                deviceType: stat.device_type || null,
+                createdAt: stat.created_at ? new Date(stat.created_at) : new Date()
+              };
+              this._visitorStats.set(stat.id, statRecord);
+            }
+          });
+        }
+
+        // تحميل الطلبات الإضافية
+        if (externalData.orders && Array.isArray(externalData.orders)) {
+          externalData.orders.forEach((order: any) => {
+            if (!this._orders.has(order.id)) {
+              const orderRecord = {
+                id: order.id,
+                userId: order.user_id,
+                total: order.total,
+                status: order.status || 'pending',
+                shippingAddress: order.shipping_address || '',
+                paymentMethod: order.payment_method || 'credit_card',
+                stripePaymentIntentId: order.stripe_payment_intent_id || null,
+                trackingNumber: order.tracking_number || null,
+                estimatedDelivery: order.estimated_delivery ? new Date(order.estimated_delivery) : null,
+                createdAt: order.created_at ? new Date(order.created_at) : new Date(),
+                updatedAt: order.updated_at ? new Date(order.updated_at) : null
+              };
+              this._orders.set(order.id, orderRecord);
+            }
+          });
+        }
+
+        // تحميل عناصر الطلبات الإضافية
+        if (externalData.order_items && Array.isArray(externalData.order_items)) {
+          externalData.order_items.forEach((item: any) => {
+            if (!this._orderItems.has(item.id)) {
+              const itemRecord = {
+                id: item.id,
+                orderId: item.order_id,
+                productId: item.product_id,
+                quantity: item.quantity,
+                pricePerUnit: item.price_per_unit,
+                createdAt: item.created_at ? new Date(item.created_at) : new Date()
+              };
+              this._orderItems.set(item.id, itemRecord);
+            }
+          });
+        }
+
+        // تحميل سلال التسوق الإضافية
+        if (externalData.carts && Array.isArray(externalData.carts)) {
+          externalData.carts.forEach((cart: any) => {
+            if (!this._carts.has(cart.id)) {
+              const cartRecord = {
+                id: cart.id,
+                userId: cart.user_id || null,
+                sessionId: cart.session_id || null,
+                createdAt: cart.created_at ? new Date(cart.created_at) : new Date(),
+                updatedAt: cart.updated_at ? new Date(cart.updated_at) : null
+              };
+              this._carts.set(cart.id, cartRecord);
+            }
+          });
+        }
+
+        // تحميل عناصر سلال التسوق الإضافية
+        if (externalData.cart_items && Array.isArray(externalData.cart_items)) {
+          externalData.cart_items.forEach((item: any) => {
+            if (!this._cartItems.has(item.id)) {
+              const itemRecord = {
+                id: item.id,
+                cartId: item.cart_id,
+                productId: item.product_id,
+                quantity: item.quantity,
+                addedAt: item.added_at ? new Date(item.added_at) : new Date()
+              };
+              this._cartItems.set(item.id, itemRecord);
+            }
+          });
+        }
+
+        console.log('تم تحميل جميع البيانات المستوردة بنجاح');
+        console.log('All imported data loaded successfully');
+        
+        // طباعة إحصائيات محدثة
+        console.log('إحصائيات البيانات بعد التحميل:');
+        console.log(`المستخدمون: ${this._users.size}`);
+        console.log(`المنتجات: ${this._products.size}`);
+        console.log(`جهات الاتصال: ${this._contacts.size}`);
+        console.log(`الإعدادات: ${this._settings.size}`);
+        console.log(`الفئات: ${this._categories.size}`);
+        console.log(`المواعيد: ${this._appointments.size}`);
+        console.log(`الطلبات: ${this._orders.size}`);
+        console.log(`سلال التسوق: ${this._carts.size}`);
+        console.log(`عناصر السلة: ${this._cartItems.size}`);
+        console.log(`المشتركون: ${this._subscribers.size}`);
+        console.log(`الأسئلة الشائعة: ${this._faqs.size}`);
+        console.log(`الإشعارات: ${this._notifications.size}`);
+        console.log(`عناصر الطلبات: ${this._orderItems.size}`);
+        console.log(`إحصائيات الزوار: ${this._visitorStats.size}`);
+        console.log(`صور المنتجات: ${this._productImages.size}`);
+      } else {
+        console.log('ملف البيانات المستوردة غير موجود');
+        console.log('Imported data file not found');
+      }
+    } catch (error) {
+      console.error('خطأ في تحميل البيانات المستوردة:', error);
+      console.error('Error loading imported data:', error);
+    }
   }
 }
 
