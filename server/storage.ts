@@ -1,5 +1,2 @@
-// Use database storage with actual PostgreSQL data
-import { DatabaseStorage } from "./db-storage";
-
-export const storage = new DatabaseStorage();
-export type IStorage = DatabaseStorage;
+// Re-export from the simplified memory storage with all test data but load external data
+export { storage, type IStorage } from "./storage-simple";
