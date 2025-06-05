@@ -1,0 +1,67 @@
+JABERCO WEBSITE - CPANEL DEPLOYMENT CHECKLIST
+
+=== STEP 1: PREPARE DATABASE ===
+1. Login to your cPanel
+2. Go to "MySQL Databases" or "PostgreSQL Databases"
+3. Create database: jaberco_db
+4. Create user with full privileges
+5. Note: host, username, password, database name
+
+=== STEP 2: PREPARE ENVIRONMENT FILE ===
+Copy .env.production to .env and fill in these values:
+
+DATABASE_URL=postgresql://username:password@localhost:5432/jaberco_db
+NODE_ENV=production
+PORT=3000
+SESSION_SECRET=your-long-random-string-here
+
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+VITE_STRIPE_PUBLIC_KEY=pk_live_your_stripe_public_key
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+SENDGRID_API_KEY=SG.your_sendgrid_api_key
+
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+
+=== STEP 3: FILES TO UPLOAD ===
+Upload these to public_html folder:
+- dist/ folder (complete)
+- .htaccess
+- .env (with your values)
+- package.json
+- package-lock.json
+- create-admin.js
+- drizzle.config.ts
+- shared/ folder
+
+=== STEP 4: SETUP NODE.JS APP ===
+1. Go to "Node.js Apps" in cPanel
+2. Create Application:
+   - Root: /public_html/
+   - Startup File: dist/index.js
+   - Node.js Version: 18+
+3. Install dependencies: npm install --production
+4. Add environment variables
+5. Start application
+
+=== STEP 5: DATABASE SETUP ===
+In Node.js App terminal:
+1. npm run db:push
+2. node create-admin.js
+
+=== STEP 6: TEST DEPLOYMENT ===
+- Visit your domain
+- Test admin login: yourdomain.com/admin/login
+- Username: testadmin
+- Password: testadmin123
+
+=== TROUBLESHOOTING ===
+- Check Node.js App logs for errors
+- Verify environment variables are set
+- Ensure database connection works
+- Contact hosting provider for Node.js support

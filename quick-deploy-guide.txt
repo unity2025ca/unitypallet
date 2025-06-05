@@ -1,0 +1,41 @@
+JABERCO CPANEL DEPLOYMENT - QUICK GUIDE
+
+=== WHAT YOU NEED ===
+1. cPanel hosting with Node.js support
+2. Database (MySQL/PostgreSQL)
+3. These API keys:
+   - Stripe (secret + public keys)
+   - Cloudinary (cloud name, API key, secret)
+   - SendGrid (API key)
+   - Twilio (SID, token, phone number)
+
+=== UPLOAD THESE FILES TO public_html ===
+1. dist/ folder (after running npm run build)
+2. .htaccess file
+3. .env file (copy from .env.production and add your keys)
+4. package.json
+5. package-lock.json
+6. create-admin.js
+7. drizzle.config.ts
+8. shared/ folder
+
+=== CPANEL SETUP ===
+1. Create database in cPanel
+2. Go to Node.js Apps
+3. Create new app:
+   - Root: /public_html/
+   - Startup: dist/index.js
+   - Node version: 18+
+4. Install dependencies: npm install --production
+5. Add environment variables
+6. Start app
+
+=== FINAL STEPS ===
+1. Run: npm run db:push
+2. Run: node create-admin.js
+3. Test website
+4. Login admin: yourdomain.com/admin/login
+
+Admin credentials:
+Username: testadmin
+Password: testadmin123
