@@ -279,7 +279,39 @@ class SimpleMemoryStorage implements IStorage {
       { key: 'working_hours_start', value: '09:00', category: 'appointments', label: 'Working Hours Start', type: 'time', description: 'Business hours start time' },
       { key: 'working_hours_end', value: '17:00', category: 'appointments', label: 'Working Hours End', type: 'time', description: 'Business hours end time' },
       { key: 'max_appointments_per_day', value: '8', category: 'appointments', label: 'Max Appointments/Day', type: 'number', description: 'Maximum daily appointments' },
-      { key: 'appointment_advance_booking', value: '24', category: 'appointments', label: 'Advance Booking (hours)', type: 'number', description: 'Minimum advance booking time' }
+      { key: 'appointment_advance_booking', value: '24', category: 'appointments', label: 'Advance Booking (hours)', type: 'number', description: 'Minimum advance booking time' },
+
+      // Homepage Banner Settings
+      { key: 'banner_title', value: 'Premium Amazon Return Pallets in Ontario', category: 'home_banner', label: 'Banner Title', type: 'text', description: 'Main banner headline' },
+      { key: 'banner_subtitle', value: 'Discover unbeatable deals on quality liquidation merchandise', category: 'home_banner', label: 'Banner Subtitle', type: 'text', description: 'Banner subtitle text' },
+      { key: 'banner_description', value: 'Get access to authentic Amazon return pallets with detailed manifests and fast delivery across Ontario. Perfect for resellers and bargain hunters.', category: 'home_banner', label: 'Banner Description', type: 'textarea', description: 'Banner description text' },
+      { key: 'banner_cta_text', value: 'Shop Pallets Now', category: 'home_banner', label: 'Call-to-Action Text', type: 'text', description: 'Banner button text' },
+      { key: 'banner_cta_link', value: '/products', category: 'home_banner', label: 'Call-to-Action Link', type: 'text', description: 'Banner button destination' },
+      { key: 'banner_background_image', value: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80', category: 'home_banner', label: 'Background Image URL', type: 'image', description: 'Banner background image' },
+      { key: 'banner_hero_image', value: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', category: 'home_banner', label: 'Hero Image URL', type: 'image', description: 'Main banner hero image' },
+
+      // Homepage Features Settings
+      { key: 'features_title', value: 'Why Choose Jaberco?', category: 'home_features', label: 'Features Section Title', type: 'text', description: 'Features section main title' },
+      { key: 'feature1_title', value: 'Authentic Products', category: 'home_features', label: 'Feature 1 Title', type: 'text', description: 'First feature title' },
+      { key: 'feature1_description', value: 'Genuine Amazon return items with detailed manifests when available', category: 'home_features', label: 'Feature 1 Description', type: 'textarea', description: 'First feature description' },
+      { key: 'feature2_title', value: 'Fast Delivery', category: 'home_features', label: 'Feature 2 Title', type: 'text', description: 'Second feature title' },
+      { key: 'feature2_description', value: 'Reliable delivery service throughout Ontario within 1-4 business days', category: 'home_features', label: 'Feature 2 Description', type: 'textarea', description: 'Second feature description' },
+      { key: 'feature3_title', value: 'Great Value', category: 'home_features', label: 'Feature 3 Title', type: 'text', description: 'Third feature title' },
+      { key: 'feature3_description', value: 'Competitive pricing with bulk discounts for regular customers', category: 'home_features', label: 'Feature 3 Description', type: 'textarea', description: 'Third feature description' },
+
+      // Homepage About Settings
+      { key: 'home_about_title', value: 'About Our Business', category: 'home_about', label: 'About Section Title', type: 'text', description: 'Homepage about section title' },
+      { key: 'home_about_description', value: 'With 5 years of experience in liquidation merchandise, Jaberco has become Ontario\'s trusted source for Amazon return pallets. We pride ourselves on transparency, quality, and exceptional customer service.', category: 'home_about', label: 'About Description', type: 'textarea', description: 'Homepage about description' },
+
+      // Homepage Products Settings  
+      { key: 'home_products_title', value: 'Featured Pallets', category: 'home_products', label: 'Products Section Title', type: 'text', description: 'Homepage products section title' },
+      { key: 'home_products_subtitle', value: 'Explore our current selection of premium return pallets', category: 'home_products', label: 'Products Section Subtitle', type: 'text', description: 'Homepage products section subtitle' },
+
+      // Homepage CTA Settings
+      { key: 'home_cta_title', value: 'Ready to Start Buying?', category: 'home_cta', label: 'CTA Section Title', type: 'text', description: 'Call-to-action section title' },
+      { key: 'home_cta_description', value: 'Join hundreds of satisfied customers who trust Jaberco for their liquidation needs. Browse our current inventory and place your order today.', category: 'home_cta', label: 'CTA Description', type: 'textarea', description: 'Call-to-action description' },
+      { key: 'home_cta_button_text', value: 'Browse All Pallets', category: 'home_cta', label: 'CTA Button Text', type: 'text', description: 'Call-to-action button text' },
+      { key: 'home_cta_button_link', value: '/products', category: 'home_cta', label: 'CTA Button Link', type: 'text', description: 'Call-to-action button destination' }
     ];
 
     defaultSettings.forEach(setting => {
