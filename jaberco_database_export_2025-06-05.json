@@ -1,0 +1,21 @@
+{
+  "users": [],
+  "products": [],
+  "product_images": [],
+  "settings": [],
+  "categories": [],
+  "orders": [],
+  "order_items": [],
+  "carts": [],
+  "cart_items": [],
+  "contacts": [],
+  "appointments": [],
+  "notifications": [],
+  "faqs": [],
+  "subscribers": [],
+  "allowed_cities": [],
+  "shipping_zones": [],
+  "shipping_rates": [],
+  "locations": [],
+  "visitor_stats": []
+}
