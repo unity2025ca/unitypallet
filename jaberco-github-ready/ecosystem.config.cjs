@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'jaberco-app',
-    script: 'start-production-with-env.js',
+    script: 'start-production-with-env.cjs',
     instances: 1,
     autorestart: true,
     watch: false,

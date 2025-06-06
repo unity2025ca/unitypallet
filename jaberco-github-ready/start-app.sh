@@ -43,7 +43,7 @@ fi
 
 # Fallback to direct execution with environment loading
 echo "📝 Starting directly with Node.js and environment loading..."
-nohup node start-production-with-env.js > logs/app.log 2>&1 &
+nohup node start-production-with-env.cjs > logs/app.log 2>&1 &
 APP_PID=$!
 echo $APP_PID > logs/app.pid
 
