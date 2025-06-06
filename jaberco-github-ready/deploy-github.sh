@@ -102,10 +102,20 @@ mkdir -p logs
 
 # Start with PM2
 echo "🚀 Starting application with PM2..."
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 
-# Save PM2 configuration
-pm2 save
+if [ $? -eq 0 ]; then
+    echo "✅ PM2 started successfully"
+    # Save PM2 configuration
+    pm2 save
+else
+    echo "⚠️  PM2 failed, starting manually..."
+    echo "🚀 Starting application directly..."
+    nohup node dist/index.js > logs/app.log 2>&1 &
+    echo $! > logs/app.pid
+    echo "✅ Application started manually"
+    echo "📝 Check logs: tail -f logs/app.log"
+fi
 
 # Setup PM2 startup
 pm2 startup

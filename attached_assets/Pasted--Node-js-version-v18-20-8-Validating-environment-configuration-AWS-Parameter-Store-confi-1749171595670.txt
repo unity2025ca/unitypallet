@@ -1,0 +1,71 @@
+✅ Node.js version: v18.20.8
+🔍 Validating environment configuration...
+✅ AWS Parameter Store configuration detected - secrets will be loaded at runtime
+✅ Environment configuration validated
+📦 Installing dependencies...
+
+up to date, audited 655 packages in 3s
+
+81 packages are looking for funding
+  run `npm fund` for details
+
+5 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+🏗️  Building application...
+
+> rest-express@1.0.0 build
+> npm run build:frontend && npm run build:backend
+
+
+> rest-express@1.0.0 build:frontend
+> vite build
+
+vite v5.4.19 building for production...
+✓ 3543 modules transformed.
+../dist/public/index.html                                      1.83 kB │ gzip:   0.70 kB
+../dist/public/assets/IMG_2944_1749106310066-BVrfYKOM.gif    319.01 kB
+../dist/public/assets/index-BmyiPwYR.css                     125.71 kB │ gzip:  38.52 kB
+../dist/public/assets/index-BPvUJXhq.js                    1,340.12 kB │ gzip: 369.36 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4m 16s
+
+> rest-express@1.0.0 build:backend
+> esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+▲ [WARNING] Duplicate member "initializeDatabase" in class body [duplicate-class-member]
+
+    server/storage.ts:1625:16:
+      1625 │   private async initializeDatabase() {
+           ╵                 ~~~~~~~~~~~~~~~~~~
+
+  The original member "initializeDatabase" is here:
+
+    server/storage.ts:704:16:
+      704 │   private async initializeDatabase() {
+          ╵                 ~~~~~~~~~~~~~~~~~~
+
+1 warning
+
+  dist/index.js  251.5kb
+
+⚡ Done in 85ms
+🚀 Starting application with PM2...
+[PM2][ERROR] File ecosystem.config.js not found
+[PM2] Saving current process list...
+[PM2][WARN] PM2 is not managing any process, skipping save...
+[PM2][WARN] To force saving use: pm2 save --force
+[PM2] Init System found: systemd
+[PM2] To setup the Startup Script, copy/paste the following command:
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ec2-user --hp /home/ec2-user
+✅ Deployment completed successfully!
+📊 Check status: pm2 status
+📝 View logs: pm2 logs jaberco-app
+🌐 Application running on port 5000
