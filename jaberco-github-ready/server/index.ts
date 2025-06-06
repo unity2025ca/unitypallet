@@ -5,7 +5,8 @@ import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
 import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
-const { loadSecretsFromAWS } = require("../aws-secrets.js");
+// AWS secrets loading - commented out for build compatibility
+// const { loadSecretsFromAWS } = require("../aws-secrets.js");
 
 const app = express();
 app.use(express.json());
@@ -50,23 +51,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Load secrets from AWS Systems Manager if available
-  if (process.env.AWS_ACCESS_KEY_ID || process.env.AWS_PROFILE || process.env.AWS_REGION) {
-    try {
-      console.log("Loading secrets from AWS Systems Manager Parameter Store...");
-      await loadSecretsFromAWS();
-      console.log("Successfully loaded secrets from AWS SSM");
-    } catch (error: any) {
-      console.warn("Failed to load secrets from AWS SSM, using environment variables:", error.message);
-    }
-  }
+  // AWS Parameter Store integration disabled for build compatibility
+  // Environment variables will be used directly
 
-  // Validate critical environment variables after AWS loading
+  // Validate critical environment variables
   console.log("🔍 Validating environment configuration...");
   
   if (!process.env.SESSION_SECRET) {
     console.error("❌ SESSION_SECRET not properly configured");
-    console.log("Please ensure SESSION_SECRET is set in your environment variables or AWS Parameter Store");
+    console.log("Please ensure SESSION_SECRET is set in your environment variables");
     process.exit(1);
   }
   
