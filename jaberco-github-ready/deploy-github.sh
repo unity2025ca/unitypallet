@@ -81,19 +81,19 @@ echo "✅ Environment configuration validated"
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm install
+npm install --legacy-peer-deps
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install dependencies"
     exit 1
 fi
 
-# Build frontend
-echo "🏗️  Building frontend..."
-npm run build:frontend
+# Build application
+echo "🏗️  Building application..."
+npm run build
 
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to build frontend"
+    echo "❌ Failed to build application"
     exit 1
 fi
 
@@ -112,5 +112,5 @@ pm2 startup
 
 echo "✅ Deployment completed successfully!"
 echo "📊 Check status: pm2 status"
-echo "📝 View logs: pm2 logs jaberco-ecommerce"
-echo "🌐 Application running on port 3000"
+echo "📝 View logs: pm2 logs jaberco-app"
+echo "🌐 Application running on port 5000"

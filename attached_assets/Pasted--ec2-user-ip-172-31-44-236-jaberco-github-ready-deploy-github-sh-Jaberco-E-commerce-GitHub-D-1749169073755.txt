@@ -1,0 +1,47 @@
+[ec2-user@ip-172-31-44-236 jaberco-github-ready]$ ./deploy-github.sh
+🚀 Jaberco E-commerce GitHub Deployment Script
+===============================================
+✅ Node.js version: v18.20.8
+⚠️  Environment file not found. Creating from template...
+📝 Please edit .env file with your actual configuration values
+
+Required secrets for Jaberco E-commerce Platform:
+- DATABASE_URL: PostgreSQL connection string
+- SESSION_SECRET: Strong random string for security
+- CLOUDINARY_*: Image management service keys
+- STRIPE_*: Payment processing keys
+- TWILIO_*: SMS notification credentials
+- SENDGRID_API_KEY: Email service key
+
+See SECRETS_SETUP_GUIDE.md for detailed instructions
+Press Enter after configuring .env file...
+🔍 Validating environment configuration...
+✅ AWS Parameter Store configuration detected - secrets will be loaded at runtime
+✅ Environment configuration validated
+📦 Installing dependencies...
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm warn deprecated
+npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm warn deprecated multer@1.4.5-lts.2: Multer 1.x is impacted by a number of vulnerabilities, which have been patched in 2.x. You should upgrade to the latest 2.x version.
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 651 packages, and audited 652 packages in 4m
+
+80 packages are looking for funding
+  run `npm fund` for details
+
+5 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+🏗️  Building frontend...
+npm error Missing script: "build:frontend"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/ec2-user/.npm/_logs/2025-06-06T00_16_56_157Z-debug-0.log
+❌ Failed to build frontend
