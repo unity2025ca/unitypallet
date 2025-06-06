@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   apps: [{
     name: 'jaberco-app',
     script: 'dist/index.js',
