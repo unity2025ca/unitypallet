@@ -45,26 +45,36 @@ fi
 
 # Validate critical environment variables
 echo "🔍 Validating environment configuration..."
-source .env
 
-if [ -z "$DATABASE_URL" ] || [[ "$DATABASE_URL" == *"username:password"* ]]; then
-    echo "❌ DATABASE_URL not properly configured"
-    exit 1
+# Load .env if it exists (for non-AWS deployments)
+if [ -f ".env" ]; then
+    source .env
 fi
 
-if [ -z "$SESSION_SECRET" ] || [[ "$SESSION_SECRET" == *"your-super-secret"* ]]; then
-    echo "❌ SESSION_SECRET not properly configured"
-    exit 1
-fi
+# Check if AWS Parameter Store will be used
+if [ -n "$AWS_ACCESS_KEY_ID" ] || [ -n "$AWS_PROFILE" ] || [ -n "$AWS_REGION" ]; then
+    echo "✅ AWS Parameter Store configuration detected - secrets will be loaded at runtime"
+else
+    # Validate environment variables for non-AWS deployments
+    if [ -z "$DATABASE_URL" ] || [[ "$DATABASE_URL" == *"username:password"* ]]; then
+        echo "❌ DATABASE_URL not properly configured"
+        exit 1
+    fi
 
-if [ -z "$CLOUDINARY_CLOUD_NAME" ] || [[ "$CLOUDINARY_CLOUD_NAME" == *"your-cloud-name"* ]]; then
-    echo "❌ Cloudinary configuration not properly set"
-    exit 1
-fi
+    if [ -z "$SESSION_SECRET" ] || [[ "$SESSION_SECRET" == *"your-super-secret"* ]]; then
+        echo "❌ SESSION_SECRET not properly configured"
+        exit 1
+    fi
 
-if [ -z "$STRIPE_SECRET_KEY" ] || [[ "$STRIPE_SECRET_KEY" == *"your_secret_key"* ]]; then
-    echo "❌ Stripe configuration not properly set"
-    exit 1
+    if [ -z "$CLOUDINARY_CLOUD_NAME" ] || [[ "$CLOUDINARY_CLOUD_NAME" == *"your-cloud-name"* ]]; then
+        echo "❌ Cloudinary configuration not properly set"
+        exit 1
+    fi
+
+    if [ -z "$STRIPE_SECRET_KEY" ] || [[ "$STRIPE_SECRET_KEY" == *"your_secret_key"* ]]; then
+        echo "❌ Stripe configuration not properly set"
+        exit 1
+    fi
 fi
 
 echo "✅ Environment configuration validated"

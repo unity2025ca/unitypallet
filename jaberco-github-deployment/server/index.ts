@@ -61,6 +61,17 @@ app.use((req, res, next) => {
     }
   }
 
+  // Validate critical environment variables after AWS loading
+  console.log("🔍 Validating environment configuration...");
+  
+  if (!process.env.SESSION_SECRET) {
+    console.error("❌ SESSION_SECRET not properly configured");
+    console.log("Please ensure SESSION_SECRET is set in your environment variables or AWS Parameter Store");
+    process.exit(1);
+  }
+  
+  console.log("✅ Environment configuration validated");
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
