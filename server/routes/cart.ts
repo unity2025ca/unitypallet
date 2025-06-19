@@ -26,7 +26,10 @@ async function ensureCartExists(req: Request, res: Response, next: Function) {
       
       // Create a new cart for the user
       const [newCart] = await db.insert(carts)
-        .values({ userId })
+        .values({ 
+          userId,
+          sessionId: `user-${userId}-${Date.now()}`
+        })
         .returning();
       
       req.cartId = newCart.id;
