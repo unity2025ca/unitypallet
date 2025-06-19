@@ -1,85 +1,110 @@
-# Jaberco E-commerce Website - cPanel Deployment Guide
+# Jaberco E-commerce - تعليمات النشر السريع على cPanel
 
-## Prerequisites
-- cPanel hosting account with Node.js support (version 18 or higher)
-- Database access (MySQL or PostgreSQL)
-- Domain name configured
+## حزمة النشر الجاهزة
+📦 **ملف النشر:** `jaberco-cpanel-deployment-complete.tar.gz`
 
-## Step 1: Extract Files
-1. Download `jaberco-deployment-updated.tar.gz` from this project
-2. Extract the archive to your local computer
-3. You'll see these folders and files:
-   - `server/` - Backend code
-   - `shared/` - Database schemas
-   - `src/` - Frontend source code
-   - `index.html` - Main HTML file
-   - Configuration files (.htaccess, package.json, etc.)
+## خطوات النشر (5 دقائق)
 
-## Step 2: Database Setup
-1. Login to your cPanel
-2. Go to "MySQL Databases" or "PostgreSQL Databases"
-3. Create a new database named `jaberco_db`
-4. Create a database user with full privileges
-5. Note down: hostname, username, password, database name
+### 1. رفع الملفات
+1. حمّل ملف `jaberco-cpanel-deployment-complete.tar.gz`
+2. ادخل إلى cPanel → File Manager
+3. اذهب إلى مجلد `public_html`
+4. ارفع الملف المضغوط
+5. فك الضغط (Extract)
 
-## Step 3: Environment Configuration
-1. Copy `.env.production` to `.env`
-2. Fill in your database connection:
-   ```
-   DATABASE_URL=postgresql://username:password@hostname:port/jaberco_db
-   ```
-3. Add your API keys:
-   - Stripe keys (both secret and public)
-   - Cloudinary credentials
-   - SendGrid API key
-   - Twilio credentials
+### 2. إعداد Node.js في cPanel
+1. اذهب إلى **Node.js App** في cPanel
+2. انقر **Create Application**
+3. املأ البيانات:
+   - **Node.js Version:** 18+ (أو أحدث)
+   - **Application Root:** `/public_html`
+   - **Application URL:** `your-domain.com`
+   - **Startup File:** `app.js`
+4. انقر **Create**
 
-## Step 4: Upload to cPanel
-1. Access File Manager in cPanel
-2. Navigate to `public_html/` folder
-3. Upload all extracted files to this directory
-4. Make sure `.htaccess` is in the root of public_html
+### 3. إعداد قاعدة البيانات
+1. اذهب إلى **PostgreSQL Databases** في cPanel
+2. أنشئ قاعدة بيانات جديدة
+3. أنشئ مستخدم جديد وربطه بقاعدة البيانات
+4. احفظ معلومات الاتصال
 
-## Step 5: Node.js Application Setup
-1. Go to "Node.js Apps" in cPanel
-2. Create New Application:
-   - App Root: `/public_html/`
-   - App URL: Your domain
-   - Application startup file: `server/index.ts`
-   - Node.js version: 18 or higher
-3. Click "Create"
+### 4. إعداد المتغيرات البيئية
+1. في Node.js App، انقر **Environment Variables**
+2. أضف المتغيرات التالية:
 
-## Step 6: Install Dependencies
-1. In the Node.js app interface, open terminal
-2. Run: `npm install --production`
-3. Wait for installation to complete
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+STRIPE_SECRET_KEY=sk_live_your_stripe_key
+STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_key
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_PHONE_NUMBER=+1234567890
+CLOUDINARY_CLOUD_NAME=dsviwqpmy
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_API_SECRET=your_cloudinary_secret
+SENDGRID_API_KEY=SG.your_sendgrid_key
+NODE_ENV=production
+SESSION_SECRET=your_random_secret_key
+PORT=3000
+```
 
-## Step 7: Build the Application
-1. In the terminal, run: `npm run build`
-2. This creates the production files
+### 5. استيراد قاعدة البيانات
+1. اذهب إلى **phpPgAdmin** في cPanel
+2. اختر قاعدة البيانات الجديدة
+3. انقر **SQL** → **Execute SQL**
+4. ارفع ملف `jaberco_complete_database.sql`
+5. تشغيل الاستيراد
 
-## Step 8: Database Migration
-1. Run: `npm run db:push`
-2. Run: `node create-admin.js`
-3. This creates your admin account
+### 6. تشغيل التطبيق
+1. ارجع إلى Node.js App
+2. انقر **Run NPM Install** (لتثبيت التبعيات)
+3. انقر **Start App**
+4. تحقق من الحالة: **Running**
 
-## Step 9: Start the Application
-1. Click "Start App" in the Node.js interface
-2. Your website should now be live
+## البيانات المُحملة مُسبقاً
 
-## Default Admin Login
-- URL: `yourdomain.com/admin/login`
-- Username: `testadmin`
-- Password: `testadmin123`
+### المنتجات
+- 6 منتجات Amazon return pallets حقيقية
+- 28 صورة منتج من Cloudinary
+- أسعار ووصف أصلي
 
-## Troubleshooting
-- Check application logs in cPanel for errors
-- Verify all environment variables are set
-- Ensure database connection is working
-- Contact your hosting provider if Node.js features aren't available
+### الإعدادات
+- 83 إعداد موقع كامل
+- شعار الموقع ومعلومات الاتصال
+- سياسات الخصوصية والاستخدام
 
-## Important Notes
-- Change the default admin password after first login
-- Update environment variables with your production API keys
-- Test all functionality before going live
-- Keep backups of your database and files
+### الحسابات
+- **الأدمن:** admin@jaberco.com / admin123
+- 2 حساب عميل تجريبي
+
+### المحتوى
+- 5 أسئلة شائعة بالعربية والإنجليزية
+- 4 رسائل اتصال حقيقية
+- نظام شحن كامل للمدن الكندية
+
+## اختبار النشر
+1. اذهب إلى `https://your-domain.com`
+2. تحقق من ظهور الصفحة الرئيسية
+3. اختبر الدخول إلى لوحة التحكم: `https://your-domain.com/admin`
+4. تأكد من ظهور المنتجات والصور
+
+## الأمان
+⚠️ **مهم جداً:**
+1. غيّر كلمة مرور الأدمن فوراً
+2. استخدم مفاتيح Stripe الحقيقية (live keys)
+3. فعّل SSL للموقع
+4. اعمل نسخة احتياطية من قاعدة البيانات
+
+## الدعم الفني
+📞 **للمساعدة:**
+- البريد الإلكتروني: support@jaberco.com
+- واتساب: +1234567890
+
+## ملاحظات
+- الموقع يدعم العربية والإنجليزية
+- نظام الدفع جاهز مع Stripe
+- الرسائل النصية مع Twilio
+- تخزين الصور مع Cloudinary
+- الإيميلات مع SendGrid
+
+✅ **بعد اتباع هذه الخطوات، موقع Jaberco E-commerce سيكون جاهزاً للعمل مع جميع البيانات الأصلية!**
