@@ -464,6 +464,76 @@ export const insertAllowedCitySchema = createInsertSchema(allowedCities).omit({
   updatedAt: true,
 });
 
+// Auction Status Enum
+export const auctionStatusEnum = pgEnum("auction_status", ["draft", "active", "ended", "cancelled"]);
+
+// Auctions Schema
+export const auctions = pgTable("auctions", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  title: text("title").notNull(),
+  titleAr: text("title_ar"),
+  description: text("description"),
+  descriptionAr: text("description_ar"),
+  startingPrice: integer("starting_price").notNull(), // in cents
+  reservePrice: integer("reserve_price"), // minimum acceptable price in cents
+  currentBid: integer("current_bid").default(0), // current highest bid in cents
+  bidIncrement: integer("bid_increment").notNull().default(500), // minimum bid increment in cents
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  status: auctionStatusEnum("status").default("draft").notNull(),
+  winnerId: integer("winner_id").references(() => users.id),
+  totalBids: integer("total_bids").default(0),
+  isAutoExtend: boolean("is_auto_extend").default(true), // extend auction if bid in last 5 minutes
+  autoExtendMinutes: integer("auto_extend_minutes").default(5),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAuctionSchema = createInsertSchema(auctions).omit({
+  id: true,
+  currentBid: true,
+  winnerId: true,
+  totalBids: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Bids Schema
+export const bids = pgTable("bids", {
+  id: serial("id").primaryKey(),
+  auctionId: integer("auction_id").notNull().references(() => auctions.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  bidAmount: integer("bid_amount").notNull(), // in cents
+  isWinning: boolean("is_winning").default(false),
+  isOutbid: boolean("is_outbid").default(false),
+  bidTime: timestamp("bid_time").defaultNow(),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+});
+
+export const insertBidSchema = createInsertSchema(bids).omit({
+  id: true,
+  isWinning: true,
+  isOutbid: true,
+  bidTime: true,
+});
+
+// Auction Watchers Schema (users following auctions)
+export const auctionWatchers = pgTable("auction_watchers", {
+  id: serial("id").primaryKey(),
+  auctionId: integer("auction_id").notNull().references(() => auctions.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notifyOnBid: boolean("notify_on_bid").default(true),
+  notifyOnEnd: boolean("notify_on_end").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAuctionWatcherSchema = createInsertSchema(auctionWatchers).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types for shipping
 export type ShippingZone = typeof shippingZones.$inferSelect;
 export type InsertShippingZone = z.infer<typeof insertShippingZoneSchema>;
@@ -473,3 +543,11 @@ export type Location = typeof locations.$inferSelect;
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type AllowedCity = typeof allowedCities.$inferSelect;
 export type InsertAllowedCity = z.infer<typeof insertAllowedCitySchema>;
+
+// Export types for auctions
+export type Auction = typeof auctions.$inferSelect;
+export type InsertAuction = z.infer<typeof insertAuctionSchema>;
+export type Bid = typeof bids.$inferSelect;
+export type InsertBid = z.infer<typeof insertBidSchema>;
+export type AuctionWatcher = typeof auctionWatchers.$inferSelect;
+export type InsertAuctionWatcher = z.infer<typeof insertAuctionWatcherSchema>;
