@@ -70,7 +70,7 @@ function formatTimeLeft(endTime: string) {
   const timeLeft = end - now;
 
   if (timeLeft <= 0) {
-    return { text: "انتهت", isExpired: true };
+    return { text: "Ended", isExpired: true };
   }
 
   const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
@@ -79,13 +79,13 @@ function formatTimeLeft(endTime: string) {
   const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
   if (days > 0) {
-    return { text: `${days} يوم و ${hours} ساعة`, isExpired: false };
+    return { text: `${days}d ${hours}h`, isExpired: false };
   } else if (hours > 0) {
-    return { text: `${hours} ساعة و ${minutes} دقيقة`, isExpired: false };
+    return { text: `${hours}h ${minutes}m`, isExpired: false };
   } else if (minutes > 0) {
-    return { text: `${minutes} دقيقة و ${seconds} ثانية`, isExpired: false };
+    return { text: `${minutes}m ${seconds}s`, isExpired: false };
   } else {
-    return { text: `${seconds} ثانية`, isExpired: false };
+    return { text: `${seconds}s`, isExpired: false };
   }
 }
 
@@ -108,16 +108,16 @@ export default function AuctionDetailsPage() {
       apiRequest(`/api/auctions/${id}/bid`, "POST", { bidAmount }),
     onSuccess: () => {
       toast({
-        title: "تم وضع المزايدة بنجاح",
-        description: "مزايدتك قيد المراجعة",
+        title: "Bid placed successfully",
+        description: "Your bid is under review",
       });
       setBidAmount("");
       queryClient.invalidateQueries({ queryKey: [`/api/auctions/${id}`] });
     },
     onError: (error: any) => {
       toast({
-        title: "خطأ في المزايدة",
-        description: error.message || "حدث خطأ أثناء وضع المزايدة",
+        title: "Bidding error",
+        description: error.message || "An error occurred while placing bid",
         variant: "destructive",
       });
     },
@@ -127,7 +127,7 @@ export default function AuctionDetailsPage() {
     mutationFn: () => apiRequest(`/api/auctions/${id}/watch`, "POST"),
     onSuccess: (data: any) => {
       toast({
-        title: data.watching ? "تم إضافة المزاد للمتابعة" : "تم إزالة المزاد من المتابعة",
+        title: data.watching ? "Added to watchlist" : "Removed from watchlist",
         description: data.message,
       });
     },
@@ -175,7 +175,7 @@ export default function AuctionDetailsPage() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            المزاد غير موجود أو تم حذفه
+            Auction not found or has been deleted
           </AlertDescription>
         </Alert>
       </div>
@@ -244,21 +244,21 @@ export default function AuctionDetailsPage() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant={isActive ? "default" : "secondary"}>
-                {auction.status === "active" ? "نشط" : 
-                 auction.status === "ended" ? "منتهي" : 
-                 auction.status === "draft" ? "مسودة" : "ملغي"}
+                {auction.status === "active" ? "Active" : 
+                 auction.status === "ended" ? "Ended" : 
+                 auction.status === "draft" ? "Draft" : "Cancelled"}
               </Badge>
               {isEnding && isActive && (
                 <Badge variant="destructive" className="animate-pulse">
-                  ينتهي قريباً
+                  Ending Soon
                 </Badge>
               )}
             </div>
             <h1 className="text-3xl font-bold mb-2">
-              {auction.titleAr || auction.title}
+              {auction.title}
             </h1>
             <p className="text-muted-foreground">
-              {auction.descriptionAr || auction.description}
+              {auction.description}
             </p>
           </div>
 
@@ -268,14 +268,14 @@ export default function AuctionDetailsPage() {
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Clock className="w-5 h-5" />
-                  <span className="text-sm font-medium">الوقت المتبقي</span>
+                  <span className="text-sm font-medium">Time Remaining</span>
                 </div>
                 <div className={`text-2xl font-bold ${timeLeft.isExpired ? "text-red-500" : ""}`}>
                   {timeLeft.text}
                 </div>
                 {auction.isAutoExtend && isActive && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    سيتم تمديد المزاد {auction.autoExtendMinutes} دقائق إضافية عند المزايدة في الدقائق الأخيرة
+                    Auction will be extended by {auction.autoExtendMinutes} minutes if bid placed in final minutes
                   </p>
                 )}
               </div>
@@ -287,13 +287,13 @@ export default function AuctionDetailsPage() {
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">السعر الحالي</p>
+                  <p className="text-sm text-muted-foreground">Current Bid</p>
                   <p className="text-2xl font-bold text-green-600">
                     {formatCurrency(auction.currentBid || auction.startingPrice)}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">عدد المزايدات</p>
+                  <p className="text-sm text-muted-foreground">Total Bids</p>
                   <p className="text-2xl font-bold flex items-center justify-center gap-1">
                     <Gavel className="w-5 h-5" />
                     {auction.totalBids}
@@ -309,18 +309,18 @@ export default function AuctionDetailsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
-                  ضع مزايدتك
+                  Place Your Bid
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    الحد الأدنى للمزايدة: {formatCurrency(minimumBid)}
+                    Minimum bid: {formatCurrency(minimumBid)}
                   </p>
                   <div className="flex gap-2">
                     <Input
                       type="number"
-                      placeholder="أدخل مبلغ المزايدة"
+                      placeholder="Enter bid amount"
                       value={bidAmount}
                       onChange={(e) => setBidAmount(e.target.value)}
                       min={minimumBid / 100}
@@ -331,7 +331,7 @@ export default function AuctionDetailsPage() {
                       disabled={placeBidMutation.isPending || !bidAmount}
                       className="min-w-[100px]"
                     >
-                      {placeBidMutation.isPending ? "جاري المزايدة..." : "زايد"}
+                      {placeBidMutation.isPending ? "Placing..." : "Place Bid"}
                     </Button>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function AuctionDetailsPage() {
             className="w-full"
           >
             <Heart className="w-4 h-4 mr-2" />
-            {watchMutation.isPending ? "جاري..." : "إضافة للمتابعة"}
+            {watchMutation.isPending ? "Loading..." : "Add to Watchlist"}
           </Button>
         </div>
       </div>
@@ -378,9 +378,9 @@ export default function AuctionDetailsPage() {
       {/* Tabs Section */}
       <Tabs defaultValue="bids" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="bids">تاريخ المزايدات</TabsTrigger>
-          <TabsTrigger value="details">تفاصيل المنتج</TabsTrigger>
-          <TabsTrigger value="shipping">الشحن والتوصيل</TabsTrigger>
+          <TabsTrigger value="bids">Bidding History</TabsTrigger>
+          <TabsTrigger value="details">Product Details</TabsTrigger>
+          <TabsTrigger value="shipping">Shipping & Delivery</TabsTrigger>
         </TabsList>
         
         <TabsContent value="bids" className="space-y-4">
@@ -388,13 +388,13 @@ export default function AuctionDetailsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                تاريخ المزايدات ({auction.totalBids})
+                Bidding History ({auction.totalBids})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {auction.recentBids.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  لا توجد مزايدات بعد. كن أول من يزايد!
+                  No bids yet. Be the first to bid!
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -439,32 +439,32 @@ export default function AuctionDetailsPage() {
         <TabsContent value="details" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>تفاصيل المنتج</CardTitle>
+              <CardTitle>Product Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">الفئة</p>
+                  <p className="text-sm text-muted-foreground">Category</p>
                   <p className="font-medium">{auction.productCategory}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">الكمية المتوفرة</p>
+                  <p className="text-sm text-muted-foreground">Available Quantity</p>
                   <p className="font-medium">{auction.productStock}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">السعر الأصلي</p>
+                  <p className="text-sm text-muted-foreground">Original Price</p>
                   <p className="font-medium">{formatCurrency(auction.productPrice)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">سعر البداية</p>
+                  <p className="text-sm text-muted-foreground">Starting Price</p>
                   <p className="font-medium">{formatCurrency(auction.startingPrice)}</p>
                 </div>
               </div>
               <Separator />
               <div>
-                <h4 className="font-medium mb-2">الوصف</h4>
+                <h4 className="font-medium mb-2">Description</h4>
                 <p className="text-muted-foreground">
-                  {auction.productDescriptionAr || auction.productDescription}
+                  {auction.productDescription}
                 </p>
               </div>
             </CardContent>
@@ -474,31 +474,31 @@ export default function AuctionDetailsPage() {
         <TabsContent value="shipping" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>معلومات الشحن والتوصيل</CardTitle>
+              <CardTitle>Shipping & Delivery Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  سيتم حساب تكلفة الشحن بناءً على موقعك ووزن المنتج
+                  Shipping cost will be calculated based on your location and product weight
                 </AlertDescription>
               </Alert>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span>الشحن داخل تورونتو</span>
+                  <span>Shipping within Toronto</span>
                   <span className="font-medium">$15 - $25</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>الشحن في أونتاريو</span>
+                  <span>Shipping within Ontario</span>
                   <span className="font-medium">$20 - $35</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>الشحن في كندا</span>
+                  <span>Shipping within Canada</span>
                   <span className="font-medium">$25 - $50</span>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                * الأسعار تقديرية وقد تختلف حسب الوزن والحجم والموقع الدقيق
+                * Prices are estimates and may vary based on weight, size, and exact location
               </p>
             </CardContent>
           </Card>

@@ -364,7 +364,7 @@ export default function AdminAuctionsPage() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">إدارة المزادات</h1>
+          <h1 className="text-3xl font-bold">Auction Management</h1>
         </div>
         <div className="animate-pulse space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -407,7 +407,7 @@ export default function AdminAuctionsPage() {
             <div className="flex items-center gap-2">
               <Gavel className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">إجمالي المزادات</p>
+                <p className="text-sm text-muted-foreground">Total Auctions</p>
                 <p className="text-2xl font-bold">{auctions?.length || 0}</p>
               </div>
             </div>
@@ -418,7 +418,7 @@ export default function AdminAuctionsPage() {
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">المزادات النشطة</p>
+                <p className="text-sm text-muted-foreground">Active Auctions</p>
                 <p className="text-2xl font-bold">
                   {auctions?.filter(a => a.status === "active").length || 0}
                 </p>
@@ -431,7 +431,7 @@ export default function AdminAuctionsPage() {
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-blue-500" />
               <div>
-                <p className="text-sm text-muted-foreground">إجمالي المزايدات</p>
+                <p className="text-sm text-muted-foreground">Total Bids</p>
                 <p className="text-2xl font-bold">
                   {auctions?.reduce((sum, a) => sum + a.totalBids, 0) || 0}
                 </p>
@@ -444,7 +444,7 @@ export default function AdminAuctionsPage() {
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-500" />
               <div>
-                <p className="text-sm text-muted-foreground">إجمالي القيمة</p>
+                <p className="text-sm text-muted-foreground">Total Value</p>
                 <p className="text-2xl font-bold">
                   {formatCurrency(
                     auctions?.reduce((sum, a) => sum + (a.currentBid || a.startingPrice), 0) || 0
@@ -459,28 +459,28 @@ export default function AdminAuctionsPage() {
       {/* Auctions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>قائمة المزادات</CardTitle>
+          <CardTitle>Auctions List</CardTitle>
         </CardHeader>
         <CardContent>
           {!auctions || auctions.length === 0 ? (
             <div className="text-center py-8">
               <Gavel className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">لا توجد مزادات</h3>
+              <h3 className="text-lg font-semibold mb-2">No Auctions</h3>
               <p className="text-muted-foreground">
-                ابدأ بإنشاء مزاد جديد
+                Start by creating a new auction
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>المنتج</TableHead>
-                  <TableHead>العنوان</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>السعر الحالي</TableHead>
-                  <TableHead>المزايدات</TableHead>
-                  <TableHead>الوقت المتبقي</TableHead>
-                  <TableHead>الإجراءات</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Current Bid</TableHead>
+                  <TableHead>Bids</TableHead>
+                  <TableHead>Time Left</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -494,12 +494,12 @@ export default function AdminAuctionsPage() {
                           className="w-10 h-10 rounded object-cover"
                         />
                         <span className="font-medium">
-                          {auction.productTitleAr || auction.productTitle}
+                          {auction.productTitle}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {auction.titleAr || auction.title}
+                      {auction.title}
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(auction.status)}

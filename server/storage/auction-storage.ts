@@ -21,9 +21,9 @@ class AuctionStorage {
         id: 1,
         productId: 8,
         title: "Amazon Return Pallet - Electronics Mix",
-        titleAr: "طرد عوائد أمازون - خليط إلكترونيات",
+        titleAr: "Amazon Return Pallet - Electronics Mix",
         description: "Mixed electronics return pallet with various items including laptops, phones, and accessories",
-        descriptionAr: "طرد عوائد إلكترونيات متنوع يحتوي على أجهزة مختلفة بما في ذلك أجهزة كمبيوتر محمولة وهواتف وإكسسوارات",
+        descriptionAr: "Mixed electronics return pallet with various items including laptops, phones, and accessories",
         startingPrice: 5000, // $50.00
         reservePrice: 8000, // $80.00
         currentBid: 6500, // $65.00
@@ -42,9 +42,9 @@ class AuctionStorage {
         id: 2,
         productId: 9,
         title: "Brand New Close Box Items",
-        titleAr: "منتجات جديدة بعلبة مغلقة",
+        titleAr: "Brand New Close Box Items",
         description: "Brand new items in unopened boxes from Amazon returns",
-        descriptionAr: "منتجات جديدة في علب غير مفتوحة من عوائد أمازون",
+        descriptionAr: "Brand new items in unopened boxes from Amazon returns",
         startingPrice: 3000, // $30.00
         reservePrice: 5000, // $50.00
         currentBid: 3500, // $35.00
@@ -63,9 +63,9 @@ class AuctionStorage {
         id: 3,
         productId: 10,
         title: "Home & Kitchen Return Pallet",
-        titleAr: "طرد عوائد المنزل والمطبخ",
+        titleAr: "Home & Kitchen Return Pallet",
         description: "Mixed home and kitchen items from Amazon returns",
-        descriptionAr: "منتجات منزلية ومطبخية متنوعة من عوائد أمازون",
+        descriptionAr: "Mixed home and kitchen items from Amazon returns",
         startingPrice: 2500, // $25.00
         reservePrice: 4000, // $40.00
         currentBid: 0,
