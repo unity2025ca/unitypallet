@@ -419,7 +419,14 @@ export default function AuctionDetailsPage() {
                             {bid.fullName || bid.username}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(bid.bidTime).toLocaleString("ar-EG")}
+                            {new Date(bid.bidTime).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
                           </p>
                         </div>
                       </div>
