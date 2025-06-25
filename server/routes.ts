@@ -19,6 +19,7 @@ import adminOrdersRouter from "./routes/admin-orders";
 import adminShippingRouter from "./routes/admin-shipping";
 import shippingRouter from "./routes/shipping";
 import categoriesRouter from "./routes/categories";
+import auctionsRouter from "./routes/auctions";
 import { setupWebSocket } from "./websocket";
 import { createContactNotification, createAppointmentNotification, createAppointmentStatusNotification } from "./notifications";
 import { z } from "zod";
@@ -64,6 +65,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin notifications routes
   const adminNotificationsRouter = (await import('./routes/admin-notifications')).default;
   app.use('/api/admin/notifications', requireAdmin, adminNotificationsRouter);
+  
+  // Auctions routes
+  app.use('/api/auctions', auctionsRouter);
   
   // Product routes
   app.get("/api/products", async (_req, res) => {

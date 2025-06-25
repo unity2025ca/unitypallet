@@ -28,6 +28,7 @@ const Header = () => {
   const navItems = [
     { name: translations.navItems.home, href: "/" },
     { name: translations.navItems.shop, href: "/products" },
+    { name: "المزادات", href: "/auctions" },
     { name: translations.navItems.about, href: "/about" },
     { name: translations.navItems.howItWorks, href: "/how-it-works" },
     { name: translations.navItems.faq, href: "/faq" },

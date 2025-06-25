@@ -78,6 +78,8 @@ function AppContent() {
         <Route path="/how-it-works" component={HowItWorksPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/contact" component={ContactPage} />
+        <Route path="/auctions" component={AuctionsPage} />
+        <Route path="/auctions/:id" component={AuctionDetailsPage} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/cart" component={CartPage} />
         
@@ -105,6 +107,7 @@ function AppContent() {
         <AdminProtectedRoute path="/admin/allowed-cities" component={AdminAllowedCities} />
         <AdminProtectedRoute path="/admin/homepage" component={AdminHomepage} />
         <AdminProtectedRoute path="/admin/categories" component={AdminCategories} />
+        <AdminProtectedRoute path="/admin/auctions" component={AdminAuctions} />
         <AdminProtectedRoute path="/admin/test-notifications" component={TestNotificationsPage} />
         <AdminProtectedRoute path="/admin/test-orders" component={TestOrdersPage} />
         

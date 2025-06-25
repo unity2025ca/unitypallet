@@ -87,7 +87,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
   const queryClient = useQueryClient();
 
   const { data: products } = useQuery<Product[]>({
-    queryKey: ["/api/admin/products"],
+    queryKey: ["/api/products"],
   });
 
   const mutation = useMutation({
