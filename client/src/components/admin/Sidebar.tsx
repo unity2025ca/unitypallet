@@ -81,6 +81,12 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
         { 
+          name: "المزادات", 
+          href: "/admin/auctions", 
+          icon: "fas fa-gavel",
+          roles: ["admin", "publisher"] // Admin and publisher can access
+        },
+        { 
           name: "FAQs", 
           href: "/admin/faqs", 
           icon: "fas fa-question-circle",

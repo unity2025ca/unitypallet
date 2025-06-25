@@ -1,8 +1,21 @@
 import express from "express";
 import { auctionStorage } from "../storage/auction-storage.js";
-import { requireAuth, requireCustomer } from "../middleware/auth.js";
-import { validateSchema } from "../middleware/validation.js";
 import { insertAuctionSchema, insertBidSchema, insertAuctionWatcherSchema } from "../../shared/schema.js";
+
+// Temporary auth middleware
+function requireAuth(req: any, res: any, next: any) {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
+
+function requireCustomer(req: any, res: any, next: any) {
+  if (!req.isAuthenticated || !req.isAuthenticated() || req.user?.roleType !== "customer") {
+    return res.status(401).json({ error: "Customer authentication required" });
+  }
+  next();
+}
 
 const router = express.Router();
 
