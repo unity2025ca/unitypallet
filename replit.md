@@ -24,6 +24,14 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Deployment:** PM2 process manager, environment variable loading
 
 ## Recent Changes (June 25, 2025)
+✓ **Watchlist Feature Added:** Created dedicated customer watchlist functionality
+- New `/watchlist` page with heart icon in customer dropdown menu
+- Displays auctions customer is tracking with real-time updates
+- Shows current bid, time remaining, and total bids for each item
+- Remove from watchlist functionality with confirmation
+- Mock data integration ready for database implementation
+
+## Previous Changes
 ✓ **Database Migration Completed:** Migrated from quota-exceeded Neon database to new working PostgreSQL instance
 - Old: `postgresql://pallet_owner:npg_B3A5YDcSRqyO@ep-polished-wave-a4j6vq51-pooler.us-east-1.aws.neon.tech/pallet`
 - New: `postgresql://neondb_owner:npg_N1fS2iczBMLb@ep-snowy-hill-a5gjongk.us-east-2.aws.neon.tech:5432/neondb`

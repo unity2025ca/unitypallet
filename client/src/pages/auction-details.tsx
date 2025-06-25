@@ -128,7 +128,7 @@ export default function AuctionDetailsPage() {
 
   const watchMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/auctions/${id}/watch`, {});
+      const response = await apiRequest("POST", `/api/auctions/watchlist/${id}`, {});
       return response.json();
     },
     onSuccess: (data: any) => {
