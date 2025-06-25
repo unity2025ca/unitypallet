@@ -1,7 +1,5 @@
 import express from "express";
-import { db } from "../db.js";
-import { auctions, bids, auctionWatchers, products, productImages, users } from "../../shared/schema.js";
-import { eq, desc, and, sql, gte, lte, or } from "drizzle-orm";
+import { auctionStorage } from "../storage/auction-storage.js";
 import { requireAuth, requireCustomer } from "../middleware/auth.js";
 import { validateSchema } from "../middleware/validation.js";
 import { insertAuctionSchema, insertBidSchema, insertAuctionWatcherSchema } from "../../shared/schema.js";
@@ -13,39 +11,23 @@ router.get("/", async (req, res) => {
   try {
     const { status = "active", limit = 20, offset = 0 } = req.query;
     
-    const auctionList = await db
-      .select({
-        id: auctions.id,
-        productId: auctions.productId,
-        title: auctions.title,
-        titleAr: auctions.titleAr,
-        description: auctions.description,
-        descriptionAr: auctions.descriptionAr,
-        startingPrice: auctions.startingPrice,
-        reservePrice: auctions.reservePrice,
-        currentBid: auctions.currentBid,
-        bidIncrement: auctions.bidIncrement,
-        startTime: auctions.startTime,
-        endTime: auctions.endTime,
-        status: auctions.status,
-        totalBids: auctions.totalBids,
-        isAutoExtend: auctions.isAutoExtend,
-        autoExtendMinutes: auctions.autoExtendMinutes,
-        createdAt: auctions.createdAt,
-        productTitle: products.title,
-        productTitleAr: products.titleAr,
-        productPrice: products.price,
-        productImage: productImages.imageUrl,
-      })
-      .from(auctions)
-      .leftJoin(products, eq(auctions.productId, products.id))
-      .leftJoin(productImages, and(eq(productImages.productId, products.id), eq(productImages.isMain, true)))
-      .where(status === "all" ? undefined : eq(auctions.status, status as any))
-      .orderBy(desc(auctions.createdAt))
-      .limit(parseInt(limit as string))
-      .offset(parseInt(offset as string));
+    const allAuctions = auctionStorage.getAllAuctions(status as string);
+    
+    // Add mock product data for display
+    const auctionList = allAuctions.map(auction => ({
+      ...auction,
+      productTitle: `Product ${auction.productId}`,
+      productTitleAr: `منتج ${auction.productId}`,
+      productPrice: auction.startingPrice * 2,
+      productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
+    }));
 
-    res.json(auctionList);
+    // Apply pagination
+    const startIndex = parseInt(offset as string);
+    const endIndex = startIndex + parseInt(limit as string);
+    const paginatedList = auctionList.slice(startIndex, endIndex);
+
+    res.json(paginatedList);
   } catch (error) {
     console.error("Error fetching auctions:", error);
     res.status(500).json({ error: "Failed to fetch auctions" });
@@ -57,72 +39,44 @@ router.get("/:id", async (req, res) => {
   try {
     const auctionId = parseInt(req.params.id);
     
-    // Get auction details
-    const auction = await db
-      .select({
-        id: auctions.id,
-        productId: auctions.productId,
-        title: auctions.title,
-        titleAr: auctions.titleAr,
-        description: auctions.description,
-        descriptionAr: auctions.descriptionAr,
-        startingPrice: auctions.startingPrice,
-        reservePrice: auctions.reservePrice,
-        currentBid: auctions.currentBid,
-        bidIncrement: auctions.bidIncrement,
-        startTime: auctions.startTime,
-        endTime: auctions.endTime,
-        status: auctions.status,
-        winnerId: auctions.winnerId,
-        totalBids: auctions.totalBids,
-        isAutoExtend: auctions.isAutoExtend,
-        autoExtendMinutes: auctions.autoExtendMinutes,
-        createdAt: auctions.createdAt,
-        productTitle: products.title,
-        productTitleAr: products.titleAr,
-        productDescription: products.description,
-        productDescriptionAr: products.descriptionAr,
-        productPrice: products.price,
-        productCategory: products.category,
-        productStock: products.stock,
-      })
-      .from(auctions)
-      .leftJoin(products, eq(auctions.productId, products.id))
-      .where(eq(auctions.id, auctionId))
-      .limit(1);
-
-    if (!auction.length) {
+    const auction = auctionStorage.getAuctionById(auctionId);
+    if (!auction) {
       return res.status(404).json({ error: "Auction not found" });
     }
 
-    // Get product images
-    const images = await db
-      .select()
-      .from(productImages)
-      .where(eq(productImages.productId, auction[0].productId))
-      .orderBy(desc(productImages.isMain));
-
     // Get recent bids
-    const recentBids = await db
-      .select({
-        id: bids.id,
-        bidAmount: bids.bidAmount,
-        bidTime: bids.bidTime,
-        isWinning: bids.isWinning,
-        username: users.username,
-        fullName: users.fullName,
-      })
-      .from(bids)
-      .leftJoin(users, eq(bids.userId, users.id))
-      .where(eq(bids.auctionId, auctionId))
-      .orderBy(desc(bids.bidTime))
-      .limit(10);
+    const recentBids = auctionStorage.getBidsByAuctionId(auctionId).map(bid => ({
+      ...bid,
+      username: `user${bid.userId}`,
+      fullName: `User ${bid.userId}`,
+    }));
 
-    res.json({
-      ...auction[0],
-      productImages: images,
+    // Mock product data
+    const auctionDetails = {
+      ...auction,
+      productTitle: `Product ${auction.productId}`,
+      productTitleAr: `منتج ${auction.productId}`,
+      productDescription: "High quality Amazon return pallet with mixed items",
+      productDescriptionAr: "طرد عوائد أمازون عالي الجودة مع منتجات متنوعة",
+      productPrice: auction.startingPrice * 2,
+      productCategory: "Electronics",
+      productStock: 1,
+      productImages: [
+        {
+          id: 1,
+          imageUrl: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
+          isMain: true,
+        },
+        {
+          id: 2,
+          imageUrl: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320184/jaberco_ecommerce/products/image_1733320184199.jpg",
+          isMain: false,
+        }
+      ],
       recentBids,
-    });
+    };
+
+    res.json(auctionDetails);
   } catch (error) {
     console.error("Error fetching auction:", error);
     res.status(500).json({ error: "Failed to fetch auction details" });
@@ -130,39 +84,31 @@ router.get("/:id", async (req, res) => {
 });
 
 // Place a bid
-router.post("/:id/bid", requireCustomer, validateSchema(insertBidSchema), async (req, res) => {
+router.post("/:id/bid", requireCustomer, async (req, res) => {
   try {
     const auctionId = parseInt(req.params.id);
     const userId = req.user!.id;
     const { bidAmount } = req.body;
 
-    // Get auction details
-    const auction = await db
-      .select()
-      .from(auctions)
-      .where(eq(auctions.id, auctionId))
-      .limit(1);
-
-    if (!auction.length) {
+    const auction = auctionStorage.getAuctionById(auctionId);
+    if (!auction) {
       return res.status(404).json({ error: "Auction not found" });
     }
 
-    const currentAuction = auction[0];
-
     // Check if auction is active
-    if (currentAuction.status !== "active") {
+    if (auction.status !== "active") {
       return res.status(400).json({ error: "Auction is not active" });
     }
 
     // Check if auction has ended
-    if (new Date() > new Date(currentAuction.endTime)) {
+    if (new Date() > new Date(auction.endTime)) {
       return res.status(400).json({ error: "Auction has ended" });
     }
 
     // Check if bid is higher than current bid + increment
     const minimumBid = Math.max(
-      currentAuction.currentBid + currentAuction.bidIncrement,
-      currentAuction.startingPrice
+      auction.currentBid + auction.bidIncrement,
+      auction.startingPrice
     );
 
     if (bidAmount < minimumBid) {
@@ -172,59 +118,41 @@ router.post("/:id/bid", requireCustomer, validateSchema(insertBidSchema), async 
     }
 
     // Check if user is not bidding against themselves
-    const lastBid = await db
-      .select()
-      .from(bids)
-      .where(eq(bids.auctionId, auctionId))
-      .orderBy(desc(bids.bidTime))
-      .limit(1);
-
-    if (lastBid.length && lastBid[0].userId === userId) {
+    const recentBids = auctionStorage.getBidsByAuctionId(auctionId);
+    if (recentBids.length && recentBids[0].userId === userId) {
       return res.status(400).json({ error: "You are already the highest bidder" });
     }
 
-    // Start transaction
-    await db.transaction(async (tx) => {
-      // Mark previous winning bids as outbid
-      await tx
-        .update(bids)
-        .set({ isWinning: false, isOutbid: true })
-        .where(and(eq(bids.auctionId, auctionId), eq(bids.isWinning, true)));
+    // Mark previous winning bids as outbid
+    auctionStorage.updateBidsByAuctionId(auctionId, { isWinning: false, isOutbid: true });
 
-      // Insert new bid
-      await tx.insert(bids).values({
-        auctionId,
-        userId,
-        bidAmount,
-        isWinning: true,
-        userAgent: req.get("user-agent") || "",
-        ipAddress: req.ip || "",
-      });
-
-      // Update auction current bid and total bids
-      await tx
-        .update(auctions)
-        .set({
-          currentBid: bidAmount,
-          totalBids: sql`${auctions.totalBids} + 1`,
-          updatedAt: new Date(),
-        })
-        .where(eq(auctions.id, auctionId));
-
-      // Auto-extend auction if needed
-      if (currentAuction.isAutoExtend) {
-        const timeLeft = new Date(currentAuction.endTime).getTime() - Date.now();
-        const extendThreshold = currentAuction.autoExtendMinutes * 60 * 1000;
-
-        if (timeLeft < extendThreshold) {
-          const newEndTime = new Date(Date.now() + extendThreshold);
-          await tx
-            .update(auctions)
-            .set({ endTime: newEndTime })
-            .where(eq(auctions.id, auctionId));
-        }
-      }
+    // Create new bid
+    auctionStorage.createBid({
+      auctionId,
+      userId,
+      bidAmount,
+      isWinning: true,
+      isOutbid: false,
+      userAgent: req.get("user-agent") || "",
+      ipAddress: req.ip || "",
     });
+
+    // Update auction
+    auctionStorage.updateAuction(auctionId, {
+      currentBid: bidAmount,
+      totalBids: auction.totalBids + 1,
+    });
+
+    // Auto-extend auction if needed
+    if (auction.isAutoExtend) {
+      const timeLeft = new Date(auction.endTime).getTime() - Date.now();
+      const extendThreshold = auction.autoExtendMinutes * 60 * 1000;
+
+      if (timeLeft < extendThreshold) {
+        const newEndTime = new Date(Date.now() + extendThreshold);
+        auctionStorage.updateAuction(auctionId, { endTime: newEndTime.toISOString() });
+      }
+    }
 
     res.json({ success: true, message: "Bid placed successfully" });
   } catch (error) {
@@ -239,27 +167,20 @@ router.post("/:id/watch", requireCustomer, async (req, res) => {
     const auctionId = parseInt(req.params.id);
     const userId = req.user!.id;
 
-    // Check if already watching
-    const existing = await db
-      .select()
-      .from(auctionWatchers)
-      .where(and(eq(auctionWatchers.auctionId, auctionId), eq(auctionWatchers.userId, userId)))
-      .limit(1);
+    const existing = auctionStorage.getWatcher(auctionId, userId);
 
-    if (existing.length) {
+    if (existing) {
       // Remove from watchlist
-      await db
-        .delete(auctionWatchers)
-        .where(and(eq(auctionWatchers.auctionId, auctionId), eq(auctionWatchers.userId, userId)));
-      
+      auctionStorage.deleteWatcher(auctionId, userId);
       res.json({ watching: false, message: "Removed from watchlist" });
     } else {
       // Add to watchlist
-      await db.insert(auctionWatchers).values({
+      auctionStorage.createWatcher({
         auctionId,
         userId,
+        notifyOnBid: true,
+        notifyOnEnd: true,
       });
-      
       res.json({ watching: true, message: "Added to watchlist" });
     }
   } catch (error) {
@@ -274,33 +195,30 @@ router.get("/user/activity", requireCustomer, async (req, res) => {
     const userId = req.user!.id;
     const { type = "all" } = req.query;
 
-    let query = db
-      .select({
-        auctionId: auctions.id,
-        auctionTitle: auctions.title,
-        auctionTitleAr: auctions.titleAr,
-        auctionStatus: auctions.status,
-        auctionEndTime: auctions.endTime,
-        currentBid: auctions.currentBid,
-        bidAmount: bids.bidAmount,
-        bidTime: bids.bidTime,
-        isWinning: bids.isWinning,
-        productTitle: products.title,
-        productImage: productImages.imageUrl,
-      })
-      .from(bids)
-      .leftJoin(auctions, eq(bids.auctionId, auctions.id))
-      .leftJoin(products, eq(auctions.productId, products.id))
-      .leftJoin(productImages, and(eq(productImages.productId, products.id), eq(productImages.isMain, true)))
-      .where(eq(bids.userId, userId));
+    let userBids = auctionStorage.getBidsByUserId(userId);
 
     if (type === "winning") {
-      query = query.where(eq(bids.isWinning, true));
+      userBids = userBids.filter(bid => bid.isWinning);
     } else if (type === "outbid") {
-      query = query.where(eq(bids.isOutbid, true));
+      userBids = userBids.filter(bid => bid.isOutbid);
     }
 
-    const activity = await query.orderBy(desc(bids.bidTime));
+    const activity = userBids.map(bid => {
+      const auction = auctionStorage.getAuctionById(bid.auctionId);
+      return {
+        auctionId: auction?.id,
+        auctionTitle: auction?.title,
+        auctionTitleAr: auction?.titleAr,
+        auctionStatus: auction?.status,
+        auctionEndTime: auction?.endTime,
+        currentBid: auction?.currentBid,
+        bidAmount: bid.bidAmount,
+        bidTime: bid.bidTime,
+        isWinning: bid.isWinning,
+        productTitle: `Product ${auction?.productId}`,
+        productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
+      };
+    });
 
     res.json(activity);
   } catch (error) {
@@ -310,10 +228,10 @@ router.get("/user/activity", requireCustomer, async (req, res) => {
 });
 
 // Admin: Create auction
-router.post("/", requireAuth, validateSchema(insertAuctionSchema), async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
-    const auction = await db.insert(auctions).values(req.body).returning();
-    res.status(201).json(auction[0]);
+    const auction = auctionStorage.createAuction(req.body);
+    res.status(201).json(auction);
   } catch (error) {
     console.error("Error creating auction:", error);
     res.status(500).json({ error: "Failed to create auction" });
@@ -324,20 +242,33 @@ router.post("/", requireAuth, validateSchema(insertAuctionSchema), async (req, r
 router.put("/:id", requireAuth, async (req, res) => {
   try {
     const auctionId = parseInt(req.params.id);
-    const auction = await db
-      .update(auctions)
-      .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(auctions.id, auctionId))
-      .returning();
+    const auction = auctionStorage.updateAuction(auctionId, req.body);
 
-    if (!auction.length) {
+    if (!auction) {
       return res.status(404).json({ error: "Auction not found" });
     }
 
-    res.json(auction[0]);
+    res.json(auction);
   } catch (error) {
     console.error("Error updating auction:", error);
     res.status(500).json({ error: "Failed to update auction" });
+  }
+});
+
+// Admin: Delete auction
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const auctionId = parseInt(req.params.id);
+    const deleted = auctionStorage.deleteAuction(auctionId);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Auction not found" });
+    }
+
+    res.json({ success: true, message: "Auction deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting auction:", error);
+    res.status(500).json({ error: "Failed to delete auction" });
   }
 });
 
