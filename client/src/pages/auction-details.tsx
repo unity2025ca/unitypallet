@@ -329,7 +329,7 @@ export default function AuctionDetailsPage() {
                     <Button
                       onClick={handlePlaceBid}
                       disabled={placeBidMutation.isPending || !bidAmount}
-                      className="min-w-[100px]"
+                      className="min-w-[100px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                     >
                       {placeBidMutation.isPending ? "Placing..." : "Place Bid"}
                     </Button>
@@ -340,6 +340,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount((minimumBid / 100).toFixed(2))}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     {formatCurrency(minimumBid)}
                   </Button>
@@ -347,6 +348,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount(((minimumBid + auction.bidIncrement) / 100).toFixed(2))}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     {formatCurrency(minimumBid + auction.bidIncrement)}
                   </Button>
@@ -354,6 +356,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount(((minimumBid + auction.bidIncrement * 2) / 100).toFixed(2))}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     {formatCurrency(minimumBid + auction.bidIncrement * 2)}
                   </Button>
@@ -367,7 +370,7 @@ export default function AuctionDetailsPage() {
             variant="outline"
             onClick={() => watchMutation.mutate()}
             disabled={watchMutation.isPending}
-            className="w-full"
+            className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
           >
             <Heart className="w-4 h-4 mr-2" />
             {watchMutation.isPending ? "Loading..." : "Add to Watchlist"}

@@ -285,11 +285,11 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          إلغاء
+        <Button type="button" variant="outline" onClick={onClose} className="border-gray-300 text-gray-700 hover:bg-gray-50">
+          Cancel
         </Button>
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "جاري الحفظ..." : auction ? "تحديث" : "إنشاء"}
+        <Button type="submit" disabled={mutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+          {mutation.isPending ? "Saving..." : auction ? "Update" : "Create"}
         </Button>
       </div>
     </form>
@@ -524,6 +524,7 @@ export default function AdminAuctionsPage() {
                             setSelectedAuction(auction);
                             setIsDialogOpen(true);
                           }}
+                          className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -532,6 +533,7 @@ export default function AdminAuctionsPage() {
                           variant="outline"
                           onClick={() => deleteMutation.mutate(auction.id)}
                           disabled={deleteMutation.isPending}
+                          className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
