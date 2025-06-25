@@ -38,7 +38,7 @@ function formatTimeLeft(endTime: string) {
   const timeLeft = end - now;
 
   if (timeLeft <= 0) {
-    return "انتهت";
+    return "Ended";
   }
 
   const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
@@ -46,11 +46,11 @@ function formatTimeLeft(endTime: string) {
   const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
   if (days > 0) {
-    return `${days} يوم و ${hours} ساعة`;
+    return `${days}d ${hours}h`;
   } else if (hours > 0) {
-    return `${hours} ساعة و ${minutes} دقيقة`;
+    return `${hours}h ${minutes}m`;
   } else {
-    return `${minutes} دقيقة`;
+    return `${minutes}m`;
   }
 }
 
@@ -68,15 +68,15 @@ function AuctionCard({ auction }: { auction: Auction }) {
         />
         <div className="absolute top-2 right-2">
           <Badge variant={auction.status === "active" ? "default" : "secondary"}>
-            {auction.status === "active" ? "نشط" : 
-             auction.status === "ended" ? "منتهي" : 
-             auction.status === "draft" ? "مسودة" : "ملغي"}
+            {auction.status === "active" ? "Active" : 
+             auction.status === "ended" ? "Ended" : 
+             auction.status === "draft" ? "Draft" : "Cancelled"}
           </Badge>
         </div>
         {isEnding && auction.status === "active" && (
           <div className="absolute top-2 left-2">
             <Badge variant="destructive" className="animate-pulse">
-              ينتهي قريباً
+              Ending Soon
             </Badge>
           </div>
         )}
@@ -84,7 +84,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
       
       <CardHeader className="pb-2">
         <CardTitle className="text-lg line-clamp-2">
-          {auction.titleAr || auction.title}
+          {auction.title}
         </CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
@@ -95,13 +95,13 @@ function AuctionCard({ auction }: { auction: Auction }) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">السعر الحالي</p>
+            <p className="text-sm text-muted-foreground">Current Bid</p>
             <p className="text-lg font-bold text-green-600">
               {formatCurrency(auction.currentBid || auction.startingPrice)}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">عدد المزايدات</p>
+            <p className="text-sm text-muted-foreground">Bids</p>
             <p className="text-lg font-semibold flex items-center gap-1">
               <Gavel className="w-4 h-4" />
               {auction.totalBids}
@@ -113,7 +113,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
         
         <div className="flex items-center justify-between">
           <div className="text-sm">
-            <span className="text-muted-foreground">الزيادة التالية: </span>
+            <span className="text-muted-foreground">Next Bid: </span>
             <span className="font-semibold">
               {formatCurrency((auction.currentBid || auction.startingPrice) + auction.bidIncrement)}
             </span>
@@ -121,7 +121,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
           <Link href={`/auctions/${auction.id}`}>
             <Button size="sm">
               <Eye className="w-4 h-4 mr-2" />
-              عرض التفاصيل
+              View Details
             </Button>
           </Link>
         </div>
@@ -169,10 +169,10 @@ export default function AuctionsPage() {
       {/* Hero Section */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">
-          مزادات جابركو
+          Jaberco Auctions
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          شارك في مزاداتنا الحصرية واحصل على أفضل الصفقات على منتجات Amazon المُعادة
+          Join our exclusive auctions and get the best deals on Amazon return pallets
         </p>
       </div>
 
@@ -181,9 +181,9 @@ export default function AuctionsPage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-6 h-6 text-red-500" />
-            <h2 className="text-2xl font-bold">ينتهي قريباً</h2>
+            <h2 className="text-2xl font-bold">Ending Soon</h2>
             <Badge variant="destructive" className="animate-pulse">
-              عجل!
+              Hurry!
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -197,17 +197,17 @@ export default function AuctionsPage() {
       {/* Main Tabs */}
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="active">المزادات النشطة ({activeAuctions.length})</TabsTrigger>
-          <TabsTrigger value="ended">المزادات المنتهية ({endedAuctions.length})</TabsTrigger>
+          <TabsTrigger value="active">Active Auctions ({activeAuctions.length})</TabsTrigger>
+          <TabsTrigger value="ended">Ended Auctions ({endedAuctions.length})</TabsTrigger>
         </TabsList>
         
         <TabsContent value="active" className="space-y-8">
           {activeAuctions.length === 0 ? (
             <div className="text-center py-12">
               <Gavel className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">لا توجد مزادات نشطة حالياً</h3>
+              <h3 className="text-xl font-semibold mb-2">No Active Auctions</h3>
               <p className="text-muted-foreground">
-                تابعنا للحصول على آخر المزادات الجديدة
+                Follow us for the latest new auctions
               </p>
             </div>
           ) : (
@@ -223,9 +223,9 @@ export default function AuctionsPage() {
           {endedAuctions.length === 0 ? (
             <div className="text-center py-12">
               <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">لا توجد مزادات منتهية</h3>
+              <h3 className="text-xl font-semibold mb-2">No Ended Auctions</h3>
               <p className="text-muted-foreground">
-                المزادات المنتهية ستظهر هنا
+                Ended auctions will appear here
               </p>
             </div>
           ) : (
@@ -240,33 +240,33 @@ export default function AuctionsPage() {
 
       {/* How It Works Section */}
       <div className="mt-16 bg-muted/50 rounded-lg p-8">
-        <h2 className="text-2xl font-bold text-center mb-8">كيف تعمل المزادات؟</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">How Do Auctions Work?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-primary-foreground font-bold">1</span>
             </div>
-            <h3 className="font-semibold mb-2">سجل واستكشف</h3>
+            <h3 className="font-semibold mb-2">Register & Browse</h3>
             <p className="text-sm text-muted-foreground">
-              تصفح المزادات النشطة واختر المنتجات التي تهمك
+              Browse active auctions and choose products that interest you
             </p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-primary-foreground font-bold">2</span>
             </div>
-            <h3 className="font-semibold mb-2">ضع مزايدتك</h3>
+            <h3 className="font-semibold mb-2">Place Your Bid</h3>
             <p className="text-sm text-muted-foreground">
-              ضع مزايدتك بسعر أعلى من المزايدة الحالية
+              Place your bid higher than the current bid
             </p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-primary-foreground font-bold">3</span>
             </div>
-            <h3 className="font-semibold mb-2">اربح واحصل على المنتج</h3>
+            <h3 className="font-semibold mb-2">Win & Get the Product</h3>
             <p className="text-sm text-muted-foreground">
-              إذا كنت الأعلى مزايدة عند انتهاء الوقت، فالمنتج لك!
+              If you're the highest bidder when time expires, the product is yours!
             </p>
           </div>
         </div>
