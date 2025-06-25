@@ -329,7 +329,7 @@ export default function AuctionDetailsPage() {
                     <Button
                       onClick={handlePlaceBid}
                       disabled={placeBidMutation.isPending || !bidAmount}
-                      className="min-w-[100px] bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      className="min-w-[100px] !bg-red-600 !text-white !opacity-100 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200"
                     >
                       {placeBidMutation.isPending ? "Placing..." : "Place Bid"}
                     </Button>
@@ -340,7 +340,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount((minimumBid / 100).toFixed(2))}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="!bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600"
                   >
                     {formatCurrency(minimumBid)}
                   </Button>
@@ -348,7 +348,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount(((minimumBid + auction.bidIncrement) / 100).toFixed(2))}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="!bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600"
                   >
                     {formatCurrency(minimumBid + auction.bidIncrement)}
                   </Button>
@@ -356,7 +356,7 @@ export default function AuctionDetailsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setBidAmount(((minimumBid + auction.bidIncrement * 2) / 100).toFixed(2))}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="!bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600"
                   >
                     {formatCurrency(minimumBid + auction.bidIncrement * 2)}
                   </Button>
@@ -370,7 +370,7 @@ export default function AuctionDetailsPage() {
             variant="outline"
             onClick={() => watchMutation.mutate()}
             disabled={watchMutation.isPending}
-            className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+            className="w-full !bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200"
           >
             <Heart className="w-4 h-4 mr-2" />
             {watchMutation.isPending ? "Loading..." : "Add to Watchlist"}

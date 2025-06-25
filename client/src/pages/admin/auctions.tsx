@@ -285,10 +285,10 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose} className="border-gray-300 text-gray-700 hover:bg-gray-50">
+        <Button type="button" variant="outline" onClick={onClose} className="!bg-gray-500 !text-white !opacity-100 !border-gray-500 hover:!bg-gray-500 focus:!bg-gray-500 active:!bg-gray-500">
           Cancel
         </Button>
-        <Button type="submit" disabled={mutation.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+        <Button type="submit" disabled={mutation.isPending} className="!bg-red-600 !text-white !opacity-100 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200">
           {mutation.isPending ? "Saving..." : auction ? "Update" : "Create"}
         </Button>
       </div>
@@ -524,7 +524,7 @@ export default function AdminAuctionsPage() {
                             setSelectedAuction(auction);
                             setIsDialogOpen(true);
                           }}
-                          className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                          className="!bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -533,7 +533,7 @@ export default function AdminAuctionsPage() {
                           variant="outline"
                           onClick={() => deleteMutation.mutate(auction.id)}
                           disabled={deleteMutation.isPending}
-                          className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50"
+                          className="!bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

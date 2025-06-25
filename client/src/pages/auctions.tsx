@@ -119,7 +119,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
             </span>
           </div>
           <Link href={`/auctions/${auction.id}`}>
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button size="sm" className="!bg-red-600 !text-white !opacity-100 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600">
               <Eye className="w-4 h-4 mr-2" />
               View Details
             </Button>
