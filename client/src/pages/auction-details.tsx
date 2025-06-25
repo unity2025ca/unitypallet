@@ -115,9 +115,10 @@ export default function AuctionDetailsPage() {
       queryClient.invalidateQueries({ queryKey: [`/api/auctions/${id}`] });
     },
     onError: (error: any) => {
+      console.error("Bid error:", error);
       toast({
         title: "Bidding error",
-        description: error.message || "An error occurred while placing bid",
+        description: error.message || "Please login to place a bid",
         variant: "destructive",
       });
     },
@@ -129,6 +130,14 @@ export default function AuctionDetailsPage() {
       toast({
         title: data.watching ? "Added to watchlist" : "Removed from watchlist",
         description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Watch error:", error);
+      toast({
+        title: "Watchlist error",
+        description: "Please login to add to watchlist",
+        variant: "destructive",
       });
     },
   });
@@ -322,12 +331,19 @@ export default function AuctionDetailsPage() {
                       type="number"
                       placeholder="Enter bid amount"
                       value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
+                      onChange={(e) => {
+                        console.log("Bid amount changed:", e.target.value);
+                        setBidAmount(e.target.value);
+                      }}
                       min={minimumBid / 100}
                       step="0.01"
                     />
                     <Button
-                      onClick={handlePlaceBid}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log("Place bid button clicked");
+                        handlePlaceBid();
+                      }}
                       disabled={placeBidMutation.isPending || !bidAmount}
                       className="min-w-[100px] !bg-red-600 !text-white !opacity-100 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200"
                     >
@@ -368,7 +384,11 @@ export default function AuctionDetailsPage() {
           {/* Watch Button */}
           <Button
             variant="outline"
-            onClick={() => watchMutation.mutate()}
+            onClick={(e) => {
+              e.preventDefault();
+              console.log("Watchlist button clicked");
+              watchMutation.mutate();
+            }}
             disabled={watchMutation.isPending}
             className="w-full !bg-red-600 !text-white !opacity-100 !border-red-600 hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-600 disabled:!bg-gray-400 disabled:!text-gray-200"
           >
