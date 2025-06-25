@@ -20,6 +20,7 @@ import FaqPage from "@/pages/faq";
 import ContactPage from "@/pages/contact";
 import AuthPage from "@/pages/auth";
 import AccountPage from "@/pages/account";
+import WatchlistPage from "@/pages/watchlist";
 import CartPage from "@/pages/cart";
 import CheckoutPage from "@/pages/checkout";
 import OrdersPage from "@/pages/orders/index";
@@ -85,6 +86,7 @@ function AppContent() {
         
         {/* Customer Protected Routes */}
         <CustomerProtectedRoute path="/account" component={AccountPage} />
+        <CustomerProtectedRoute path="/watchlist" component={WatchlistPage} />
         <CustomerProtectedRoute path="/orders" component={OrdersPage} />
         <CustomerProtectedRoute path="/orders/:id" component={OrderDetailsPage} />
         <CustomerProtectedRoute path="/checkout" component={CheckoutPage} />

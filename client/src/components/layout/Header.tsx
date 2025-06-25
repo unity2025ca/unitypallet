@@ -9,7 +9,8 @@ import {
   User, 
   ShoppingBag, 
   LogOut,
-  LogIn
+  LogIn,
+  Heart
 } from "lucide-react";
 import {
   DropdownMenu,
