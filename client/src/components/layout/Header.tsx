@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import translations from "@/lib/i18n";
+
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
@@ -21,19 +21,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const { getSettingValue } = useSettings();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: settings } = useSettings();
   const { customer, logoutMutation } = useCustomerAuth();
 
+  const siteLogo = settings?.find(s => s.key === 'site_logo')?.value;
+
   const navItems = [
-    { name: translations.navItems.home, href: "/" },
-    { name: translations.navItems.shop, href: "/products" },
+    { name: "Home", href: "/" },
+    { name: "Products", href: "/products" },
     { name: "Auctions", href: "/auctions" },
-    { name: translations.navItems.about, href: "/about" },
-    { name: translations.navItems.howItWorks, href: "/how-it-works" },
-    { name: translations.navItems.faq, href: "/faq" },
-    { name: translations.navItems.contact, href: "/contact" },
+    { name: "About", href: "/about" },
+    { name: "How It Works", href: "/how-it-works" },
+    { name: "FAQ", href: "/faq" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const toggleMobileMenu = () => {
@@ -41,41 +43,49 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              {getSettingValue("site_logo") ? (
-                <img 
-                  src={getSettingValue("site_logo")} 
-                  alt={getSettingValue("site_name", "Jaberco")} 
-                  className="h-10 mr-2" 
-                />
-              ) : (
-                <span className="text-3xl font-bold text-primary">
-                  {getSettingValue("site_name", "Jaberco")}
-                </span>
-              )}
-            </Link>
-          </div>
-          
+    <header className="sticky top-0 z-50 bg-white border-b border-neutral-light">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            {siteLogo ? (
+              <img 
+                src={siteLogo} 
+                alt="Site Logo" 
+                className="h-10 w-auto"
+              />
+            ) : (
+              <span className="text-xl font-bold text-primary">
+                Jaberco
+              </span>
+            )}
+          </Link>
+
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8 items-center">
+          <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
-                className={`font-medium transition ${
-                  location === item.href ? "text-primary" : "text-neutral-dark hover:text-primary"
+                className={`text-sm font-medium transition-colors ${
+                  location === item.href 
+                    ? "text-primary" 
+                    : "text-neutral-dark hover:text-primary"
                 }`}
               >
                 {item.name}
               </Link>
             ))}
+          </nav>
+
+          {/* Desktop User Menu & Cart */}
+          <nav className="hidden md:flex items-center space-x-4">
+            <Link href="/cart">
+              <Button variant="ghost" size="sm" className="relative">
+                <ShoppingBag className="h-5 w-5" />
+              </Button>
+            </Link>
             
-            {/* Customer Account */}
             {customer ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -88,6 +98,10 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => setLocation("/account")}>
                     <User className="h-4 w-4 mr-2" />
                     <span>My Account</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/watchlist")}>
+                    <Heart className="h-4 w-4 mr-2" />
+                    <span>My Watchlist</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation("/orders")}>
                     <ShoppingBag className="h-4 w-4 mr-2" />
@@ -131,6 +145,10 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => setLocation("/account")}>
                     <User className="h-4 w-4 mr-2" />
                     <span>My Account</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/watchlist")}>
+                    <Heart className="h-4 w-4 mr-2" />
+                    <span>My Watchlist</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation("/orders")}>
                     <ShoppingBag className="h-4 w-4 mr-2" />
