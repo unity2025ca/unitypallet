@@ -97,10 +97,17 @@ router.get("/:id", async (req, res) => {
 });
 
 // Place a bid
-router.post("/:id/bid", requireCustomer, async (req, res) => {
+router.post("/:id/bid", async (req, res) => {
   try {
+    console.log("Bid request received:", req.params.id, req.body, "User:", req.user);
+    
+    // Check authentication
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Please login to place a bid" });
+    }
+
     const auctionId = parseInt(req.params.id);
-    const userId = req.user!.id;
+    const userId = req.user.id;
     const { bidAmount } = req.body;
 
     const auction = auctionStorage.getAuctionById(auctionId);
@@ -175,10 +182,17 @@ router.post("/:id/bid", requireCustomer, async (req, res) => {
 });
 
 // Watch/unwatch auction
-router.post("/:id/watch", requireCustomer, async (req, res) => {
+router.post("/:id/watch", async (req, res) => {
   try {
+    console.log("Watch request received:", req.params.id, "User:", req.user);
+    
+    // Check authentication
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Please login to add to watchlist" });
+    }
+
     const auctionId = parseInt(req.params.id);
-    const userId = req.user!.id;
+    const userId = req.user.id;
 
     const existing = auctionStorage.getWatcher(auctionId, userId);
 
