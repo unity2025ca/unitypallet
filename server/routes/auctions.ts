@@ -19,6 +19,15 @@ function requireCustomer(req: any, res: any, next: any) {
 
 const router = express.Router();
 
+// Debug middleware
+router.use((req, res, next) => {
+  console.log(`Auction route: ${req.method} ${req.path}`, {
+    user: req.user ? { id: req.user.id, username: req.user.username } : 'Not authenticated',
+    body: req.body
+  });
+  next();
+});
+
 // Get all active auctions
 router.get("/", async (req, res) => {
   try {

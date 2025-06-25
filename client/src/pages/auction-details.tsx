@@ -104,8 +104,10 @@ export default function AuctionDetailsPage() {
   });
 
   const placeBidMutation = useMutation({
-    mutationFn: (bidAmount: number) => 
-      apiRequest(`/api/auctions/${id}/bid`, "POST", { bidAmount }),
+    mutationFn: async (bidAmount: number) => {
+      const response = await apiRequest("POST", `/api/auctions/${id}/bid`, { bidAmount });
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Bid placed successfully",
@@ -125,7 +127,10 @@ export default function AuctionDetailsPage() {
   });
 
   const watchMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/auctions/${id}/watch`, "POST"),
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/auctions/${id}/watch`, {});
+      return response.json();
+    },
     onSuccess: (data: any) => {
       toast({
         title: data.watching ? "Added to watchlist" : "Removed from watchlist",
