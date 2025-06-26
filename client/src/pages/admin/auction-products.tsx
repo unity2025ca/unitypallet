@@ -105,7 +105,7 @@ export default function AdminAuctionProductsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/auction-products", "POST", data),
+    mutationFn: (data: any) => apiRequest("POST", "/api/auction-products", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
       setIsCreateDialogOpen(false);
@@ -127,7 +127,7 @@ export default function AdminAuctionProductsPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest(`/api/auction-products/${id}`, "PATCH", data),
+      apiRequest("PATCH", `/api/auction-products/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
       setEditingProduct(null);
@@ -147,7 +147,7 @@ export default function AdminAuctionProductsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/auction-products/${id}`, "DELETE"),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/auction-products/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
       toast({
