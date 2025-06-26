@@ -11,7 +11,7 @@ function requireAuth(req: any, res: any, next: any) {
 }
 
 function requireCustomer(req: any, res: any, next: any) {
-  if (!req.isAuthenticated || !req.isAuthenticated() || req.user?.roleType !== "customer") {
+  if (!req.user || req.user?.roleType !== "customer") {
     return res.status(401).json({ error: "Customer authentication required" });
   }
   next();

@@ -19,11 +19,14 @@ interface WatchlistAuction {
 }
 
 export default function WatchlistPage() {
-  const { data: watchlist, isLoading } = useQuery<WatchlistAuction[]>({
+  const { data: watchlist, isLoading, error } = useQuery<WatchlistAuction[]>({
     queryKey: ["/api/auctions/watchlist"],
-    staleTime: 30000,
-    refetchInterval: 10000, // Refresh every 10 seconds
+    staleTime: 5000,
+    refetchInterval: 5000, // Refresh every 5 seconds to get live prices
   });
+
+  console.log('Watchlist data:', watchlist);
+  console.log('Watchlist error:', error);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

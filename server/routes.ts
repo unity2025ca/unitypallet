@@ -68,9 +68,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auctions routes
   app.use('/api/auctions', auctionsRouter);
-  
-  // Watchlist routes
-  const watchlistRouter = (await import("./routes/watchlist.js")).default;
 
   
   // Product routes
