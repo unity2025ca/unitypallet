@@ -96,6 +96,7 @@ function AppContent() {
         <AdminProtectedRoute path="/admin" component={AdminIndex} />
         <AdminProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
         <PublisherProtectedRoute path="/admin/products" component={AdminProducts} />
+        <PublisherProtectedRoute path="/admin/auction-products" component={lazy(() => import("./pages/admin/auction-products"))} />
         <PublisherProtectedRoute path="/admin/orders" component={AdminOrders} />
         <PublisherProtectedRoute path="/admin/contacts" component={AdminContacts} />
         <AdminProtectedRoute path="/admin/newsletter" component={AdminNewsletter} />

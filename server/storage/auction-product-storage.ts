@@ -1,9 +1,34 @@
 // Auction Product Storage - separate from regular products
-import { SelectAuctionProduct, InsertAuctionProduct, SelectAuctionProductImage, InsertAuctionProductImage } from '@shared/schema';
+
+interface AuctionProduct {
+  id: number;
+  title: string;
+  titleAr: string;
+  description?: string;
+  descriptionAr?: string;
+  category: string;
+  categoryAr: string;
+  condition: "new" | "like_new" | "good" | "fair" | "poor";
+  estimatedValue?: number;
+  weight?: number;
+  dimensions?: string;
+  location?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AuctionProductImage {
+  id: number;
+  auctionProductId: number;
+  imageUrl: string;
+  isMain: boolean;
+  altText?: string;
+  createdAt: string;
+}
 
 class AuctionProductStorage {
-  private auctionProducts = new Map<number, SelectAuctionProduct>();
-  private auctionProductImages = new Map<number, SelectAuctionProductImage>();
+  private auctionProducts = new Map<number, AuctionProduct>();
+  private auctionProductImages = new Map<number, AuctionProductImage>();
   private nextAuctionProductId = 1;
   private nextImageId = 1;
 
@@ -13,7 +38,7 @@ class AuctionProductStorage {
 
   private initializeData() {
     // Amazon Return Pallet - Electronics
-    const electronicsProduct: SelectAuctionProduct = {
+    const electronicsProduct: AuctionProduct = {
       id: 1,
       title: "Amazon Return Pallet - Electronics Mix",
       titleAr: "طرد عوائد أمازون - خليط إلكترونيات",
@@ -31,7 +56,7 @@ class AuctionProductStorage {
     };
 
     // Brand New Close Box Items
-    const clothingProduct: SelectAuctionProduct = {
+    const clothingProduct: AuctionProduct = {
       id: 2,
       title: "Brand New Close Box Items - Clothing & Accessories",
       titleAr: "منتجات جديدة في صناديق مغلقة - ملابس وإكسسوارات",
@@ -49,7 +74,7 @@ class AuctionProductStorage {
     };
 
     // Home & Kitchen Items
-    const homeProduct: SelectAuctionProduct = {
+    const homeProduct: AuctionProduct = {
       id: 3,
       title: "Home & Kitchen Return Pallet",
       titleAr: "طرد عوائد المنزل والمطبخ",
@@ -72,7 +97,7 @@ class AuctionProductStorage {
     this.nextAuctionProductId = 4;
 
     // Add images for auction products
-    const images: SelectAuctionProductImage[] = [
+    const images: AuctionProductImage[] = [
       {
         id: 1,
         auctionProductId: 1,
@@ -114,8 +139,8 @@ class AuctionProductStorage {
     return this.auctionProducts.get(id) || null;
   }
 
-  createAuctionProduct(productData: Omit<SelectAuctionProduct, 'id' | 'createdAt' | 'updatedAt'>) {
-    const product: SelectAuctionProduct = {
+  createAuctionProduct(productData: Omit<AuctionProduct, 'id' | 'createdAt' | 'updatedAt'>) {
+    const product: AuctionProduct = {
       ...productData,
       id: this.nextAuctionProductId++,
       createdAt: new Date().toISOString(),
@@ -125,11 +150,11 @@ class AuctionProductStorage {
     return product;
   }
 
-  updateAuctionProduct(id: number, productData: Partial<Omit<SelectAuctionProduct, 'id' | 'createdAt'>>) {
+  updateAuctionProduct(id: number, productData: Partial<Omit<AuctionProduct, 'id' | 'createdAt'>>) {
     const existingProduct = this.auctionProducts.get(id);
     if (!existingProduct) return null;
 
-    const updatedProduct: SelectAuctionProduct = {
+    const updatedProduct: AuctionProduct = {
       ...existingProduct,
       ...productData,
       updatedAt: new Date().toISOString(),
@@ -141,7 +166,7 @@ class AuctionProductStorage {
   deleteAuctionProduct(id: number) {
     const deleted = this.auctionProducts.delete(id);
     // Also delete associated images
-    for (const [imageId, image] of this.auctionProductImages.entries()) {
+    for (const [imageId, image] of Array.from(this.auctionProductImages.entries())) {
       if (image.auctionProductId === id) {
         this.auctionProductImages.delete(imageId);
       }
@@ -160,8 +185,8 @@ class AuctionProductStorage {
       .find(image => image.auctionProductId === auctionProductId && image.isMain) || null;
   }
 
-  addImageToAuctionProduct(imageData: Omit<SelectAuctionProductImage, 'id' | 'createdAt'>) {
-    const image: SelectAuctionProductImage = {
+  addImageToAuctionProduct(imageData: Omit<AuctionProductImage, 'id' | 'createdAt'>) {
+    const image: AuctionProductImage = {
       ...imageData,
       id: this.nextImageId++,
       createdAt: new Date().toISOString(),
@@ -176,7 +201,7 @@ class AuctionProductStorage {
 
   setMainImage(auctionProductId: number, imageId: number) {
     // First, unset all main images for this product
-    for (const [id, image] of this.auctionProductImages.entries()) {
+    for (const [id, image] of Array.from(this.auctionProductImages.entries())) {
       if (image.auctionProductId === auctionProductId && image.isMain) {
         this.auctionProductImages.set(id, { ...image, isMain: false });
       }
