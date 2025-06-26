@@ -87,8 +87,8 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: products } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+  const { data: auctionProducts } = useQuery<AuctionProduct[]>({
+    queryKey: ["/api/auction-products"],
   });
 
   const mutation = useMutation({
@@ -141,7 +141,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
               <SelectValue placeholder="Select auction product" />
             </SelectTrigger>
             <SelectContent>
-              {auctionProducts?.map((product) => (
+              {auctionProducts?.map((product: AuctionProduct) => (
                 <SelectItem key={product.id} value={product.id.toString()}>
                   {product.title} - {product.condition} (Est. ${(product.estimatedValue / 100).toFixed(2)})
                 </SelectItem>
