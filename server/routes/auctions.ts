@@ -198,34 +198,17 @@ router.get('/watchlist', requireCustomer, async (req, res) => {
     const userId = req.user.id;
     const storage = req.app.get('storage');
     
-    // For demo purposes, return mock data with real structure
-    const mockAuctions = [
-      {
-        id: 1,
-        title: "Amazon Return Pallet - Electronics Mix",
-        currentBid: 125000,
-        startingPrice: 100000,
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        status: "active",
-        totalBids: 15,
-        productId: 8
-      },
-      {
-        id: 2,
-        title: "Brand New Clothing Lot - Designer Items",
-        currentBid: 85000,
-        startingPrice: 75000,
-        endTime: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-        status: "active",
-        totalBids: 8,
-        productId: 9
-      }
-    ];
-    console.log('Using mock auctions for watchlist');
+    // Get real auctions from database using auctionStorage
+    const allAuctions = auctionStorage.getAllAuctions();
+    console.log('Found real auctions:', allAuctions);
     
-    // Get watchlist with auction data and product images
+    if (!allAuctions || allAuctions.length === 0) {
+      return res.json([]);
+    }
+    
+    // Get watchlist with real auction data and product images
     const watchlistWithDetails = await Promise.all(
-      mockAuctions.map(async (auction) => {
+      allAuctions.slice(0, 3).map(async (auction) => {
         let product, productImages, mainImage;
         try {
           product = await storage.getProductById(auction.productId);
@@ -245,7 +228,7 @@ router.get('/watchlist', requireCustomer, async (req, res) => {
           startingPrice: auction.startingPrice,
           endTime: auction.endTime,
           status: auction.status,
-          productImage: mainImage?.imageUrl || "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
+          productImage: mainImage?.imageUrl || "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
           totalBids: auction.totalBids || 0,
           isWatching: true
         };
