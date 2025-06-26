@@ -44,6 +44,7 @@ import AdminCategories from "@/pages/admin/categories";
 import AdminAllowedCities from "@/pages/admin/allowed-cities";
 import AdminContacts from "@/pages/admin/contacts";
 import AdminAuctions from "@/pages/admin/auctions";
+import AdminAuctionProducts from "@/pages/admin/auction-products";
 import AuctionsPage from "@/pages/auctions";
 import AuctionDetailsPage from "@/pages/auction-details";
 import TestNotificationsPage from "@/pages/admin/test-notifications";
@@ -97,7 +98,7 @@ function AppContent() {
         <AdminProtectedRoute path="/admin" component={AdminIndex} />
         <AdminProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
         <PublisherProtectedRoute path="/admin/products" component={AdminProducts} />
-        <PublisherProtectedRoute path="/admin/auction-products" component={lazy(() => import("./pages/admin/auction-products"))} />
+        <PublisherProtectedRoute path="/admin/auction-products" component={AdminAuctionProducts} />
         <PublisherProtectedRoute path="/admin/orders" component={AdminOrders} />
         <PublisherProtectedRoute path="/admin/contacts" component={AdminContacts} />
         <AdminProtectedRoute path="/admin/newsletter" component={AdminNewsletter} />
