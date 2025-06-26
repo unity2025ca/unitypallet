@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Eye, Package, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Package, Image, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +83,8 @@ const getConditionBadgeVariant = (condition: string) => {
 export default function AdminAuctionProductsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<AuctionProduct | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: "",
     titleAr: "",
@@ -95,6 +97,7 @@ export default function AdminAuctionProductsPage() {
     weight: "",
     dimensions: "",
     location: "",
+    imageUrl: "",
   });
 
   const { toast } = useToast();
@@ -177,6 +180,7 @@ export default function AdminAuctionProductsPage() {
       weight: "",
       dimensions: "",
       location: "",
+      imageUrl: "",
     });
   };
 
@@ -222,7 +226,57 @@ export default function AdminAuctionProductsPage() {
       weight: product.weight ? product.weight.toString() : "",
       dimensions: product.dimensions || "",
       location: product.location || "",
+      imageUrl: (product as any).mainImage || "",
     });
+  };
+
+  // Image upload functionality
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('image', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      setFormData(prev => ({ ...prev, imageUrl: result.url }));
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -367,6 +421,53 @@ export default function AdminAuctionProductsPage() {
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="Warehouse location"
                 />
+              </div>
+
+              {/* Image Upload Section */}
+              <div>
+                <Label htmlFor="imageUrl">Product Image</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="Image URL or upload below"
+                  />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={triggerFileUpload}
+                    disabled={isUploadingImage}
+                    className="shrink-0"
+                  >
+                    {isUploadingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                
+                {/* Image Preview */}
+                {formData.imageUrl && (
+                  <div className="mt-2 border rounded-md p-2">
+                    <img 
+                      src={formData.imageUrl} 
+                      alt="Product preview" 
+                      className="w-full max-h-40 object-cover rounded" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=Image+Not+Available";
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

@@ -55,6 +55,16 @@ router.post('/', (req, res) => {
     const productData = req.body;
     const newProduct = auctionProductStorage.createAuctionProduct(productData);
     
+    // If imageUrl is provided, add it as the main image
+    if (productData.imageUrl) {
+      auctionProductStorage.addImageToAuctionProduct({
+        auctionProductId: newProduct.id,
+        imageUrl: productData.imageUrl,
+        altText: productData.title,
+        isMain: true,
+      });
+    }
+    
     res.status(201).json(newProduct);
   } catch (error) {
     console.error('Error creating auction product:', error);
@@ -72,6 +82,26 @@ router.patch('/:id', (req, res) => {
     
     if (!updatedProduct) {
       return res.status(404).json({ error: 'Auction product not found' });
+    }
+    
+    // If imageUrl is provided and different, update the main image
+    if (updates.imageUrl) {
+      const existingMainImage = auctionProductStorage.getMainImageByAuctionProductId(id);
+      
+      if (!existingMainImage || existingMainImage.imageUrl !== updates.imageUrl) {
+        // Remove existing main image if any
+        if (existingMainImage) {
+          auctionProductStorage.deleteAuctionProductImage(existingMainImage.id);
+        }
+        
+        // Add new main image
+        auctionProductStorage.addImageToAuctionProduct({
+          auctionProductId: id,
+          imageUrl: updates.imageUrl,
+          altText: updatedProduct.title,
+          isMain: true,
+        });
+      }
     }
     
     res.json(updatedProduct);
