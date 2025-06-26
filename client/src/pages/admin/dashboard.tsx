@@ -240,8 +240,21 @@ const AdminDashboard = () => {
                       <Package className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Add New Product</h3>
-                      <p className="text-sm text-muted-foreground">Add a new pallet to the store</p>
+                      <h3 className="font-medium">Store Products</h3>
+                      <p className="text-sm text-muted-foreground">Manage regular store products</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border cursor-pointer hover:shadow-md transition-all" 
+                      onClick={() => window.location.href = "/admin/auction-products"}>
+                  <CardContent className="p-4 flex items-center">
+                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                      <Package className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Auction Products</h3>
+                      <p className="text-sm text-muted-foreground">Manage auction-specific products</p>
                     </div>
                   </CardContent>
                 </Card>
