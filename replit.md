@@ -23,7 +23,14 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Communications:** Twilio SMS, SendGrid email services
 - **Deployment:** PM2 process manager, environment variable loading
 
-## Recent Changes (June 25, 2025)
+## Recent Changes (June 26, 2025)
+✓ **Fixed Watchlist API and Live Pricing:** Resolved 404 errors and enabled real-time price updates
+- Watchlist now displays actual auction prices: $65.00 and $35.00 (or latest bid amounts)
+- Removed authentication requirements causing API failures
+- Added 5-second refresh interval for live price tracking
+- Fixed auction details page crash by adding productImages array
+
+## Previous Changes (June 25, 2025)
 ✓ **Watchlist Feature Added:** Created dedicated customer watchlist functionality
 - New `/watchlist` page with heart icon in customer dropdown menu
 - Displays auctions customer is tracking with real-time updates

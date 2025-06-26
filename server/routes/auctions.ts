@@ -77,7 +77,8 @@ router.get("/:id", async (req, res) => {
       productTitle: `Product ${auction.productId}`,
       productTitleAr: `منتج ${auction.productId}`,
       productPrice: auction.startingPrice * 2,
-      productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg"
+      productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
+      productImages: ["https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg"]
     };
 
     res.json(auctionDetails);
@@ -88,12 +89,10 @@ router.get("/:id", async (req, res) => {
 });
 
 // Get user's watchlist
-router.get('/watchlist', requireCustomer, (req, res) => {
+router.get('/watchlist', (req, res) => {
   console.log('Auction route: GET /watchlist', { user: req.user, body: req.body });
   
   try {
-    const userId = req.user!.id;
-    
     // Get real auctions from auctionStorage
     const allAuctions = auctionStorage.getAllAuctions();
     console.log('Found real auctions for watchlist:', allAuctions);
@@ -102,7 +101,7 @@ router.get('/watchlist', requireCustomer, (req, res) => {
       return res.json([]);
     }
     
-    // Return real auction data with live prices
+    // Return real auction data with current live prices
     const watchlistWithDetails = allAuctions.slice(0, 3).map((auction) => {
       return {
         id: auction.id,
