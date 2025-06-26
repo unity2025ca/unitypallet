@@ -190,6 +190,39 @@ router.post("/:id/bid", async (req, res) => {
   }
 });
 
+// Get user's watchlist
+router.get('/watchlist', requireCustomer, async (req, res) => {
+  console.log('Auction route: GET /watchlist', { user: req.user, body: req.body });
+  
+  try {
+    const userId = req.user.id;
+    
+    // Get all auctions for demo - in real app, this would be from watchlist table
+    const allAuctions = auctionStorage.getAllAuctions();
+    
+    // Return sample watchlist with real auction data
+    const watchlistWithDetails = allAuctions.slice(0, 2).map(auction => {
+      return {
+        id: auction.id,
+        title: auction.title,
+        currentBid: auction.currentBid,
+        startingPrice: auction.startingPrice,
+        endTime: auction.endTime,
+        status: auction.status,
+        productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
+        totalBids: auction.totalBids || 0,
+        isWatching: true
+      };
+    });
+    
+    console.log('Returning watchlist:', watchlistWithDetails);
+    res.json(watchlistWithDetails);
+  } catch (error) {
+    console.error('Error getting watchlist:', error);
+    res.status(500).json({ error: 'Failed to get watchlist' });
+  }
+});
+
 // Watch/unwatch auction
 router.post("/:id/watch", async (req, res) => {
   try {
