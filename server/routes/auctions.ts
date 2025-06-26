@@ -71,14 +71,15 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Auction not found" });
     }
 
-    // Add product information
+    // Add product information and missing fields
     const auctionDetails = {
       ...auction,
       productTitle: `Product ${auction.productId}`,
       productTitleAr: `منتج ${auction.productId}`,
       productPrice: auction.startingPrice * 2,
       productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
-      productImages: ["https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg"]
+      productImages: ["https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg"],
+      recentBids: []  // Add empty array to prevent errors
     };
 
     res.json(auctionDetails);
@@ -88,26 +89,28 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Get user's watchlist
+// Get user's watchlist - return real auction data
 router.get('/watchlist', (req, res) => {
-  console.log('Auction route: GET /watchlist', { user: req.user, body: req.body });
+  console.log('✓ Watchlist API called - returning real auction prices');
   
   try {
-    // Get real auctions from auctionStorage
+    // Get all real auctions from auctionStorage
     const allAuctions = auctionStorage.getAllAuctions();
-    console.log('Found real auctions for watchlist:', allAuctions);
     
     if (!allAuctions || allAuctions.length === 0) {
+      console.log('No auctions found in storage');
       return res.json([]);
     }
     
-    // Return real auction data with current live prices
-    const watchlistWithDetails = allAuctions.slice(0, 3).map((auction) => {
+    // Return ACTUAL auction prices from storage
+    const watchlistWithDetails = allAuctions.map((auction) => {
+      console.log(`Auction ${auction.id}: currentBid=${auction.currentBid}, startingPrice=${auction.startingPrice}`);
+      
       return {
         id: auction.id,
         title: auction.title,
-        currentBid: auction.currentBid,
-        startingPrice: auction.startingPrice,
+        currentBid: auction.currentBid,  // Real current bid (6500 = $65.00)
+        startingPrice: auction.startingPrice,  // Real starting price
         endTime: auction.endTime,
         status: auction.status,
         productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
@@ -116,7 +119,7 @@ router.get('/watchlist', (req, res) => {
       };
     });
     
-    console.log('Returning watchlist with live prices:', watchlistWithDetails);
+    console.log('✓ Returning real auction prices:', watchlistWithDetails.map(w => ({ id: w.id, currentBid: w.currentBid })));
     res.json(watchlistWithDetails);
   } catch (error) {
     console.error('Error getting watchlist:', error);
