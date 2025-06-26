@@ -23,10 +23,10 @@ export default function WatchlistPage() {
     queryKey: ["/api/auctions/watchlist"],
     staleTime: 5000,
     refetchInterval: 5000, // Refresh every 5 seconds to get live prices
+    retry: 3,
   });
 
-  console.log('Watchlist data:', watchlist);
-  console.log('Watchlist error:', error);
+  console.log('Watchlist API response:', { watchlist, error, isLoading });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

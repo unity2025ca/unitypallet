@@ -66,19 +66,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const adminNotificationsRouter = (await import('./routes/admin-notifications')).default;
   app.use('/api/admin/notifications', requireAdmin, adminNotificationsRouter);
   
-  // Direct watchlist endpoint - MUST be before other auction routes
-  app.get('/api/auctions/watchlist', (req, res) => {
+  // Direct watchlist endpoint - MUST be before other auction routes  
+  app.get('/api/auctions/watchlist', async (req, res) => {
     console.log('✓ Direct watchlist endpoint called');
     
     try {
-      // Import auctionStorage directly 
-      const { auctionStorage } = require('./storage/auction-storage.js');
+      // Import auctionStorage using ES6 import
+      const { auctionStorage } = await import('./storage/auction-storage.js');
       const allAuctions = auctionStorage.getAllAuctions();
       
-      const watchlistData = allAuctions.map((auction) => ({
+      console.log('Found auctions:', allAuctions.length);
+      
+      const watchlistData = allAuctions.map((auction: any) => ({
         id: auction.id,
         title: auction.title,
-        currentBid: auction.currentBid,  // This should be 6500 for first auction (=$65.00)
+        currentBid: auction.currentBid,  // Real current bid (6500 = $65.00)
         startingPrice: auction.startingPrice,
         endTime: auction.endTime,
         status: auction.status,
@@ -87,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isWatching: true
       }));
       
-      console.log('✓ Returning real auction data:', watchlistData.map(w => ({ id: w.id, currentBid: w.currentBid })));
+      console.log('✓ Returning auction data:', watchlistData.map((w: any) => ({ id: w.id, currentBid: w.currentBid })));
       res.json(watchlistData);
     } catch (error) {
       console.error('Watchlist error:', error);
