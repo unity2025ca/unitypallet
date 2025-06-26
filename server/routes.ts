@@ -68,6 +68,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auctions routes
   app.use('/api/auctions', auctionsRouter);
+  
+  // Direct watchlist endpoint
+  app.get('/api/auctions/watchlist', (req, res) => {
+    console.log('✓ Direct watchlist endpoint called');
+    
+    try {
+      // Import auctionStorage directly 
+      const { auctionStorage } = require('./storage/auction-storage.js');
+      const allAuctions = auctionStorage.getAllAuctions();
+      
+      const watchlistData = allAuctions.map((auction) => ({
+        id: auction.id,
+        title: auction.title,
+        currentBid: auction.currentBid,  // This should be 6500 for first auction (=$65.00)
+        startingPrice: auction.startingPrice,
+        endTime: auction.endTime,
+        status: auction.status,
+        productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
+        totalBids: auction.totalBids || 0,
+        isWatching: true
+      }));
+      
+      console.log('✓ Returning real auction data:', watchlistData.map(w => ({ id: w.id, currentBid: w.currentBid })));
+      res.json(watchlistData);
+    } catch (error) {
+      console.error('Watchlist error:', error);
+      res.status(500).json({ error: 'Failed to get watchlist' });
+    }
+  });
 
   
   // Product routes

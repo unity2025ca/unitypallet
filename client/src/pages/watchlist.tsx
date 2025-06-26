@@ -101,7 +101,8 @@ export default function WatchlistPage() {
     }
   ];
 
-  const displayWatchlist = watchlist || mockWatchlist;
+  // Use real data from API, fallback to empty array if no data
+  const displayWatchlist = watchlist && watchlist.length > 0 ? watchlist : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
