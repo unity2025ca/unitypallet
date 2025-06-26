@@ -115,10 +115,11 @@ export default function AdminAuctionProductsPage() {
         description: "Auction product created successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Create mutation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create auction product",
+        description: error?.message || "Failed to create auction product",
         variant: "destructive",
       });
     },
@@ -182,11 +183,23 @@ export default function AdminAuctionProductsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!formData.title.trim() || !formData.titleAr.trim() || !formData.category.trim() || !formData.categoryAr.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const submitData = {
       ...formData,
-      estimatedValue: formData.estimatedValue ? parseInt(formData.estimatedValue) * 100 : undefined,
-      weight: formData.weight ? parseInt(formData.weight) : undefined,
+      estimatedValue: formData.estimatedValue ? Math.round(parseFloat(formData.estimatedValue) * 100) : 0,
+      weight: formData.weight ? parseInt(formData.weight) : 0,
     };
+
+    console.log('Submitting auction product data:', submitData);
 
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, data: submitData });
