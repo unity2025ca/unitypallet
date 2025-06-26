@@ -34,16 +34,17 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
-interface Product {
+interface AuctionProduct {
   id: number;
   title: string;
   titleAr: string;
-  price: number;
+  estimatedValue: number;
+  condition: string;
 }
 
 interface Auction {
   id: number;
-  productId: number;
+  auctionProductId: number;
   title: string;
   titleAr: string;
   description: string;
@@ -68,7 +69,7 @@ interface Auction {
 
 function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => void }) {
   const [formData, setFormData] = useState({
-    productId: auction?.productId || 0,
+    auctionProductId: auction?.auctionProductId || 0,
     title: auction?.title || "",
     titleAr: auction?.titleAr || "",
     description: auction?.description || "",
@@ -107,16 +108,16 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
     },
     onSuccess: () => {
       toast({
-        title: auction ? "تم تحديث المزاد" : "تم إنشاء المزاد",
-        description: "تم حفظ التغييرات بنجاح",
+        title: auction ? "Auction Updated" : "Auction Created",
+        description: "Changes saved successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: "خطأ",
-        description: error.message || "حدث خطأ أثناء حفظ المزاد",
+        title: "Error",
+        description: error.message || "Failed to save auction",
         variant: "destructive",
       });
     },
@@ -131,18 +132,18 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="productId">المنتج</Label>
+          <Label htmlFor="auctionProductId">Auction Product</Label>
           <Select
-            value={formData.productId.toString()}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, productId: parseInt(value) }))}
+            value={formData.auctionProductId.toString()}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, auctionProductId: parseInt(value) }))}
           >
             <SelectTrigger>
-              <SelectValue placeholder="اختر المنتج" />
+              <SelectValue placeholder="Select auction product" />
             </SelectTrigger>
             <SelectContent>
-              {products?.map((product) => (
+              {auctionProducts?.map((product) => (
                 <SelectItem key={product.id} value={product.id.toString()}>
-                  {product.titleAr || product.title}
+                  {product.title} - {product.condition} (Est. ${(product.estimatedValue / 100).toFixed(2)})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -170,7 +171,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title">العنوان (إنجليزي)</Label>
+          <Label htmlFor="title">Title (English)</Label>
           <Input
             id="title"
             value={formData.title}
@@ -190,7 +191,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="description">الوصف (إنجليزي)</Label>
+          <Label htmlFor="description">Description (English)</Label>
           <Textarea
             id="description"
             value={formData.description}
@@ -198,7 +199,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
           />
         </div>
         <div>
-          <Label htmlFor="descriptionAr">الوصف (عربي)</Label>
+          <Label htmlFor="descriptionAr">Description (Arabic)</Label>
           <Textarea
             id="descriptionAr"
             value={formData.descriptionAr}
@@ -209,7 +210,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="startingPrice">سعر البداية ($)</Label>
+          <Label htmlFor="startingPrice">Starting Price ($)</Label>
           <Input
             id="startingPrice"
             type="number"
@@ -220,7 +221,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
           />
         </div>
         <div>
-          <Label htmlFor="reservePrice">السعر الاحتياطي ($)</Label>
+          <Label htmlFor="reservePrice">Reserve Price ($)</Label>
           <Input
             id="reservePrice"
             type="number"
@@ -230,7 +231,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
           />
         </div>
         <div>
-          <Label htmlFor="bidIncrement">زيادة المزايدة ($)</Label>
+          <Label htmlFor="bidIncrement">Bid Increment ($)</Label>
           <Input
             id="bidIncrement"
             type="number"
@@ -244,7 +245,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="startTime">وقت البداية</Label>
+          <Label htmlFor="startTime">Start Time</Label>
           <Input
             id="startTime"
             type="datetime-local"
@@ -254,7 +255,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
           />
         </div>
         <div>
-          <Label htmlFor="endTime">وقت النهاية</Label>
+          <Label htmlFor="endTime">End Time</Label>
           <Input
             id="endTime"
             type="datetime-local"
@@ -270,7 +271,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
           checked={formData.isAutoExtend}
           onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAutoExtend: checked }))}
         />
-        <Label>تمديد تلقائي عند المزايدة في النهاية</Label>
+        <Label>Auto-extend on last-minute bids</Label>
         {formData.isAutoExtend && (
           <Input
             type="number"
@@ -281,7 +282,7 @@ function AuctionForm({ auction, onClose }: { auction?: Auction; onClose: () => v
             max="60"
           />
         )}
-        <span className="text-sm text-muted-foreground">دقيقة</span>
+        <span className="text-sm text-muted-foreground">minutes</span>
       </div>
 
       <div className="flex justify-end gap-2">
