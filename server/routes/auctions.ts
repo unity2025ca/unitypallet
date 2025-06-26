@@ -207,33 +207,20 @@ router.get('/watchlist', requireCustomer, async (req, res) => {
     }
     
     // Get watchlist with real auction data and product images
-    const watchlistWithDetails = await Promise.all(
-      allAuctions.slice(0, 3).map(async (auction) => {
-        let product, productImages, mainImage;
-        try {
-          product = await storage.getProductById(auction.productId);
-          productImages = await storage.getProductImages(auction.productId);
-          mainImage = productImages.find(img => img.isMain) || productImages[0];
-        } catch (error) {
-          console.log('Error getting product data:', error);
-          product = null;
-          productImages = [];
-          mainImage = null;
-        }
-        
-        return {
-          id: auction.id,
-          title: auction.title || product?.title || "Amazon Return Pallet",
-          currentBid: auction.currentBid || auction.startingPrice,
-          startingPrice: auction.startingPrice,
-          endTime: auction.endTime,
-          status: auction.status,
-          productImage: mainImage?.imageUrl || "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
-          totalBids: auction.totalBids || 0,
-          isWatching: true
-        };
-      })
-    );
+    const watchlistWithDetails = allAuctions.slice(0, 3).map((auction) => {
+      return {
+        id: auction.id,
+        title: auction.title || "Amazon Return Pallet",
+        currentBid: auction.currentBid || auction.startingPrice,
+        startingPrice: auction.startingPrice,
+        endTime: auction.endTime,
+        status: auction.status,
+        productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
+        totalBids: auction.totalBids || 0,
+        isWatching: true
+      };
+    });
+
     
     console.log('Returning watchlist:', watchlistWithDetails);
     res.json(watchlistWithDetails);
