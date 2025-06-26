@@ -101,8 +101,10 @@ export default function WatchlistPage() {
     }
   ];
 
-  // Use real data from API, fallback to empty array if no data
-  const displayWatchlist = watchlist && watchlist.length > 0 ? watchlist : [];
+  // Show real data from API or empty state if no data
+  const displayWatchlist = watchlist || [];
+  
+  console.log('Final display data:', displayWatchlist);
 
   return (
     <div className="container mx-auto px-4 py-8">
