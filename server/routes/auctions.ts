@@ -196,24 +196,36 @@ router.get('/watchlist', requireCustomer, async (req, res) => {
   
   try {
     const userId = req.user.id;
+    const storage = req.app.get('storage');
     
-    // Get all auctions for demo - in real app, this would be from watchlist table
-    const allAuctions = auctionStorage.getAllAuctions();
+    // Get all auctions from database
+    const allAuctions = await storage.getAllAuctions();
+    console.log('Found auctions:', allAuctions);
     
-    // Return sample watchlist with real auction data
-    const watchlistWithDetails = allAuctions.slice(0, 2).map(auction => {
-      return {
-        id: auction.id,
-        title: auction.title,
-        currentBid: auction.currentBid,
-        startingPrice: auction.startingPrice,
-        endTime: auction.endTime,
-        status: auction.status,
-        productImage: "https://res.cloudinary.com/dsviwqpmy/image/upload/v1733320123/jaberco_ecommerce/products/image_1733320123052.jpg",
-        totalBids: auction.totalBids || 0,
-        isWatching: true
-      };
-    });
+    if (!allAuctions || allAuctions.length === 0) {
+      return res.json([]);
+    }
+    
+    // Get watchlist with real auction data and product images
+    const watchlistWithDetails = await Promise.all(
+      allAuctions.slice(0, 2).map(async (auction) => {
+        const product = await storage.getProductById(auction.productId);
+        const productImages = await storage.getProductImages(auction.productId);
+        const mainImage = productImages.find(img => img.isMain) || productImages[0];
+        
+        return {
+          id: auction.id,
+          title: auction.title || product?.title || "Amazon Return Pallet",
+          currentBid: auction.currentBid || auction.startingPrice,
+          startingPrice: auction.startingPrice,
+          endTime: auction.endTime,
+          status: auction.status,
+          productImage: mainImage?.imageUrl || "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg",
+          totalBids: auction.totalBids || 0,
+          isWatching: true
+        };
+      })
+    );
     
     console.log('Returning watchlist:', watchlistWithDetails);
     res.json(watchlistWithDetails);
