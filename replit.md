@@ -24,6 +24,13 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Deployment:** PM2 process manager, environment variable loading
 
 ## Recent Changes (June 26, 2025)
+✓ **Separated Auction Products from Store Products:** Created dedicated auction product management system
+- New auction_products and auction_product_images tables independent of regular products
+- Separate admin interface for managing auction-specific products with condition, estimated value, location
+- Updated auction schema to reference auctionProductId instead of productId
+- Added API endpoints for auction product CRUD operations
+- Enhanced auction product management with images, categories, and detailed specifications
+
 ✓ **Fixed Watchlist API and Live Pricing:** Resolved 404 errors and enabled real-time price updates
 - Watchlist now displays actual auction prices: $65.00 and $35.00 (or latest bid amounts)
 - Removed authentication requirements causing API failures

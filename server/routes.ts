@@ -97,6 +97,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auction Products routes
+  const auctionProductsRouter = (await import('./routes/auction-products')).default;
+  app.use('/api/auction-products', auctionProductsRouter);
+
   // Auctions routes (after watchlist endpoint)
   app.use('/api/auctions', auctionsRouter);
   
