@@ -191,10 +191,18 @@ export type InsertFaq = z.infer<typeof insertFaqSchema>;
 // Category mapping for UI
 export const categoryMap = {
   electronics: "Electronics",
-  home: "Home",
+  home: "Home & Furniture",
   toys: "Toys",
   mixed: "Mixed",
   other: "Other",
+  furniture: "Furniture",
+  appliances: "Appliances",
+  computers: "Computers & Laptops",
+  phones: "Phones & Tablets",
+  gaming: "Gaming",
+  audio: "Audio & Headphones",
+  wearables: "Wearables",
+  accessories: "Accessories",
 };
 
 // Status mapping for UI
