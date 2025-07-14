@@ -33,6 +33,8 @@ import {
   type InsertCategory,
   type AllowedCity,
   type InsertAllowedCity,
+  type Advertisement,
+  type InsertAdvertisement,
   users,
   products,
   contacts,
@@ -49,7 +51,8 @@ import {
   shippingRates,
   locations,
   categories,
-  allowedCities
+  allowedCities,
+  advertisements
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, asc, and, desc, sql, lte, gte, or } from "drizzle-orm";
@@ -1661,6 +1664,46 @@ export class DatabaseStorage implements IStorage {
 
   async getAllNotifications(): Promise<Notification[]> {
     return db.select().from(notifications).orderBy(desc(notifications.created_at));
+  }
+
+  // Advertisement methods
+  async getAllAdvertisements(): Promise<Advertisement[]> {
+    return db.select().from(advertisements).orderBy(asc(advertisements.displayOrder), asc(advertisements.id));
+  }
+
+  async getAdvertisementById(id: number): Promise<Advertisement | undefined> {
+    const result = await db.select().from(advertisements).where(eq(advertisements.id, id));
+    return result[0];
+  }
+
+  async getAdvertisementsByPosition(position: string): Promise<Advertisement[]> {
+    return db.select().from(advertisements)
+      .where(and(eq(advertisements.position, position), eq(advertisements.isActive, true)))
+      .orderBy(asc(advertisements.displayOrder), asc(advertisements.id));
+  }
+
+  async createAdvertisement(advertisement: InsertAdvertisement): Promise<Advertisement> {
+    const result = await db.insert(advertisements).values(advertisement).returning();
+    return result[0];
+  }
+
+  async updateAdvertisement(id: number, advertisementData: Partial<InsertAdvertisement>): Promise<Advertisement | undefined> {
+    const result = await db
+      .update(advertisements)
+      .set({ ...advertisementData, updatedAt: new Date() })
+      .where(eq(advertisements.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteAdvertisement(id: number): Promise<boolean> {
+    const result = await db
+      .delete(advertisements)
+      .where(eq(advertisements.id, id))
+      .returning({ id: advertisements.id });
+    
+    return result.length > 0;
   }
 }
 

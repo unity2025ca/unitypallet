@@ -45,6 +45,7 @@ import AdminAllowedCities from "@/pages/admin/allowed-cities";
 import AdminContacts from "@/pages/admin/contacts";
 import AdminAuctions from "@/pages/admin/auctions";
 import AdminAuctionProducts from "@/pages/admin/auction-products";
+import AdminAdvertisements from "@/pages/admin/advertisements";
 import AuctionsPage from "@/pages/auctions";
 import AuctionDetailsPage from "@/pages/auction-details";
 import TestNotificationsPage from "@/pages/admin/test-notifications";
@@ -113,6 +114,7 @@ function AppContent() {
         <AdminProtectedRoute path="/admin/homepage" component={AdminHomepage} />
         <AdminProtectedRoute path="/admin/categories" component={AdminCategories} />
         <AdminProtectedRoute path="/admin/auctions" component={AdminAuctions} />
+        <AdminProtectedRoute path="/admin/advertisements" component={AdminAdvertisements} />
         <AdminProtectedRoute path="/admin/test-notifications" component={TestNotificationsPage} />
         <AdminProtectedRoute path="/admin/test-orders" component={TestOrdersPage} />
         

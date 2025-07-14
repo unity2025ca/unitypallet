@@ -552,6 +552,28 @@ export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type AllowedCity = typeof allowedCities.$inferSelect;
 export type InsertAllowedCity = z.infer<typeof insertAllowedCitySchema>;
 
+// Advertisements Schema
+export const advertisements = pgTable("advertisements", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  titleAr: text("title_ar").notNull(),
+  content: text("content"),
+  contentAr: text("content_ar").notNull(),
+  imageUrl: text("image_url"),
+  linkUrl: text("link_url"),
+  position: text("position").notNull().default("homepage"), // homepage, products, checkout, etc.
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdvertisementSchema = createInsertSchema(advertisements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export types for auctions
 export type Auction = typeof auctions.$inferSelect;
 export type InsertAuction = z.infer<typeof insertAuctionSchema>;
@@ -559,3 +581,7 @@ export type Bid = typeof bids.$inferSelect;
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type AuctionWatcher = typeof auctionWatchers.$inferSelect;
 export type InsertAuctionWatcher = z.infer<typeof insertAuctionWatcherSchema>;
+
+// Export types for advertisements
+export type Advertisement = typeof advertisements.$inferSelect;
+export type InsertAdvertisement = z.infer<typeof insertAdvertisementSchema>;

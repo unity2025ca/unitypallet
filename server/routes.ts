@@ -7,7 +7,8 @@ import {
   insertSubscriberSchema, 
   insertUserSchema,
   insertFaqSchema,
-  insertVisitorStatsSchema
+  insertVisitorStatsSchema,
+  insertAdvertisementSchema
 } from "@shared/schema";
 import visitorStatsRouter from "./routes/visitor-stats";
 import notificationsRouter from "./routes/notifications";
@@ -1621,6 +1622,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to get scheduler status",
         error: error.message 
       });
+    }
+  });
+
+  // Advertisement routes
+  // Public route to get advertisements by position
+  app.get("/api/advertisements", async (req: Request, res: Response) => {
+    try {
+      const position = req.query.position as string;
+      
+      let advertisements;
+      if (position) {
+        advertisements = await storage.getAdvertisementsByPosition(position);
+      } else {
+        advertisements = await storage.getAllAdvertisements();
+      }
+      
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  // Admin routes for managing advertisements
+  app.get("/api/admin/advertisements", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const advertisements = await storage.getAllAdvertisements();
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  app.get("/api/admin/advertisements/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+      
+      const advertisement = await storage.getAdvertisementById(id);
+      if (!advertisement) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.json(advertisement);
+    } catch (error) {
+      console.error("Error fetching advertisement:", error);
+      res.status(500).json({ message: "Failed to fetch advertisement" });
+    }
+  });
+
+  app.post("/api/admin/advertisements", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertAdvertisementSchema.parse(req.body);
+      const advertisement = await storage.createAdvertisement(validatedData);
+      res.status(201).json(advertisement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid advertisement data", errors: error.errors });
+      }
+      console.error("Error creating advertisement:", error);
+      res.status(500).json({ message: "Failed to create advertisement" });
+    }
+  });
+
+  app.put("/api/admin/advertisements/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+      
+      const validatedData = insertAdvertisementSchema.partial().parse(req.body);
+      const advertisement = await storage.updateAdvertisement(id, validatedData);
+      if (!advertisement) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.json(advertisement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid advertisement data", errors: error.errors });
+      }
+      console.error("Error updating advertisement:", error);
+      res.status(500).json({ message: "Failed to update advertisement" });
+    }
+  });
+
+  app.delete("/api/admin/advertisements/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid advertisement ID" });
+      }
+      
+      const success = await storage.deleteAdvertisement(id);
+      if (!success) {
+        return res.status(404).json({ message: "Advertisement not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      res.status(500).json({ message: "Failed to delete advertisement" });
     }
   });
 
