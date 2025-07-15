@@ -7,21 +7,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
 
-  await throwIfResNotOk(res);
-  return res;
-}
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
@@ -40,6 +26,25 @@ export const getQueryFn: <T>(options: {
     await throwIfResNotOk(res);
     return await res.json();
   };
+
+// Helper function for POST/PUT/DELETE requests
+export async function apiRequest(url: string, options: RequestInit = {}) {
+  const res = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...options.headers,
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status}: ${text}`);
+  }
+
+  return res.json();
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {

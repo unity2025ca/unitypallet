@@ -20,11 +20,15 @@ export default function AdminSettingsPage() {
 
   // Toggle auctions mutation
   const toggleAuctionsMutation = useMutation({
-    mutationFn: (enabled: boolean) => apiRequest('/api/auctions-settings/toggle', {
-      method: 'POST',
-      body: { enabled }
-    }),
+    mutationFn: (enabled: boolean) => {
+      console.log('Sending toggle request:', { enabled });
+      return apiRequest('/api/auctions-settings/toggle', {
+        method: 'POST',
+        body: JSON.stringify({ enabled })
+      });
+    },
     onSuccess: (data) => {
+      console.log('Toggle success:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/auctions-settings/enabled'] });
       toast({
         title: "Success",
@@ -32,6 +36,7 @@ export default function AdminSettingsPage() {
       });
     },
     onError: (error: any) => {
+      console.error('Toggle error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to toggle auctions",
