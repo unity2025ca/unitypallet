@@ -808,6 +808,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update setting" });
     }
   });
+
+  // Get auctions enabled status
+  app.get("/api/auctions-settings/enabled", async (req, res) => {
+    try {
+      const setting = await storage.getSetting('auctions_enabled');
+      const enabled = setting ? setting.value === 'true' : true;
+      res.json({ enabled });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch auctions status" });
+    }
+  });
+
+  // Toggle auctions visibility (admin only)
+  app.post("/api/auctions-settings/toggle", requireAdmin, async (req, res) => {
+    try {
+      const { enabled } = req.body;
+      
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ message: "enabled must be a boolean" });
+      }
+      
+      const setting = await storage.updateSetting('auctions_enabled', enabled.toString());
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json({ 
+        success: true, 
+        enabled: setting.value === 'true',
+        message: `Auctions ${enabled ? 'enabled' : 'disabled'} successfully`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to toggle auctions" });
+    }
+  });
   
   // Create route for uploading the site logo
   app.post("/api/settings/upload-logo", requireAdmin, upload.single('logo'), handleUploadError, async (req: Request, res: Response) => {

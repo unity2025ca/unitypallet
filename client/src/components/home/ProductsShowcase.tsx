@@ -31,12 +31,18 @@ const ProductsShowcase = () => {
     queryKey: ["/api/products"],
   });
 
+  const { data: auctionsStatus } = useQuery({
+    queryKey: ['/api/auctions-settings/enabled'],
+  });
+
   const { data: auctionProducts, isLoading: auctionProductsLoading } = useQuery<AuctionProduct[]>({
     queryKey: ["/api/auction-products"],
+    enabled: auctionsStatus?.enabled !== false,
   });
 
   const { data: auctions, isLoading: auctionsLoading } = useQuery<Auction[]>({
     queryKey: ["/api/auctions"],
+    enabled: auctionsStatus?.enabled !== false,
   });
 
   // Filter products by category
@@ -244,16 +250,18 @@ const ProductsShowcase = () => {
           viewAllLink="/products?category=pallets"
         />
 
-        {/* Live Auctions Section */}
-        <CategorySection
-          title="Live Auctions"
-          description="Bid on exclusive items in real-time"
-          icon={Gavel}
-          products={activeAuctions || []}
-          isLoading={auctionsLoading}
-          viewAllLink="/auctions"
-          type="auction"
-        />
+        {/* Live Auctions Section - Only show if auctions are enabled */}
+        {auctionsStatus?.enabled !== false && (
+          <CategorySection
+            title="Live Auctions"
+            description="Bid on exclusive items in real-time"
+            icon={Gavel}
+            products={activeAuctions || []}
+            isLoading={auctionsLoading}
+            viewAllLink="/auctions"
+            type="auction"
+          />
+        )}
 
         {/* Electronics Section */}
         <CategorySection

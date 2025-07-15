@@ -1,7 +1,7 @@
 import { Switch, Route } from "wouter";
 import { lazy } from "react";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SettingsProvider, useSettings } from "@/hooks/use-settings";
@@ -56,6 +56,7 @@ import CartBubble from "@/components/shared/CartBubble";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
 import { AdminProtectedRoute, PublisherProtectedRoute } from "@/lib/admin-protected-route";
+import { AuctionProtectedRoute } from "@/components/auction/AuctionProtectedRoute";
 
 function AppContent() {
   const [location] = useLocation();
@@ -82,8 +83,20 @@ function AppContent() {
         <Route path="/how-it-works" component={HowItWorksPage} />
         <Route path="/faq" component={FaqPage} />
         <Route path="/contact" component={ContactPage} />
-        <Route path="/auctions" component={AuctionsPage} />
-        <Route path="/auctions/:id" component={AuctionDetailsPage} />
+        <Route path="/auctions">
+          {() => (
+            <AuctionProtectedRoute>
+              <AuctionsPage />
+            </AuctionProtectedRoute>
+          )}
+        </Route>
+        <Route path="/auctions/:id">
+          {() => (
+            <AuctionProtectedRoute>
+              <AuctionDetailsPage />
+            </AuctionProtectedRoute>
+          )}
+        </Route>
         <Route path="/auth" component={AuthPage} />
         <Route path="/cart" component={CartPage} />
         

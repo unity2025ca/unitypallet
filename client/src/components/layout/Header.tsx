@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
@@ -28,7 +29,11 @@ const Header = () => {
 
   const siteLogo = settings?.find(s => s.key === 'site_logo')?.value;
 
-  const navItems = [
+  const { data: auctionsStatus } = useQuery({
+    queryKey: ['/api/auctions-settings/enabled'],
+  });
+
+  const baseNavItems = [
     { name: "Home", href: "/" },
     { name: "Products", href: "/products" },
     { name: "Auctions", href: "/auctions" },
@@ -37,6 +42,14 @@ const Header = () => {
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
   ];
+
+  // Filter out auctions if disabled
+  const navItems = baseNavItems.filter(item => {
+    if (item.name === "Auctions") {
+      return auctionsStatus?.enabled !== false;
+    }
+    return true;
+  });
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
