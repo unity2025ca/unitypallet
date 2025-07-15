@@ -31,18 +31,22 @@ export const useAdminAuth = () => {
   const login = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
       try {
-        const res = await apiRequest("POST", "/api/login", { username, password });
+        console.log("Attempting to login with:", { username });
+        const result = await apiRequest("/api/login", { 
+          method: "POST", 
+          body: JSON.stringify({ username, password }) 
+        });
         
-        // Ensure the response is valid
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
-          throw new Error(errorData.message || "Failed to authenticate");
-        }
-        
-        // Return the successful response
-        return res.json();
+        console.log("Login successful:", result);
+        return result;
       } catch (error) {
         console.error("Login error:", error);
+        
+        // Handle specific error types
+        if (error instanceof SyntaxError && error.message.includes('DOCTYPE')) {
+          throw new Error("Network error: Server returned HTML instead of JSON. Please try again.");
+        }
+        
         throw error;
       }
     },
@@ -64,9 +68,20 @@ export const useAdminAuth = () => {
     onError: (error: any) => {
       console.error("Login mutation error:", error);
       
+      // Handle specific error messages for better UX
+      let errorMessage = "Please check your username and password";
+      
+      if (error?.message?.includes("Network error")) {
+        errorMessage = "Network connection problem. Please check your internet connection and try again.";
+      } else if (error?.message?.includes("Server returned HTML")) {
+        errorMessage = "Connection issue. Please refresh the page and try again.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Login Failed",
-        description: error?.message || "Please check your username and password",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -75,14 +90,27 @@ export const useAdminAuth = () => {
   // Logout mutation
   const logout = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/logout", {});
-      return res.json();
+      console.log("Attempting to logout...");
+      const result = await apiRequest("/api/logout", { method: "POST" });
+      console.log("Logout successful:", result);
+      return result;
     },
     onSuccess: () => {
+      console.log("Logout successful, clearing cache and redirecting...");
       queryClient.invalidateQueries({ queryKey: ["/api/session"] });
+      queryClient.clear(); // Clear all cache
       navigate("/admin/login");
       toast({
         title: "Successfully logged out",
+        description: "You have been logged out of the admin panel",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Failed",
+        description: error?.message || "Failed to logout",
+        variant: "destructive",
       });
     },
   });

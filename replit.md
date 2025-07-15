@@ -24,6 +24,14 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Deployment:** PM2 process manager, environment variable loading
 
 ## Recent Changes (July 15, 2025)
+✓ **Fixed Authentication & Session Management:** Resolved critical logout and login issues
+- Fixed admin logout button that was not working properly
+- Fixed "DOCTYPE is not valid JSON" error when logging in from different devices
+- Improved session destruction with proper cleanup
+- Added better error handling for HTML responses in API requests
+- Enhanced network error messages for better user experience
+- Fixed JSON content-type validation to prevent HTML response errors
+
 ✓ **Complete Admin Settings System:** Created comprehensive settings management with full tabbed interface
 - Added 4 main tabs: Auctions, System, Appearance, and Homepage
 - System tab: Database backup status, maintenance mode, appointments system, about page settings, and how it works page settings
