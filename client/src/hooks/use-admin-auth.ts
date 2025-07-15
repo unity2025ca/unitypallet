@@ -32,10 +32,7 @@ export const useAdminAuth = () => {
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
       try {
         console.log("Attempting to login with:", { username });
-        const result = await apiRequest("/api/login", { 
-          method: "POST", 
-          body: JSON.stringify({ username, password }) 
-        });
+        const result = await apiRequest("POST", "/api/login", { username, password });
         
         console.log("Login successful:", result);
         return result;
