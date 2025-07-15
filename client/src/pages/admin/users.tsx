@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { useLocation } from 'wouter';
 import {
   Table,
   TableBody,
@@ -104,15 +105,30 @@ const getRoleBadge = (roleType: string) => {
 
 const AdminUsersPage: React.FC = () => {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
+  // Check session
+  const { data: session, isLoading: sessionLoading } = useQuery({
+    queryKey: ['/api/session'],
+    retry: false,
+  });
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!sessionLoading && (!session || !session.authenticated)) {
+      setLocation('/admin/login');
+    }
+  }, [session, sessionLoading, setLocation]);
+
   // Fetch users
   const { data: users, isLoading, isError } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    enabled: session?.authenticated === true,
   });
 
   // Create user form
@@ -138,15 +154,23 @@ const AdminUsersPage: React.FC = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (data: UserFormValues) => {
+      console.log('Creating user with data:', data);
       const response = await apiRequest('POST', '/api/admin/users', data);
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Error response:', errorData);
         throw new Error(errorData.message || 'Failed to create user');
       }
-      return response.json();
+      
+      const result = await response.json();
+      console.log('Success response:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/session'] });
       toast({
         title: 'User created',
         description: 'The user has been created successfully.',
@@ -155,6 +179,7 @@ const AdminUsersPage: React.FC = () => {
       createForm.reset();
     },
     onError: (error) => {
+      console.error('Create user error:', error);
       toast({
         title: 'Error',
         description: `Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -252,6 +277,20 @@ const AdminUsersPage: React.FC = () => {
     editForm.setValue('roleType', user.roleType);
     setIsEditDialogOpen(true);
   };
+
+  // Show loading while checking session
+  if (sessionLoading) {
+    return (
+      <div className="flex h-screen bg-gray-100 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If not authenticated, don't render anything (redirect will happen)
+  if (!session?.authenticated) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
