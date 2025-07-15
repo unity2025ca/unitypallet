@@ -24,10 +24,10 @@ import {
 const Header = () => {
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: settings } = useSettings();
+  const { getSettingValue } = useSettings();
   const { customer, logoutMutation } = useCustomerAuth();
 
-  const siteLogo = settings?.find(s => s.key === 'site_logo')?.value;
+  const siteLogo = getSettingValue('site_logo');
 
   const { data: auctionsStatus } = useQuery({
     queryKey: ['/api/auctions-settings/enabled'],
@@ -61,11 +61,21 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            {siteLogo ? (
+            {siteLogo && siteLogo.trim().length > 0 ? (
               <img 
                 src={siteLogo} 
-                alt="Site Logo" 
-                className="h-10 w-auto"
+                alt="Jaberco" 
+                className="h-10 w-auto object-contain max-w-32"
+                onLoad={() => console.log('Logo loaded successfully')}
+                onError={(e) => {
+                  console.error('Failed to load logo:', siteLogo);
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const fallbackText = document.createElement('span');
+                  fallbackText.textContent = 'Jaberco';
+                  fallbackText.className = 'text-xl font-bold text-primary';
+                  target.parentElement?.appendChild(fallbackText);
+                }}
               />
             ) : (
               <span className="text-xl font-bold text-primary">
