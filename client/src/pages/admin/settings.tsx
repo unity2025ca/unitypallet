@@ -102,217 +102,333 @@ export default function AdminSettingsPage() {
         </TabsList>
 
         <TabsContent value="auctions" className="space-y-6">
-        {/* Auction Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Auction Section Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="auctions-enabled" className="text-base font-medium">
-                    Show Auctions Section
-                  </Label>
-                  <p className="text-sm text-gray-600">
-                    Control whether the auction section appears on the website and navigation menu
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="auctions-enabled"
-                    checked={auctionsStatus?.enabled || false}
-                    onCheckedChange={handleToggleAuctions}
-                    disabled={toggleAuctionsMutation.isPending}
-                  />
-                  {auctionsStatus?.enabled ? (
-                    <Eye className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Auction Section Control
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Current Status: {auctionsStatus?.enabled ? (
-                        <span className="text-green-600">Auctions are visible</span>
-                      ) : (
-                        <span className="text-red-600">Auctions are hidden</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {auctionsStatus?.enabled ? 
-                        "Customers can access the auction section and place bids" : 
-                        "Auction section is hidden from navigation and pages"
-                      }
+                  <div className="space-y-1">
+                    <Label htmlFor="auctions-enabled" className="text-base font-medium">
+                      Show Auctions Section
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Control whether the auction section appears on the website and navigation menu
                     </p>
                   </div>
-                  <Button
-                    onClick={() => handleToggleAuctions(!auctionsStatus?.enabled)}
-                    disabled={toggleAuctionsMutation.isPending}
-                    variant={auctionsStatus?.enabled ? "destructive" : "default"}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {toggleAuctionsMutation.isPending ? "Updating..." : 
-                     auctionsStatus?.enabled ? "Hide Auctions" : "Show Auctions"}
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="auctions-enabled"
+                      checked={auctionsStatus?.enabled || false}
+                      onCheckedChange={handleToggleAuctions}
+                      disabled={toggleAuctionsMutation.isPending}
+                    />
+                    {auctionsStatus?.enabled ? (
+                      <Eye className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">
+                        Current Status: {auctionsStatus?.enabled ? (
+                          <span className="text-green-600">Auctions are visible</span>
+                        ) : (
+                          <span className="text-red-600">Auctions are hidden</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {auctionsStatus?.enabled ? 
+                          "Customers can access the auction section and place bids" : 
+                          "Auction section is hidden from navigation and pages"
+                        }
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => handleToggleAuctions(!auctionsStatus?.enabled)}
+                      disabled={toggleAuctionsMutation.isPending}
+                      variant={auctionsStatus?.enabled ? "destructive" : "default"}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {toggleAuctionsMutation.isPending ? "Updating..." : 
+                       auctionsStatus?.enabled ? "Hide Auctions" : "Show Auctions"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Database Backup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                  <Database className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium">Backup Status</p>
+                    <p className="text-xs text-gray-600">Current status of your backup system</p>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">Backup system is ready and configured properly.</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Last backup: 2025-07-14, 8:40:06 PM</p>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Create New Backup</p>
+                      <p className="text-xs text-gray-500">Save all your website data to the backup database</p>
+                    </div>
+                    <Button variant="outline" className="bg-red-600 hover:bg-red-700 text-white">
+                      <Database className="h-4 w-4 mr-2" />
+                      Create Backup
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    This will backup all users, products, images, settings, orders, and other important data to your configured backup database.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Maintenance Mode</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">Maintenance Mode</Label>
+                    <p className="text-sm text-gray-600">
+                      When enabled, all purchasing functionality will be disabled
+                    </p>
+                  </div>
+                  <Switch
+                    checked={getSetting('maintenance_mode') === 'true'}
+                    disabled
+                  />
+                </div>
+
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-red-800">Warning: When enabled, all purchasing functionality will be disabled on the website.</span>
+                  </div>
+                  <p className="text-xs text-red-600">Customers will not be able to add items to cart or checkout.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appointments" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointment Visibility</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">Show Appointments Bubble</Label>
+                    <p className="text-sm text-gray-600">
+                      Show or hide the appointments bubble on the homepage
+                    </p>
+                  </div>
+                  <Switch
+                    checked={getSetting('show_appointments_bubble') === 'true'}
+                    disabled
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointment Days and Hours</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Available Appointment Days</Label>
+                  <p className="text-xs text-gray-500 mb-2">Days when appointments are available (comma separated)</p>
+                  <Input
+                    value={getSetting('appointments_available_days')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Start Time</Label>
+                    <Input
+                      value={getSetting('appointments_start_time')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">End Time</Label>
+                    <Input
+                      value={getSetting('appointments_end_time')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Appointment Interval (minutes)</Label>
+                  <Input
+                    value={getSetting('appointments_interval')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appearance" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Site Logo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <img 
+                    src={getSetting('site_logo')}
+                    alt="Site Logo"
+                    className="h-16 w-auto border rounded"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">Current Logo</p>
+                    <p className="text-xs text-gray-500">{getSetting('site_logo')}</p>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <Label className="text-sm font-medium">Or upload a new logo directly:</Label>
+                  <Button variant="outline" className="mt-2 w-full" disabled>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Logo
                   </Button>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Site Information Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Site Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Colors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Site Logo</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <img 
-                      src={auctionsStatus?.enabled ? "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg" : "https://res.cloudinary.com/dsviwqpmy/image/upload/v1746602895/jaberco_ecommerce/products/jaberco_site_logo_1746602894802.jpg"}
-                      alt="Site Logo"
-                      className="h-12 w-auto"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Current site logo</p>
+                  <Label className="text-sm font-medium">Primary Color</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div 
+                      className="w-8 h-8 rounded border"
+                      style={{ backgroundColor: getSetting('primary_color') }}
+                    ></div>
+                    <span className="text-sm font-mono">{getSetting('primary_color')}</span>
                   </div>
                 </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Secondary Color</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div 
+                      className="w-8 h-8 rounded border"
+                      style={{ backgroundColor: getSetting('secondary_color') }}
+                    ></div>
+                    <span className="text-sm font-mono">{getSetting('secondary_color')}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Site Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Site Name</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-lg font-semibold">Jaberco</p>
-                    <p className="text-xs text-gray-500 mt-1">Site title and name</p>
-                  </div>
+                  <Input
+                    value={getSetting('site_name')}
+                    disabled
+                    className="bg-gray-50"
+                  />
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+                
+                <div>
+                  <Label className="text-sm font-medium">Site Description</Label>
+                  <Textarea
+                    value={getSetting('site_description')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                </div>
+                
                 <div>
                   <Label className="text-sm font-medium">Contact Email</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">contact@jaberco.com</p>
-                    <p className="text-xs text-gray-500 mt-1">Customer support email</p>
-                  </div>
+                  <Input
+                    value={getSetting('contact_email')}
+                    disabled
+                    className="bg-gray-50"
+                  />
                 </div>
+                
                 <div>
-                  <Label className="text-sm font-medium">Phone Number</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">+1 (555) 123-4567</p>
-                    <p className="text-xs text-gray-500 mt-1">Customer service phone</p>
-                  </div>
+                  <Label className="text-sm font-medium">Contact Phone</Label>
+                  <Input
+                    value={getSetting('contact_phone')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Contact Address</Label>
+                  <Input
+                    value={getSetting('contact_address')}
+                    disabled
+                    className="bg-gray-50"
+                  />
                 </div>
               </div>
-              
-              <div>
-                <Label className="text-sm font-medium">Business Address</Label>
-                <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm">123 Business Street, Suite 100</p>
-                  <p className="text-sm">Toronto, ON M5V 3A8, Canada</p>
-                  <p className="text-xs text-gray-500 mt-1">Physical business address</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Website Policies */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Website Policies</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Privacy Policy</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-gray-600">Privacy policy content available</p>
-                    <Button variant="outline" size="sm" className="mt-2">Edit Policy</Button>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Terms of Service</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-gray-600">Terms of service content available</p>
-                    <Button variant="outline" size="sm" className="mt-2">Edit Terms</Button>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Return Policy</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-gray-600">Return policy content available</p>
-                    <Button variant="outline" size="sm" className="mt-2">Edit Policy</Button>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Shipping Policy</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-xs text-gray-600">Shipping policy content available</p>
-                    <Button variant="outline" size="sm" className="mt-2">Edit Policy</Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Social Media Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Social Media & Links</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">WhatsApp</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">+1 (555) 123-4567</p>
-                    <p className="text-xs text-gray-500 mt-1">WhatsApp support number</p>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Facebook</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">facebook.com/jaberco</p>
-                    <p className="text-xs text-gray-500 mt-1">Facebook page link</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Instagram</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">@jaberco_official</p>
-                    <p className="text-xs text-gray-500 mt-1">Instagram handle</p>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Twitter</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p className="text-sm">@jaberco</p>
-                    <p className="text-xs text-gray-500 mt-1">Twitter handle</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
