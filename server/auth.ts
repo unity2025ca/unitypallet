@@ -174,8 +174,10 @@ export function setupAuth(app: Express) {
     
     if (!req.isAuthenticated() || 
         !(user?.isAdmin || user?.is_admin || user?.roleType === 'admin' || user?.role_type === 'admin' || user?.roleType === 'publisher' || user?.role_type === 'publisher')) {
+      console.log('canManageProducts - DENIED');
       return res.status(401).json({ message: "Unauthorized - Cannot manage products" });
     }
+    console.log('canManageProducts - ALLOWED');
     next();
   };
   

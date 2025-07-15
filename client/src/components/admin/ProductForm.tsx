@@ -117,6 +117,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {
@@ -203,6 +204,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       const response = await fetch(`/api/admin/products/${productId}/image`, {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {
@@ -242,6 +244,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     try {
       const response = await fetch(`/api/admin/products/${productId}/images/${imageId}/main`, {
         method: 'PATCH',
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {
@@ -279,6 +282,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     try {
       const response = await fetch(`/api/admin/products/images/${imageId}`, {
         method: 'DELETE',
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {

@@ -1101,8 +1101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
   
-  // File upload routes - only admin can upload general files
-  app.post('/api/upload', requireAdmin, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
+  // File upload routes - admin and publishers can upload general files
+  app.post('/api/upload', canManageProducts, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }

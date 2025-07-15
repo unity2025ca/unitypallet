@@ -44,10 +44,7 @@ export default function AdvertisementsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertAdvertisement) => apiRequest("/api/admin/advertisements", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: InsertAdvertisement) => apiRequest("POST", "/api/admin/advertisements", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/advertisements"] });
       setIsDialogOpen(false);
@@ -68,10 +65,7 @@ export default function AdvertisementsPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<InsertAdvertisement> }) => 
-      apiRequest(`/api/admin/advertisements/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("PUT", `/api/admin/advertisements/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/advertisements"] });
       setIsDialogOpen(false);
@@ -91,9 +85,7 @@ export default function AdvertisementsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/admin/advertisements/${id}`, {
-      method: "DELETE",
-    }),
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/advertisements/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/advertisements"] });
       toast({
