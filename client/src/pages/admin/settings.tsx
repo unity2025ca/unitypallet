@@ -4,18 +4,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Settings, Eye, EyeOff } from "lucide-react";
+import { Settings, Eye, EyeOff, Database, Wrench, Calendar, Palette, Upload } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('auctions');
 
   // Fetch auctions enabled status
   const { data: auctionsStatus, isLoading } = useQuery({
     queryKey: ['/api/auctions-settings/enabled'],
     queryFn: () => apiRequest('/api/auctions-settings/enabled'),
+  });
+
+  // Fetch all settings
+  const { data: allSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['/api/settings'],
   });
 
   // Toggle auctions mutation
@@ -49,26 +58,50 @@ export default function AdminSettingsPage() {
     toggleAuctionsMutation.mutate(enabled);
   };
 
-  if (isLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center gap-2 mb-6">
           <Settings className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Site Settings</h1>
+          <h1 className="text-2xl font-bold">Settings</h1>
         </div>
         <div className="text-center py-8">Loading...</div>
       </div>
     );
   }
 
+  const getSetting = (key: string) => {
+    return allSettings?.find(s => s.key === key)?.value || '';
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center gap-2 mb-6">
         <Settings className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Site Settings</h1>
+        <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      <div className="grid gap-6">
+      <Tabs defaultValue="auctions" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="auctions" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Auctions
+          </TabsTrigger>
+          <TabsTrigger value="system" className="flex items-center gap-2">
+            <Wrench className="h-4 w-4" />
+            System
+          </TabsTrigger>
+          <TabsTrigger value="appointments" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Appearance
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="auctions" className="space-y-6">
         {/* Auction Settings */}
         <Card>
           <CardHeader>
