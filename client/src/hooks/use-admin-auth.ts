@@ -91,7 +91,7 @@ export const useAdminAuth = () => {
   const logout = useMutation({
     mutationFn: async () => {
       console.log("Attempting to logout...");
-      const result = await apiRequest("/api/logout", { method: "POST" });
+      const result = await apiRequest("POST", "/api/logout");
       console.log("Logout successful:", result);
       return result;
     },
