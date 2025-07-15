@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Settings, Eye, EyeOff, Database, Wrench, Calendar, Palette, Upload } from "lucide-react";
+import { Settings, Eye, EyeOff, Database, Wrench, Calendar, Palette, Upload, Save, Loader2 } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { toast } = useToast();
@@ -56,6 +56,36 @@ export default function AdminSettingsPage() {
 
   const handleToggleAuctions = (enabled: boolean) => {
     toggleAuctionsMutation.mutate(enabled);
+  };
+
+  // Update setting mutation
+  const updateSettingMutation = useMutation({
+    mutationFn: ({ key, value }: { key: string; value: string }) => {
+      return apiRequest('/api/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ key, value })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+      toast({
+        title: "Success",
+        description: "Setting updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update setting",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateSetting = (key: string, value: string) => {
+    // Immediate update for better UX
+    updateSettingMutation.mutate({ key, value });
   };
 
   if (isLoading || settingsLoading) {
@@ -310,8 +340,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Page Title</Label>
                   <Input
                     value={getSetting('about_title')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('about_title', e.target.value)}
+                    placeholder="Enter about page title"
                   />
                 </div>
 
@@ -319,8 +349,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Page Subtitle</Label>
                   <Input
                     value={getSetting('about_subtitle')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('about_subtitle', e.target.value)}
+                    placeholder="Enter about page subtitle"
                   />
                 </div>
 
@@ -328,8 +358,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Description</Label>
                   <Textarea
                     value={getSetting('about_description')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('about_description', e.target.value)}
+                    placeholder="Enter about description"
                     rows={4}
                   />
                 </div>
@@ -339,8 +369,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Our Mission</Label>
                     <Textarea
                       value={getSetting('about_mission')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('about_mission', e.target.value)}
+                      placeholder="Enter our mission"
                       rows={3}
                     />
                   </div>
@@ -348,8 +378,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Our Vision</Label>
                     <Textarea
                       value={getSetting('about_vision')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('about_vision', e.target.value)}
+                      placeholder="Enter our vision"
                       rows={3}
                     />
                   </div>
@@ -370,16 +400,16 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Customers Count</Label>
                     <Input
                       value={getSetting('about_customers_count')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('about_customers_count', e.target.value)}
+                      placeholder="Enter customers count"
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Pallets Count</Label>
                     <Input
                       value={getSetting('about_pallets_count')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('about_pallets_count', e.target.value)}
+                      placeholder="Enter pallets count"
                     />
                   </div>
                 </div>
@@ -412,8 +442,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">How It Works Title</Label>
                   <Input
                     value={getSetting('how_it_works_title')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('how_it_works_title', e.target.value)}
+                    placeholder="Enter how it works title"
                   />
                 </div>
 
@@ -421,8 +451,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">How It Works Subtitle</Label>
                   <Input
                     value={getSetting('how_it_works_subtitle')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('how_it_works_subtitle', e.target.value)}
+                    placeholder="Enter how it works subtitle"
                   />
                 </div>
 
@@ -430,8 +460,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Explanation Title</Label>
                   <Input
                     value={getSetting('how_it_works_explanation_title')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('how_it_works_explanation_title', e.target.value)}
+                    placeholder="Enter explanation title"
                   />
                 </div>
 
@@ -439,8 +469,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Explanation Description</Label>
                   <Textarea
                     value={getSetting('how_it_works_explanation_description')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('how_it_works_explanation_description', e.target.value)}
+                    placeholder="Enter explanation description"
                     rows={4}
                   />
                 </div>
@@ -622,8 +652,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Site Name</Label>
                   <Input
                     value={getSetting('site_name')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('site_name', e.target.value)}
+                    placeholder="Enter site name"
                   />
                 </div>
                 
@@ -631,8 +661,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Site Description</Label>
                   <Textarea
                     value={getSetting('site_description')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('site_description', e.target.value)}
+                    placeholder="Enter site description"
                     rows={3}
                   />
                 </div>
@@ -641,8 +671,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Contact Email</Label>
                   <Input
                     value={getSetting('contact_email')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('contact_email', e.target.value)}
+                    placeholder="Enter contact email"
                   />
                 </div>
                 
@@ -650,8 +680,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Contact Phone</Label>
                   <Input
                     value={getSetting('contact_phone')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('contact_phone', e.target.value)}
+                    placeholder="Enter contact phone"
                   />
                 </div>
                 
@@ -659,8 +689,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Contact Address</Label>
                   <Input
                     value={getSetting('contact_address')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('contact_address', e.target.value)}
+                    placeholder="Enter contact address"
                   />
                 </div>
               </div>
@@ -679,8 +709,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Banner Title</Label>
                   <Input
                     value={getSetting('home_banner_title')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_banner_title', e.target.value)}
+                    placeholder="Enter banner title"
                   />
                 </div>
                 
@@ -688,8 +718,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Banner Subtitle</Label>
                   <Textarea
                     value={getSetting('home_banner_subtitle')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_banner_subtitle', e.target.value)}
+                    placeholder="Enter banner subtitle"
                     rows={3}
                   />
                 </div>
@@ -698,8 +728,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Banner Button Text</Label>
                   <Input
                     value={getSetting('home_banner_button_text')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_banner_button_text', e.target.value)}
+                    placeholder="Enter banner button text"
                   />
                 </div>
 
@@ -707,8 +737,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Banner Button Link</Label>
                   <Input
                     value={getSetting('home_banner_button_link')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_banner_button_link', e.target.value)}
+                    placeholder="Enter banner button link"
                   />
                 </div>
 
@@ -740,8 +770,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Features Section Title</Label>
                   <Input
                     value={getSetting('home_features_title')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_features_title', e.target.value)}
+                    placeholder="Enter features section title"
                   />
                 </div>
 
@@ -749,8 +779,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Features Section Subtitle</Label>
                   <Input
                     value={getSetting('home_features_subtitle')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('home_features_subtitle', e.target.value)}
+                    placeholder="Enter features section subtitle"
                   />
                 </div>
 
@@ -996,8 +1026,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Facebook URL</Label>
                     <Input
                       value={getSetting('social_facebook')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('social_facebook', e.target.value)}
+                      placeholder="Enter Facebook URL"
                     />
                   </div>
                   
@@ -1005,8 +1035,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Instagram URL</Label>
                     <Input
                       value={getSetting('social_instagram')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('social_instagram', e.target.value)}
+                      placeholder="Enter Instagram URL"
                     />
                   </div>
                 </div>
@@ -1016,8 +1046,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Twitter URL</Label>
                     <Input
                       value={getSetting('social_twitter')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('social_twitter', e.target.value)}
+                      placeholder="Enter Twitter URL"
                     />
                   </div>
                   
@@ -1025,8 +1055,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">YouTube URL</Label>
                     <Input
                       value={getSetting('social_youtube')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('social_youtube', e.target.value)}
+                      placeholder="Enter YouTube URL"
                     />
                   </div>
                 </div>
@@ -1036,8 +1066,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Instagram Handle</Label>
                     <Input
                       value={getSetting('instagram')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('instagram', e.target.value)}
+                      placeholder="Enter Instagram handle"
                     />
                   </div>
                   
@@ -1045,8 +1075,8 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Twitter Handle</Label>
                     <Input
                       value={getSetting('twitter')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleUpdateSetting('twitter', e.target.value)}
+                      placeholder="Enter Twitter handle"
                     />
                   </div>
                 </div>
@@ -1055,8 +1085,8 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Google Maps Embed Code</Label>
                   <Textarea
                     value={getSetting('location_map')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleUpdateSetting('location_map', e.target.value)}
+                    placeholder="Enter Google Maps embed code"
                     rows={3}
                   />
                   <p className="text-xs text-gray-500 mt-1">

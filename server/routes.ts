@@ -809,6 +809,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Alternative PUT endpoint for settings
+  app.put("/api/settings", requireAdmin, async (req, res) => {
+    try {
+      const { key, value } = req.body;
+      
+      if (!key || !value) {
+        return res.status(400).json({ message: "Key and value are required" });
+      }
+      
+      const setting = await storage.updateSetting(key, value);
+      
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update setting" });
+    }
+  });
+
   // Get auctions enabled status
   app.get("/api/auctions-settings/enabled", async (req, res) => {
     try {
