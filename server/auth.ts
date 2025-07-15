@@ -133,6 +133,12 @@ export function setupAuth(app: Express) {
   // Check if user is admin (full access)
   const requireAdmin = (req: any, res: any, next: any) => {
     const user = req.user;
+    console.log('requireAdmin check:', { 
+      isAuthenticated: req.isAuthenticated(),
+      user: user ? { id: user.id, username: user.username, isAdmin: user.isAdmin, roleType: user.roleType } : 'null',
+      hasAdminAccess: user?.isAdmin || user?.roleType === 'admin'
+    });
+    
     if (!req.isAuthenticated() || !(user?.isAdmin || user?.roleType === 'admin')) {
       return res.status(401).json({ message: "Unauthorized - Admin access required" });
     }

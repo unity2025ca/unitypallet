@@ -823,6 +823,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Toggle auctions visibility (admin only)
   app.post("/api/auctions-settings/toggle", requireAdmin, async (req, res) => {
     try {
+      console.log('Toggle auctions request:', { 
+        user: req.user ? { id: req.user.id, username: req.user.username, isAdmin: req.user.isAdmin } : 'Not authenticated',
+        body: req.body 
+      });
+      
       const { enabled } = req.body;
       
       if (typeof enabled !== 'boolean') {
@@ -835,12 +840,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Setting not found" });
       }
       
+      console.log('Auctions toggle successful:', { enabled: setting.value === 'true' });
+      
       res.json({ 
         success: true, 
         enabled: setting.value === 'true',
         message: `Auctions ${enabled ? 'enabled' : 'disabled'} successfully`
       });
     } catch (error) {
+      console.error('Toggle auctions error:', error);
       res.status(500).json({ message: "Failed to toggle auctions" });
     }
   });
