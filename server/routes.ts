@@ -1115,12 +1115,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // إرجاع عنوان URL للصورة المرفوعة
+      // إرجاع عنوان URL للملف المرفوع (صورة أو فيديو)
       return res.status(200).json({ 
         success: true, 
         message: 'File uploaded successfully', 
-        fileUrl: uploadResult.imageUrl,
-        publicId: uploadResult.publicId
+        fileUrl: uploadResult.imageUrl || uploadResult.videoUrl,
+        imageUrl: uploadResult.imageUrl,
+        videoUrl: uploadResult.videoUrl,
+        mediaType: uploadResult.resource_type,
+        publicId: uploadResult.publicId,
+        format: uploadResult.format,
+        width: uploadResult.width,
+        height: uploadResult.height,
+        duration: uploadResult.duration // For videos
       });
     } catch (error: any) {
       console.error('Error uploading file to cloud storage:', error);
@@ -1166,9 +1173,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // استخدام عنوان URL من Cloudinary
-        const fileUrl = uploadResult.imageUrl;
+        // استخدام عنوان URL من Cloudinary (صورة أو فيديو)
+        const fileUrl = uploadResult.imageUrl || uploadResult.videoUrl;
         console.log('File URL from Cloudinary:', fileUrl);
+        console.log('Media type:', uploadResult.resource_type);
         
         // Set whether this should be the main image
         const isMain = req.body.isMain === 'true';
@@ -1188,10 +1196,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           format: uploadResult.format
         };
         
-        // Add the image to product_images table
+        // Determine if this is a video or image based on file type
+        const isVideo = req.file.mimetype.startsWith('video/');
+        const mediaType = isVideo ? 'video' : 'image';
+        
+        // Add the media to product_images table
         const productImage = await storage.addProductImage({
           productId: id,
-          imageUrl: fileUrl || '', // نتأكد من أن fileUrl ليس undefined
+          imageUrl: isVideo ? null : fileUrl || '', // Only set imageUrl for images
+          videoUrl: isVideo ? fileUrl || '' : null, // Only set videoUrl for videos
+          mediaType: mediaType,
           isMain: isMain || false,
           displayOrder: displayOrder || 0
         });
@@ -1210,8 +1224,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.status(200).json({ 
           success: true, 
-          message: 'Product image added successfully',
-          image: productImage
+          message: `Product ${mediaType} added successfully`,
+          media: productImage,
+          mediaType: mediaType
         });
         
       } catch (uploadError: any) {

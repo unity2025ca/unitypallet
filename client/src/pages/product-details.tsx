@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ShoppingBag, Check, AlertTriangle } from "lucide-react";
+import { ShoppingBag, Check, AlertTriangle, Play } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -21,8 +21,9 @@ const ProductDetailsPage = () => {
   const { toast } = useToast();
   const { isMaintenanceMode } = useSettings();
   
-  // State for selected image
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // State for selected media (image or video)
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [selectedMediaType, setSelectedMediaType] = useState<'image' | 'video'>('image');
   // State for add to cart feedback
   const [addedToCart, setAddedToCart] = useState(false);
   
@@ -71,19 +72,24 @@ const ProductDetailsPage = () => {
     enabled: !!id,
   });
   
-  // Set the main image when product or productImages change
+  // Set the main media when product or productImages change
   useEffect(() => {
     if (product) {
-      setSelectedImage(product.imageUrl);
+      setSelectedMedia(product.imageUrl);
+      setSelectedMediaType(product.imageUrl?.includes('/video/') || product.imageUrl?.match(/\.(mp4|avi|mov|wmv|webm|mkv)$/i) ? 'video' : 'image');
     }
     
     if (productImages && productImages.length > 0) {
       // Find main image or use first image
       const mainImage = productImages.find(img => img.isMain);
       if (mainImage) {
-        setSelectedImage(mainImage.imageUrl);
+        const mediaUrl = mainImage.videoUrl || mainImage.imageUrl;
+        setSelectedMedia(mediaUrl);
+        setSelectedMediaType(mainImage.videoUrl ? 'video' : 'image');
       } else if (productImages[0]) {
-        setSelectedImage(productImages[0].imageUrl);
+        const mediaUrl = productImages[0].videoUrl || productImages[0].imageUrl;
+        setSelectedMedia(mediaUrl);
+        setSelectedMediaType(productImages[0].videoUrl ? 'video' : 'image');
       }
     }
   }, [product, productImages]);
@@ -150,57 +156,105 @@ const ProductDetailsPage = () => {
             <div className="grid md:grid-cols-2 gap-8">
               {/* Product Images Gallery */}
               <div className="space-y-4">
-                {/* Main Image */}
+                {/* Main Media */}
                 <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
-                  <img 
-                    src={selectedImage || product.imageUrl} 
-                    alt={product.title}
-                    className="w-full h-full object-contain rounded-lg shadow-md"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
-                    }}
-                  />
+                  {selectedMediaType === 'video' ? (
+                    <video 
+                      src={selectedMedia || product.imageUrl} 
+                      className="w-full h-full object-contain rounded-lg shadow-md"
+                      controls
+                      onError={(e) => {
+                        (e.target as HTMLVideoElement).poster = "https://placehold.co/600x400?text=Video+Not+Available";
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      src={selectedMedia || product.imageUrl} 
+                      alt={product.title}
+                      className="w-full h-full object-contain rounded-lg shadow-md"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
+                      }}
+                    />
+                  )}
                 </div>
                 
-                {/* Image Thumbnails */}
+                {/* Media Thumbnails */}
                 {productImages && productImages.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-2">
-                    {/* Default product image */}
+                    {/* Default product media */}
                     <button
-                      onClick={() => setSelectedImage(product.imageUrl)}
+                      onClick={() => {
+                        setSelectedMedia(product.imageUrl);
+                        setSelectedMediaType(product.imageUrl?.includes('/video/') || product.imageUrl?.match(/\.(mp4|avi|mov|wmv|webm|mkv)$/i) ? 'video' : 'image');
+                      }}
                       className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 ${
-                        selectedImage === product.imageUrl ? 'border-primary' : 'border-transparent'
-                      }`}
+                        selectedMedia === product.imageUrl ? 'border-primary' : 'border-transparent'
+                      } relative`}
                     >
-                      <img 
-                        src={product.imageUrl} 
-                        alt={`${product.title} thumbnail`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=NA";
-                        }}
-                      />
-                    </button>
-                    
-                    {/* Additional product images */}
-                    {productImages.map((image) => (
-                      <button
-                        key={image.id}
-                        onClick={() => setSelectedImage(image.imageUrl)}
-                        className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 ${
-                          selectedImage === image.imageUrl ? 'border-primary' : 'border-transparent'
-                        }`}
-                      >
+                      {product.imageUrl?.includes('/video/') || product.imageUrl?.match(/\.(mp4|avi|mov|wmv|webm|mkv)$/i) ? (
+                        <div className="w-full h-full bg-black relative">
+                          <video 
+                            src={product.imageUrl} 
+                            className="w-full h-full object-cover"
+                            muted
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Play className="h-6 w-6 text-white" />
+                          </div>
+                        </div>
+                      ) : (
                         <img 
-                          src={image.imageUrl} 
-                          alt={`${product.title} thumbnail ${image.id}`}
+                          src={product.imageUrl} 
+                          alt={`${product.title} thumbnail`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=NA";
                           }}
                         />
-                      </button>
-                    ))}
+                      )}
+                    </button>
+                    
+                    {/* Additional product media */}
+                    {productImages.map((image) => {
+                      const mediaUrl = image.videoUrl || image.imageUrl;
+                      const isVideo = !!image.videoUrl;
+                      
+                      return (
+                        <button
+                          key={image.id}
+                          onClick={() => {
+                            setSelectedMedia(mediaUrl);
+                            setSelectedMediaType(isVideo ? 'video' : 'image');
+                          }}
+                          className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 ${
+                            selectedMedia === mediaUrl ? 'border-primary' : 'border-transparent'
+                          } relative`}
+                        >
+                          {isVideo ? (
+                            <div className="w-full h-full bg-black relative">
+                              <video 
+                                src={mediaUrl} 
+                                className="w-full h-full object-cover"
+                                muted
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Play className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <img 
+                              src={mediaUrl} 
+                              alt={`${product.title} thumbnail ${image.id}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=NA";
+                              }}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

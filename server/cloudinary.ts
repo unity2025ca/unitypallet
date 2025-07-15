@@ -52,25 +52,30 @@ console.log(`Cloudinary initialized with:
 
 // Default folder for storing product images
 const PRODUCT_IMAGES_FOLDER = 'jaberco_ecommerce/products';
+const PRODUCT_VIDEOS_FOLDER = 'jaberco_ecommerce/videos';
 
 // Interface for upload result
 export interface CloudinaryUploadResult {
   success: boolean;
   imageUrl?: string;
+  videoUrl?: string;
   publicId?: string;
   format?: string;
   width?: number;
   height?: number;
+  duration?: number;
+  resource_type?: string;
   error?: string;
 }
 
 /**
- * Upload an image to Cloudinary
+ * Upload an image or video to Cloudinary
  * @param filePath Path to the temporary file on the server
- * @param publicId Public ID for the image (optional)
+ * @param publicId Public ID for the file (optional)
+ * @param resourceType Type of resource (image, video, auto)
  * @returns Promise containing the upload result
  */
-export const uploadImage = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
+export const uploadImage = async (filePath: string, publicId?: string, resourceType: 'image' | 'video' | 'auto' = 'auto'): Promise<CloudinaryUploadResult> => {
   try {
     console.log(`Attempting to upload image from ${filePath} to Cloudinary...`);
     
@@ -106,10 +111,11 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
     
     // Alternative method: Using stream instead of base64
     return new Promise<CloudinaryUploadResult>((resolve) => {
+      const folder = resourceType === 'video' ? PRODUCT_VIDEOS_FOLDER : PRODUCT_IMAGES_FOLDER;
       const options: any = {
-        folder: PRODUCT_IMAGES_FOLDER,
-        resource_type: 'auto',
-        // Optimize performance and reduce image size
+        folder: folder,
+        resource_type: resourceType,
+        // Optimize performance and reduce file size
         quality: 'auto',
         fetch_format: 'auto',
       };
@@ -131,22 +137,35 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
           return;
         }
         
-        console.log('Image uploaded successfully to Cloudinary');
-        console.log('Image URL:', result?.secure_url);
+        console.log('File uploaded successfully to Cloudinary');
+        console.log('File URL:', result?.secure_url);
         console.log('Public ID:', result?.public_id);
+        console.log('Resource Type:', result?.resource_type);
         
         if (!result?.secure_url) {
           console.error('Warning: No secure_url returned from Cloudinary');
         }
         
-        resolve({
+        const uploadResult: CloudinaryUploadResult = {
           success: true,
-          imageUrl: result?.secure_url,
           publicId: result?.public_id,
           format: result?.format,
-          width: result?.width,
-          height: result?.height,
-        });
+          resource_type: result?.resource_type,
+        };
+
+        // Set URL based on resource type
+        if (result?.resource_type === 'video') {
+          uploadResult.videoUrl = result?.secure_url;
+          uploadResult.duration = result?.duration;
+        } else {
+          uploadResult.imageUrl = result?.secure_url;
+        }
+
+        // Add dimensions if available
+        if (result?.width) uploadResult.width = result.width;
+        if (result?.height) uploadResult.height = result.height;
+        
+        resolve(uploadResult);
       });
       
       // Create a stream to read the file and pipe it to uploadStream
@@ -173,19 +192,30 @@ export const uploadImage = async (filePath: string, publicId?: string): Promise<
 };
 
 /**
- * Delete an image from Cloudinary
- * @param publicId The public ID of the image
+ * Upload a video to Cloudinary
+ * @param filePath Path to the temporary file on the server
+ * @param publicId Public ID for the video (optional)
+ * @returns Promise containing the upload result
+ */
+export const uploadVideo = async (filePath: string, publicId?: string): Promise<CloudinaryUploadResult> => {
+  return uploadImage(filePath, publicId, 'video');
+};
+
+/**
+ * Delete a file from Cloudinary (image or video)
+ * @param publicId The public ID of the file
+ * @param resourceType The type of resource (image, video, auto)
  * @returns Promise containing the deletion result
  */
-export const deleteImage = async (publicId: string) => {
+export const deleteImage = async (publicId: string, resourceType: 'image' | 'video' | 'auto' = 'auto') => {
   try {
     // Only delete if there's a public ID
     if (!publicId) {
       return { success: false, error: 'No public ID provided' };
     }
 
-    // Delete the image from Cloudinary
-    const result = await cloudinary.uploader.destroy(publicId);
+    // Delete the file from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
     
     return {
       success: result.result === 'ok',

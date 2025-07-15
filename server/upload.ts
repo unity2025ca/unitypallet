@@ -23,13 +23,19 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter to accept only images
+// File filter to accept images and videos
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedTypes = [
+    // Images
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg',
+    // Videos
+    'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
+  ];
+  
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed'));
+    cb(new Error('Only image and video files are allowed'));
   }
 };
 
@@ -38,7 +44,7 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max file size
+    fileSize: 500 * 1024 * 1024 // 500MB max file size for images and videos
   }
 });
 

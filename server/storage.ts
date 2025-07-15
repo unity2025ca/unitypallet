@@ -395,7 +395,17 @@ export class DatabaseStorage implements IStorage {
       productImage.isMain = true;
     }
     
-    const result = await db.insert(productImages).values(productImage).returning();
+    // Ensure proper values for new fields
+    const imageData = {
+      productId: productImage.productId,
+      imageUrl: productImage.imageUrl || null,
+      videoUrl: productImage.videoUrl || null,
+      mediaType: productImage.mediaType || 'image',
+      isMain: productImage.isMain || false,
+      displayOrder: productImage.displayOrder || 0
+    };
+    
+    const result = await db.insert(productImages).values(imageData).returning();
     return result[0];
   }
   

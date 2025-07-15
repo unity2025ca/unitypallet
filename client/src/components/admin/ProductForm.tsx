@@ -17,7 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Image, Loader2, XCircle, Check } from "lucide-react";
+import { Upload, Image, Loader2, XCircle, Check, Play } from "lucide-react";
+import MediaGallery from "./MediaGallery";
 import {
   Select,
   SelectContent,
@@ -69,28 +70,31 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     },
   });
 
-  // Handle image upload
+  // Handle image or video upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    // Validate file type (images and videos)
+    const validTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg',
+      'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
+    ];
     if (!validTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a valid image file (JPEG, PNG, GIF, or WEBP)",
+        description: "Please upload a valid image or video file (JPEG, PNG, GIF, WEBP, MP4, AVI, MOV, WMV, WEBM, MKV)",
         variant: "destructive"
       });
       return;
     }
     
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (500MB max)
+    const maxSize = 500 * 1024 * 1024; // 500MB
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Image must be less than 5MB",
+        description: "File must be less than 500MB",
         variant: "destructive"
       });
       return;
@@ -138,9 +142,10 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
           shouldDirty: true 
         });
         
+        const isVideo = file.type.startsWith('video/');
         toast({
-          title: "Image uploaded successfully",
-          description: "The image has been uploaded and linked to the product",
+          title: `${isVideo ? 'Video' : 'Image'} uploaded successfully`,
+          description: `The ${isVideo ? 'video' : 'image'} has been uploaded and linked to the product`,
         });
       } else {
         throw new Error(result.message || 'Failed to upload image');
@@ -156,28 +161,31 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
     }
   };
   
-  // Handle additional image upload for existing products
+  // Handle additional image or video upload for existing products
   const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !productId) return;
     
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    // Validate file type (images and videos)
+    const validTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg',
+      'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
+    ];
     if (!validTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a valid image file (JPEG, PNG, GIF, or WEBP)",
+        description: "Please upload a valid image or video file (JPEG, PNG, GIF, WEBP, MP4, AVI, MOV, WMV, WEBM, MKV)",
         variant: "destructive"
       });
       return;
     }
     
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (500MB max)
+    const maxSize = 500 * 1024 * 1024; // 500MB
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Image must be less than 5MB",
+        description: "File must be less than 500MB",
         variant: "destructive"
       });
       return;
@@ -204,16 +212,17 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       const result = await response.json();
       
       if (result.success) {
+        const isVideo = file.type.startsWith('video/');
         toast({
-          title: "Additional image uploaded",
-          description: "The image has been added to this product's gallery"
+          title: `Additional ${isVideo ? 'video' : 'image'} uploaded`,
+          description: `The ${isVideo ? 'video' : 'image'} has been added to this product's gallery`
         });
         
         // Refresh product images using React Query
         // Instead of full page reload which loses state
         queryClient.invalidateQueries({ queryKey: [`/api/products/${productId}/images`] });
       } else {
-        throw new Error(result.message || 'Failed to upload additional image');
+        throw new Error(result.message || 'Failed to upload additional media');
       }
     } catch (error: any) {
       toast({
@@ -482,7 +491,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                     ref={fileInputRef}
                     onChange={handleImageUpload}
                     className="hidden"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/avi,video/mov,video/wmv,video/webm,video/mkv"
                   />
                   <Button 
                     type="button" 
@@ -500,7 +509,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                   </Button>
                 </div>
                 <FormDescription>
-                  Enter a URL or upload an image (JPEG, PNG, GIF, WEBP, max 5MB)
+                  Enter a URL or upload an image/video (JPEG, PNG, GIF, WEBP, MP4, AVI, MOV, WMV, WEBM, MKV, max 500MB)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -511,23 +520,34 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
         {/* Preview */}
         {form.watch("imageUrl") && (
           <div className="border rounded-md p-4 mt-4">
-            <p className="font-medium mb-2">Main Image Preview:</p>
-            <img 
-              src={form.watch("imageUrl")} 
-              alt="Product preview" 
-              className="w-full max-h-40 object-cover rounded" 
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
-              }}
-            />
+            <p className="font-medium mb-2">Main Media Preview:</p>
+            {form.watch("imageUrl")?.includes('/video/') || form.watch("imageUrl")?.match(/\.(mp4|avi|mov|wmv|webm|mkv)$/i) ? (
+              <video 
+                src={form.watch("imageUrl")} 
+                className="w-full max-h-40 object-cover rounded" 
+                controls
+                onError={(e) => {
+                  (e.target as HTMLVideoElement).poster = "https://placehold.co/600x400?text=Video+Not+Available";
+                }}
+              />
+            ) : (
+              <img 
+                src={form.watch("imageUrl")} 
+                alt="Product preview" 
+                className="w-full max-h-40 object-cover rounded" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
+                }}
+              />
+            )}
           </div>
         )}
         
-        {/* Additional Images Section (only for existing products) */}
+        {/* Additional Media Section (only for existing products) */}
         {productId && (
           <div className="border rounded-md p-4 mt-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium">Additional Product Images</h3>
+              <h3 className="font-medium">Additional Product Media</h3>
               
               <div>
                 <input 
@@ -535,7 +555,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                   ref={additionalFileInputRef}
                   onChange={handleAdditionalImageUpload}
                   className="hidden"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/avi,video/mov,video/wmv,video/webm,video/mkv"
                 />
                 <Button 
                   type="button" 
@@ -549,60 +569,16 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                   ) : (
                     <Upload className="h-4 w-4 mr-2" />
                   )}
-                  {isUploadingAdditional ? "Uploading..." : "Add Image"}
+                  {isUploadingAdditional ? "Uploading..." : "Add Media"}
                 </Button>
               </div>
             </div>
             
-            {productImages && productImages.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {productImages.map((image) => (
-                  <div key={image.id} className="relative group border rounded-md overflow-hidden">
-                    <img 
-                      src={image.imageUrl} 
-                      alt={`Product image ${image.id}`}
-                      className="w-full h-32 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://placehold.co/300x300?text=NA";
-                      }}
-                    />
-                    
-                    {/* Image controls overlay */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
-                      {image.isMain ? (
-                        <div className="px-2 py-1 bg-primary text-white rounded-md text-xs flex items-center gap-1">
-                          <Check className="h-3 w-3" />
-                          Main Image
-                        </div>
-                      ) : (
-                        <Button 
-                          variant="secondary" 
-                          size="sm"
-                          className="w-full text-xs"
-                          onClick={() => setAsMainImage(image.id)}
-                        >
-                          Set as Main
-                        </Button>
-                      )}
-                      
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        className="w-full text-xs"
-                        onClick={() => deleteProductImage(image.id)}
-                      >
-                        <XCircle className="h-3 w-3 mr-1" /> Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>No additional images available</p>
-                <p className="text-sm mt-2">Upload additional product images to enhance the product gallery</p>
-              </div>
-            )}
+            <MediaGallery
+              productImages={productImages || []}
+              onSetMainImage={setAsMainImage}
+              onDeleteImage={deleteProductImage}
+            />
           </div>
         )}
         

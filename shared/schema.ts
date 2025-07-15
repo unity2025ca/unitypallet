@@ -101,13 +101,15 @@ export const insertProductSchema = createInsertSchema(products).omit({
   createdAt: true,
 });
 
-// Product Images schema - for multiple images per product
+// Product Images schema - for multiple images and videos per product
 export const productImages = pgTable("product_images", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
-  imageUrl: text("image_url").notNull(),
-  isMain: boolean("is_main").default(false), // Whether this is the main product image
-  displayOrder: integer("display_order").default(0), // Order to display images
+  imageUrl: text("image_url"), // Image URL (nullable since we can have videos)
+  videoUrl: text("video_url"), // Video URL (nullable since we can have images)
+  mediaType: text("media_type").default("image"), // "image" or "video"
+  isMain: boolean("is_main").default(false), // Whether this is the main product media
+  displayOrder: integer("display_order").default(0), // Order to display media
   createdAt: timestamp("created_at").defaultNow(),
 });
 

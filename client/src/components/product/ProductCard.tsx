@@ -3,6 +3,7 @@ import translations from "@/lib/i18n";
 import { Product, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
+import { Play } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -19,17 +20,34 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
   
   const isSoldOut = product.status === "soldout";
+  const isVideo = product.imageUrl?.includes('/video/') || product.imageUrl?.match(/\.(mp4|avi|mov|wmv|webm|mkv)$/i);
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
-      <img 
-        src={product.imageUrl} 
-        alt={product.title} 
-        className="w-full h-56 object-cover" 
-        onError={(e) => {
-          (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
-        }}
-      />
+      {isVideo ? (
+        <div className="relative">
+          <video 
+            src={product.imageUrl} 
+            className="w-full h-56 object-cover" 
+            muted
+            onError={(e) => {
+              (e.target as HTMLVideoElement).poster = "https://placehold.co/600x400?text=Video+Not+Available";
+            }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+            <Play className="h-12 w-12 text-white" />
+          </div>
+        </div>
+      ) : (
+        <img 
+          src={product.imageUrl} 
+          alt={product.title} 
+          className="w-full h-56 object-cover" 
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Available";
+          }}
+        />
+      )}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold font-primary">{product.title}</h3>
