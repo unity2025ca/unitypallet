@@ -28,6 +28,13 @@ const Header = () => {
   const { customer, logoutMutation } = useCustomerAuth();
 
   const siteLogo = settings?.find(s => s.key === 'site_logo')?.value;
+  
+  // Debug logging
+  console.log('Header Debug:', {
+    settings: settings?.length,
+    siteLogo: siteLogo,
+    siteLogoSetting: settings?.find(s => s.key === 'site_logo')
+  });
 
   const { data: auctionsStatus } = useQuery({
     queryKey: ['/api/auctions-settings/enabled'],
