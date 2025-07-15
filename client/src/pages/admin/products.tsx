@@ -74,20 +74,24 @@ const AdminProducts = () => {
   // Create product mutation
   const createProduct = useMutation({
     mutationFn: async (productData: any) => {
+      console.log('Creating product with data:', productData);
       const res = await apiRequest("POST", "/api/admin/products", productData);
-      return res.json();
+      const result = await res.json();
+      console.log('Product creation result:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setAddDialogOpen(false);
       toast({
         title: "Product added successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Product creation failed:', error);
       toast({
         title: "Failed to add product",
-        description: "An error occurred while trying to add the product. Please try again.",
+        description: error.message || "An error occurred while trying to add the product. Please try again.",
         variant: "destructive",
       });
     },

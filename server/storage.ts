@@ -323,8 +323,15 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createProduct(product: InsertProduct): Promise<Product> {
-    const result = await db.insert(products).values(product).returning();
-    return result[0];
+    try {
+      console.log('Storage: Creating product with data:', product);
+      const result = await db.insert(products).values(product).returning();
+      console.log('Storage: Product created successfully:', result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('Storage: Error creating product:', error);
+      throw error;
+    }
   }
   
   async updateProduct(id: number, productData: Partial<InsertProduct>): Promise<Product | undefined> {
@@ -391,19 +398,24 @@ export class DatabaseStorage implements IStorage {
   async addProductImage(productImage: InsertProductImage): Promise<ProductImage> {
     // If this is the first image for the product, make it the main image
     const existingImages = await this.getProductImages(productImage.productId);
-    if (existingImages.length === 0) {
-      productImage.isMain = true;
-    }
+    const shouldBeMain = existingImages.length === 0;
     
     // Ensure proper values for new fields
-    const imageData = {
+    const imageData: any = {
       productId: productImage.productId,
       imageUrl: productImage.imageUrl || null,
       videoUrl: productImage.videoUrl || null,
       mediaType: productImage.mediaType || 'image',
-      isMain: productImage.isMain || false,
+      isMain: productImage.isMain || shouldBeMain,
       displayOrder: productImage.displayOrder || 0
     };
+    
+    // Remove null/undefined values to prevent database errors
+    Object.keys(imageData).forEach(key => {
+      if (imageData[key] === undefined) {
+        delete imageData[key];
+      }
+    });
     
     const result = await db.insert(productImages).values(imageData).returning();
     return result[0];
