@@ -158,8 +158,22 @@ export function setupAuth(app: Express) {
   // Check if user can manage products (admin or publisher)
   const canManageProducts = (req: any, res: any, next: any) => {
     const user = req.user;
+    console.log('canManageProducts check:', { 
+      isAuthenticated: req.isAuthenticated(),
+      user: user ? { 
+        id: user.id, 
+        username: user.username, 
+        isAdmin: user.isAdmin, 
+        is_admin: user.is_admin,
+        roleType: user.roleType,
+        role_type: user.role_type
+      } : 'null',
+      hasAdminAccess: user?.isAdmin || user?.is_admin || user?.roleType === 'admin' || user?.role_type === 'admin',
+      hasPublisherAccess: user?.roleType === 'publisher' || user?.role_type === 'publisher'
+    });
+    
     if (!req.isAuthenticated() || 
-        !(user?.isAdmin || user?.roleType === 'admin' || user?.roleType === 'publisher')) {
+        !(user?.isAdmin || user?.is_admin || user?.roleType === 'admin' || user?.role_type === 'admin' || user?.roleType === 'publisher' || user?.role_type === 'publisher')) {
       return res.status(401).json({ message: "Unauthorized - Cannot manage products" });
     }
     next();

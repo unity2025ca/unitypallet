@@ -123,7 +123,7 @@ const AdminProducts = () => {
   // Delete product mutation
   const deleteProduct = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/products/${id}`, undefined);
+      await apiRequest("DELETE", `/api/admin/products/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });

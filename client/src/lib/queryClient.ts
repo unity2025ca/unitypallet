@@ -27,22 +27,27 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
-// Helper function for POST/PUT/DELETE requests
-export async function apiRequest(url: string, options: RequestInit = {}) {
+// Helper function for POST/PUT/DELETE requests  
+export async function apiRequest(method: string, url: string, body?: any) {
   try {
-    const res = await fetch(url, {
-      ...options,
+    const options: RequestInit = {
+      method,
       credentials: "include",
       headers: {
-        ...options.headers,
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        "Content-Type": "application/json",
       },
-    });
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const res = await fetch(url, options);
 
     // Check if response is HTML (common with session issues)
     const contentType = res.headers.get('content-type');
     if (contentType?.includes('text/html')) {
-      console.error("Received HTML response instead of JSON for:", url);
+      console.error("Received HTML response instead of JSON for:", method, url);
       throw new Error("Server returned HTML instead of JSON. Please check your connection.");
     }
 
@@ -51,7 +56,7 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
       throw new Error(`${res.status}: ${text}`);
     }
 
-    return res.json();
+    return res;
   } catch (error) {
     console.error("API request failed:", error);
     throw error;
