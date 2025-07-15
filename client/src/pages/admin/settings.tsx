@@ -83,21 +83,21 @@ export default function AdminSettingsPage() {
 
       <Tabs defaultValue="auctions" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="auctions" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
+          <TabsTrigger value="auctions" className="flex items-center gap-2 text-xs">
+            <Eye className="h-3 w-3" />
             Auctions
           </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
+          <TabsTrigger value="system" className="flex items-center gap-2 text-xs">
+            <Wrench className="h-3 w-3" />
             System
           </TabsTrigger>
-          <TabsTrigger value="appointments" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Appointments
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
+          <TabsTrigger value="appearance" className="flex items-center gap-2 text-xs">
+            <Palette className="h-3 w-3" />
             Appearance
+          </TabsTrigger>
+          <TabsTrigger value="homepage" className="flex items-center gap-2 text-xs">
+            <Settings className="h-3 w-3" />
+            Homepage
           </TabsTrigger>
         </TabsList>
 
@@ -239,12 +239,10 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="appointments" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Appointment Visibility</CardTitle>
+              <CardTitle>Appointments System</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -260,26 +258,26 @@ export default function AdminSettingsPage() {
                     disabled
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointment Days and Hours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">Available Appointment Days</Label>
-                  <p className="text-xs text-gray-500 mb-2">Days when appointments are available (comma separated)</p>
-                  <Input
-                    value={getSetting('appointments_available_days')}
-                    disabled
-                    className="bg-gray-50"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Available Days</Label>
+                    <Input
+                      value={getSetting('appointments_available_days')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Interval (minutes)</Label>
+                    <Input
+                      value={getSetting('appointments_interval')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Start Time</Label>
@@ -298,19 +296,260 @@ export default function AdminSettingsPage() {
                     />
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>About Page Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Appointment Interval (minutes)</Label>
+                  <Label className="text-sm font-medium">About Page Title</Label>
                   <Input
-                    value={getSetting('appointments_interval')}
+                    value={getSetting('about_title')}
                     disabled
                     className="bg-gray-50"
                   />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Page Subtitle</Label>
+                  <Input
+                    value={getSetting('about_subtitle')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Description</Label>
+                  <Textarea
+                    value={getSetting('about_description')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Our Mission</Label>
+                    <Textarea
+                      value={getSetting('about_mission')}
+                      disabled
+                      className="bg-gray-50"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Our Vision</Label>
+                    <Textarea
+                      value={getSetting('about_vision')}
+                      disabled
+                      className="bg-gray-50"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Our History</Label>
+                  <Textarea
+                    value={getSetting('about_history')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Customers Count</Label>
+                    <Input
+                      value={getSetting('about_customers_count')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Pallets Count</Label>
+                    <Input
+                      value={getSetting('about_pallets_count')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Page Image</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <img 
+                      src={getSetting('about_image')}
+                      alt="About Image"
+                      className="h-20 w-auto border rounded"
+                    />
+                    <div>
+                      <p className="text-sm text-gray-600">Current about page image</p>
+                      <p className="text-xs text-gray-500 mt-1">{getSetting('about_image')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>How It Works Page</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">How It Works Title</Label>
+                  <Input
+                    value={getSetting('how_it_works_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">How It Works Subtitle</Label>
+                  <Input
+                    value={getSetting('how_it_works_subtitle')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Explanation Title</Label>
+                  <Input
+                    value={getSetting('how_it_works_explanation_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Explanation Description</Label>
+                  <Textarea
+                    value={getSetting('how_it_works_explanation_description')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Step 1</Label>
+                    <Input
+                      value={getSetting('how_it_works_step1_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_step1_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Step 2</Label>
+                    <Input
+                      value={getSetting('how_it_works_step2_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_step2_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Step 3</Label>
+                    <Input
+                      value={getSetting('how_it_works_step3_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_step3_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Step 4</Label>
+                    <Input
+                      value={getSetting('how_it_works_step4_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_step4_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Product Type 1</Label>
+                    <Input
+                      value={getSetting('how_it_works_type1_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_type1_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Product Type 2</Label>
+                    <Input
+                      value={getSetting('how_it_works_type2_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_type2_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Product Type 3</Label>
+                    <Input
+                      value={getSetting('how_it_works_type3_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                    />
+                    <Input
+                      value={getSetting('how_it_works_type3_description')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+
 
         <TabsContent value="appearance" className="space-y-6">
           <Card>
@@ -423,6 +662,406 @@ export default function AdminSettingsPage() {
                     disabled
                     className="bg-gray-50"
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="homepage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Banner Section</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Banner Title</Label>
+                  <Input
+                    value={getSetting('home_banner_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Banner Subtitle</Label>
+                  <Textarea
+                    value={getSetting('home_banner_subtitle')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Banner Button Text</Label>
+                  <Input
+                    value={getSetting('home_banner_button_text')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Banner Button Link</Label>
+                  <Input
+                    value={getSetting('home_banner_button_link')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Banner Background Image</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <img 
+                      src={getSetting('home_banner_image')}
+                      alt="Banner Image"
+                      className="h-20 w-auto border rounded"
+                    />
+                    <div>
+                      <p className="text-sm text-gray-600">Current banner image</p>
+                      <p className="text-xs text-gray-500 mt-1">{getSetting('home_banner_image')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Features Section</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Features Section Title</Label>
+                  <Input
+                    value={getSetting('home_features_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Features Section Subtitle</Label>
+                  <Input
+                    value={getSetting('home_features_subtitle')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Feature 1</Label>
+                    <Input
+                      value={getSetting('home_feature_1_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                      placeholder="Feature 1 Title"
+                    />
+                    <Textarea
+                      value={getSetting('home_feature_1_description')}
+                      disabled
+                      className="bg-gray-50"
+                      rows={2}
+                      placeholder="Feature 1 Description"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Feature 2</Label>
+                    <Input
+                      value={getSetting('home_feature_2_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                      placeholder="Feature 2 Title"
+                    />
+                    <Textarea
+                      value={getSetting('home_feature_2_description')}
+                      disabled
+                      className="bg-gray-50"
+                      rows={2}
+                      placeholder="Feature 2 Description"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Feature 3</Label>
+                    <Input
+                      value={getSetting('home_feature_3_title')}
+                      disabled
+                      className="bg-gray-50 mb-2"
+                      placeholder="Feature 3 Title"
+                    />
+                    <Textarea
+                      value={getSetting('home_feature_3_description')}
+                      disabled
+                      className="bg-gray-50"
+                      rows={2}
+                      placeholder="Feature 3 Description"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>About Section</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">About Section Title</Label>
+                  <Input
+                    value={getSetting('home_about_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Section Description</Label>
+                  <Textarea
+                    value={getSetting('home_about_description')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Button Text</Label>
+                  <Input
+                    value={getSetting('home_about_button_text')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Button Link</Label>
+                  <Input
+                    value={getSetting('home_about_button_link')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">About Section Image</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <img 
+                      src={getSetting('home_about_image')}
+                      alt="About Image"
+                      className="h-20 w-auto border rounded"
+                    />
+                    <div>
+                      <p className="text-sm text-gray-600">Current about image</p>
+                      <p className="text-xs text-gray-500 mt-1">{getSetting('home_about_image')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Products Section</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Products Section Title</Label>
+                  <Input
+                    value={getSetting('home_products_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Products Section Subtitle</Label>
+                  <Input
+                    value={getSetting('home_products_subtitle')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Number of Products to Display</Label>
+                    <Input
+                      value={getSetting('home_products_count')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">View All Products Button Text</Label>
+                    <Input
+                      value={getSetting('home_products_button_text')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Products Button Link</Label>
+                  <Input
+                    value={getSetting('home_products_button_link')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Call to Action Section</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">CTA Section Title</Label>
+                  <Input
+                    value={getSetting('home_cta_title')}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">CTA Section Description</Label>
+                  <Textarea
+                    value={getSetting('home_cta_description')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">CTA Button Text</Label>
+                    <Input
+                      value={getSetting('home_cta_button_text')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">CTA Button Link</Label>
+                    <Input
+                      value={getSetting('home_cta_button_link')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">CTA Background Color</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div 
+                      className="w-8 h-8 rounded border"
+                      style={{ backgroundColor: getSetting('home_cta_background_color') }}
+                    ></div>
+                    <span className="text-sm font-mono">{getSetting('home_cta_background_color')}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Media & Contact</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Facebook URL</Label>
+                    <Input
+                      value={getSetting('social_facebook')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Instagram URL</Label>
+                    <Input
+                      value={getSetting('social_instagram')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Twitter URL</Label>
+                    <Input
+                      value={getSetting('social_twitter')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">YouTube URL</Label>
+                    <Input
+                      value={getSetting('social_youtube')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Instagram Handle</Label>
+                    <Input
+                      value={getSetting('instagram')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Twitter Handle</Label>
+                    <Input
+                      value={getSetting('twitter')}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Google Maps Embed Code</Label>
+                  <Textarea
+                    value={getSetting('location_map')}
+                    disabled
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    HTML iframe embed code from Google Maps
+                  </p>
                 </div>
               </div>
             </CardContent>
