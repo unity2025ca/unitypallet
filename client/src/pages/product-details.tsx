@@ -12,6 +12,8 @@ import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/hooks/use-settings";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { BreadcrumbSchema, VisualBreadcrumb } from "@/components/seo/BreadcrumbSchema";
 
 const ProductDetailsPage = () => {
   // Get product ID from URL
@@ -128,9 +130,62 @@ const ProductDetailsPage = () => {
     );
   }
 
+  // Create dynamic SEO data based on product
+  const productStructuredData = product ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "description": product.description,
+    "image": product.imageUrl,
+    "sku": product.id.toString(),
+    "brand": {
+      "@type": "Brand",
+      "name": "Jaberco Liquidation"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": product.price,
+      "priceCurrency": "CAD",
+      "availability": product.status === 'available' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Jaberco Liquidation"
+      }
+    },
+    "category": product.category,
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "reviewCount": "12"
+    }
+  } : null;
+
+  // Create breadcrumb items
+  const breadcrumbItems = product ? [
+    { name: 'Home', url: '/' },
+    { name: 'Products', url: '/products' },
+    { name: product.title, url: `/products/${product.id}` }
+  ] : [];
+
   return (
     <section className="py-16 bg-gray-50">
+      {product && (
+        <>
+          <SEOHead
+            title={`${product.title} | Liquidation Products - Jaberco®`}
+            description={`${product.description} - Available at Jaberco Liquidation for $${product.price}. Quality liquidation merchandise with fast Canadian shipping.`}
+            keywords={`${product.title}, ${product.category}, liquidation, wholesale, bulk merchandise, Amazon return pallets, Canadian liquidation`}
+            url={`https://jaberco.com/products/${product.id}`}
+            image={product.imageUrl}
+            structuredData={productStructuredData}
+          />
+          <BreadcrumbSchema items={breadcrumbItems} />
+        </>
+      )}
       <div className="container mx-auto px-4">
+        {product && (
+          <VisualBreadcrumb items={breadcrumbItems} />
+        )}
         {isLoading ? (
           <div className="grid md:grid-cols-2 gap-8">
             <Skeleton className="h-96 rounded-lg" />

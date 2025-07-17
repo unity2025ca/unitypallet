@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
+import { SEOHead } from "@/components/seo/SEOHead";
 
 const ProductsPage = () => {
   const [location] = useLocation();
@@ -46,13 +47,44 @@ const ProductsPage = () => {
     window.history.pushState({}, "", url);
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Liquidation Products - Amazon Return Pallets & Bulk Merchandise",
+    "description": "Browse our extensive collection of Amazon return pallets and bulk merchandise at wholesale prices",
+    "url": "https://jaberco.com/products",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": products?.map((product, index) => ({
+        "@type": "Product",
+        "position": index + 1,
+        "name": product.title,
+        "description": product.description,
+        "image": product.imageUrl,
+        "offers": {
+          "@type": "Offer",
+          "price": product.price,
+          "priceCurrency": "CAD",
+          "availability": "https://schema.org/InStock"
+        }
+      })) || []
+    }
+  };
+
   return (
     <section className="py-16 bg-gray-50">
+      <SEOHead
+        title="Liquidation Products - Amazon Return Pallets & Bulk Merchandise | Jaberco®"
+        description="Browse our extensive collection of Amazon return pallets, electronics, clothing, and home goods at wholesale prices. Quality liquidation merchandise with fast Canadian shipping."
+        keywords="liquidation products, Amazon return pallets, bulk merchandise, wholesale products, electronics pallets, clothing pallets, home goods, Canadian liquidation"
+        url="https://jaberco.com/products"
+        structuredData={structuredData}
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-neutral-dark font-primary mb-4">
+          <h1 className="text-3xl font-bold text-neutral-dark font-primary mb-4">
             {translations.shop.title}
-          </h2>
+          </h1>
           <p className="mt-4 text-neutral-medium max-w-2xl mx-auto">
             {translations.shop.subtitle}
           </p>

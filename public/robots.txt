@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /auctions
+Allow: /about
+Allow: /contact
+Allow: /how-it-works
+Allow: /faq
+Allow: /auth
+
+# Disallow admin and API routes
+Disallow: /admin
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /tmp/
+
+# Allow specific API endpoints for SEO
+Allow: /api/products
+Allow: /api/auctions
+Allow: /api/auction-products
+
+# Crawl delay
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://jaberco.com/sitemap.xml

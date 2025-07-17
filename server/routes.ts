@@ -1100,6 +1100,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+
+  // SEO Routes - robots.txt and sitemap.xml
+  app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.sendFile(path.join(process.cwd(), 'public/robots.txt'));
+  });
+
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const products = await storage.getAllProducts();
+      
+      // Import auction storage to get auctions
+      const { auctionStorage } = await import('./storage/auction-storage.js');
+      const auctions = auctionStorage.getAllAuctions();
+      
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://jaberco.com/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/products</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/auctions</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/about</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/how-it-works</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/contact</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://jaberco.com/faq</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+
+      // Add product pages to sitemap
+      products.forEach(product => {
+        sitemap += `
+  <url>
+    <loc>https://jaberco.com/products/${product.id}</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      });
+
+      // Add auction pages to sitemap
+      auctions.forEach(auction => {
+        sitemap += `
+  <url>
+    <loc>https://jaberco.com/auctions/${auction.id}</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      });
+
+      sitemap += `
+</urlset>`;
+
+      res.type('application/xml');
+      res.send(sitemap);
+    } catch (error) {
+      console.error('Error generating sitemap:', error);
+      res.type('application/xml');
+      res.sendFile(path.join(process.cwd(), 'public/sitemap.xml'));
+    }
+  });
   
   // File upload routes - admin and publishers can upload general files
   app.post('/api/upload', canManageProducts, upload.single('image'), handleUploadError, async (req: Request, res: Response) => {
