@@ -247,7 +247,7 @@ const ProductsShowcase = () => {
           icon={Package}
           products={palletProducts || []}
           isLoading={productsLoading}
-          viewAllLink="/products?category=pallets"
+          viewAllLink="/products?category=mixed"
         />
 
         {/* Live Auctions Section - Only show if auctions are enabled */}
@@ -280,7 +280,7 @@ const ProductsShowcase = () => {
           icon={Sofa}
           products={furnitureProducts || []}
           isLoading={productsLoading}
-          viewAllLink="/products?category=furniture"
+          viewAllLink="/products?category=home"
         />
       </div>
     </section>
