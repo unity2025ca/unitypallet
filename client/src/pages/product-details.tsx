@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShoppingBag, Check, AlertTriangle, Play } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -173,7 +174,7 @@ const ProductDetailsPage = () => {
         <>
           <SEOHead
             title={`${product.title} | Liquidation Products - Jaberco®`}
-            description={`${product.description} - Available at Jaberco Liquidation for $${product.price}. Quality liquidation merchandise with fast Canadian shipping.`}
+            description={`${product.description} - Available at Jaberco Liquidation for ${formatCurrency(product.price)}. Quality liquidation merchandise with fast Canadian shipping.`}
             keywords={`${product.title}, ${product.category}, liquidation, wholesale, bulk merchandise, Amazon return pallets, Canadian liquidation`}
             url={`https://jaberco.com/products/${product.id}`}
             image={product.imageUrl}
@@ -330,7 +331,7 @@ const ProductDetailsPage = () => {
                 <p className="text-gray-600 mb-6">{product.description}</p>
                 
                 <div className="text-2xl font-bold text-primary mb-6">
-                  C${product.price}
+                  {formatCurrency(product.price)}
                 </div>
                 
                 <div className="space-y-4">
@@ -394,7 +395,7 @@ const ProductDetailsPage = () => {
                         ) : (
                           <>
                             <ShoppingBag className="mr-2 h-6 w-6" />
-                            ADD TO CART - C${product.price}
+                            ADD TO CART - {formatCurrency(product.price)}
                           </>
                         )}
                       </Button>

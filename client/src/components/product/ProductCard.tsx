@@ -4,6 +4,7 @@ import { Product, statusMap } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/use-settings";
 import { Play } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -58,7 +59,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <p className="text-sm text-gray-600 mb-4">{product.description}</p>
         <div className="flex justify-between items-center">
           <span className={`text-lg font-bold ${isSoldOut ? 'text-gray-400' : 'text-primary'}`}>
-            C${product.price}
+            {formatCurrency(product.price)}
           </span>
           {!isMaintenanceMode ? (
             <Button 
