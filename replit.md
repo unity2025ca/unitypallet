@@ -24,6 +24,24 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Deployment:** PM2 process manager, environment variable loading
 
 ## Recent Changes (July 17, 2025)
+✓ **Production Deployment Stability:** Fixed critical server stability issues for deployment
+- Fixed price display inconsistency issue (prices were 100x larger in some pages)
+- Enhanced server error handling with proper exception catching
+- Improved ecosystem.config.js with better memory management (2GB limit)
+- Added graceful shutdown handling for SIGTERM and SIGINT signals
+- Fixed port configuration consistency between development and production
+- Enhanced PM2 configuration with restart delays and uptime monitoring
+- Added deployment troubleshooting guide with common issues and solutions
+- Improved memory allocation with --max-old-space-size=2048 flag
+- Enhanced production startup script with better error handling
+
+✓ **Price Display Fix:** Resolved inconsistent price formatting across pages
+- Fixed product details page showing prices 100x larger than homepage
+- Standardized formatCurrency usage across all components
+- Fixed ProductCard component price display
+- Updated SEO meta descriptions to use properly formatted prices
+- All prices now consistently show in correct CAD format
+
 ✓ **Comprehensive SEO Implementation:** Resolved "No information is available for this page" Google search issue
 - Enhanced HTML meta tags with comprehensive SEO descriptions, keywords, and Open Graph data
 - Added structured data (JSON-LD) for Organization, WebSite, Product, and BreadcrumbList schemas
