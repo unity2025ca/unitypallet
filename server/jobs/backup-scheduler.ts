@@ -44,30 +44,35 @@ export function startBackupScheduler() {
     timezone: "America/Toronto" // توقيت كندا
   });
 
-  // نسخة احتياطية فورية عند بدء تشغيل الخادم (اختيارية)
-  setTimeout(async () => {
-    console.log('فحص إمكانية إجراء نسخ احتياطي أولي...');
-    
-    try {
-      const status = await getBackupStatus();
+  // Skip initial backup check in development or Replit environments
+  if (process.env.NODE_ENV === 'production' && process.env.NEW_DATABASE_URL) {
+    // نسخة احتياطية فورية عند بدء تشغيل الخادم (اختيارية)
+    setTimeout(async () => {
+      console.log('فحص إمكانية إجراء نسخ احتياطي أولي...');
       
-      if (status.available && !status.lastBackup) {
-        console.log('لم يتم العثور على نسخ احتياطية سابقة، بدء النسخ الأولي...');
+      try {
+        const status = await getBackupStatus();
         
-        isBackupRunning = true;
-        const result = await createBackup();
-        
-        if (result.success) {
-          console.log('✅ تم إكمال النسخ الاحتياطي الأولي بنجاح');
+        if (status.available && !status.lastBackup) {
+          console.log('لم يتم العثور على نسخ احتياطية سابقة، بدء النسخ الأولي...');
+          
+          isBackupRunning = true;
+          const result = await createBackup();
+          
+          if (result.success) {
+            console.log('✅ تم إكمال النسخ الاحتياطي الأولي بنجاح');
+          }
+          
+          isBackupRunning = false;
         }
-        
+      } catch (error) {
+        console.log('تخطي النسخ الاحتياطي الأولي:', error instanceof Error ? error.message : 'خطأ غير معروف');
         isBackupRunning = false;
       }
-    } catch (error) {
-      console.log('تخطي النسخ الاحتياطي الأولي:', error instanceof Error ? error.message : 'خطأ غير معروف');
-      isBackupRunning = false;
-    }
-  }, 10000); // انتظار 10 ثوان بعد بدء تشغيل الخادم
+    }, 10000); // انتظار 10 ثوان بعد بدء تشغيل الخادم
+  } else {
+    console.log('تم تخطي النسخ الاحتياطي الأولي - البيئة الحالية لا تدعم النسخ الاحتياطي');
+  }
 
   console.log('تم تكوين النسخ الاحتياطي التلقائي ليعمل يومياً في الساعة 2:00 صباحاً (توقيت كندا)');
 }

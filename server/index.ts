@@ -5,6 +5,7 @@ import { scheduleOrderCleanupJob } from "./jobs/order-cleanup";
 import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
+import { isReplitEnvironment, getReplitSafeConfig, safeLog } from "./replit-fixes";
 
 const app = express();
 app.use(express.json());
@@ -95,13 +96,24 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    const envInfo = isReplitEnvironment() ? ' (Replit Environment)' : '';
+    log(`serving on port ${port}${envInfo}`);
     
     // Schedule the order cleanup job to run every 15 minutes
     scheduleOrderCleanupJob(15);
     
     // Start automatic backup scheduler (runs daily at 2:00 AM Toronto time)
-    startBackupScheduler();
+    // Only run backup scheduler in production environments with backup URL configured
+    const replitConfig = getReplitSafeConfig();
+    
+    if (!replitConfig.disableBackup && process.env.NODE_ENV === 'production' && process.env.NEW_DATABASE_URL) {
+      startBackupScheduler();
+    } else {
+      const reason = replitConfig.disableBackup 
+        ? 'Backup disabled in Replit environment'
+        : 'missing NEW_DATABASE_URL or not in production';
+      safeLog('Backup scheduler disabled -', reason);
+    }
   });
 })().catch(error => {
   console.error('Fatal error starting server:', error);
