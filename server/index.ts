@@ -7,6 +7,7 @@ import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
 import { isReplitEnvironment, getReplitSafeConfig, safeLog } from "./replit-fixes";
 import { setupHealthCheck, monitorMemory } from "./health-check";
+import { setupReplitFrontendFix, setupReplitErrorHandling, checkDeploymentEnvironment } from "./replit-deployment-fix";
 
 const app = express();
 app.use(express.json());
@@ -51,24 +52,28 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Check deployment environment first
+  checkDeploymentEnvironment();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     
-    // In production, don't expose detailed error messages
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    // Always show detailed error messages in Replit for debugging
+    const isDevelopment = process.env.NODE_ENV === 'development' || isReplitEnvironment();
     const message = isDevelopment 
       ? (err.message || "Internal Server Error") 
       : "Internal Server Error";
     
     // Log the full error in server logs but don't expose in response
-    console.error("[ERROR]", err);
+    console.error("[ERROR] Full error details:", err);
+    console.error("[ERROR] Stack trace:", err.stack);
     
     // Send appropriate response based on environment
     const response: { message: string, stack?: string, details?: any } = { message };
     
-    // Only include stack trace and details in development
+    // Include stack trace and details in development or Replit
     if (isDevelopment) {
       response.stack = err.stack;
       if (err.details) {
@@ -85,11 +90,22 @@ app.use((req, res, next) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   
   // For Replit, always use development mode even in production deployment
-  if (isDevelopment || isReplitEnvironment()) {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+  try {
+    if (isDevelopment || isReplitEnvironment()) {
+      console.log('Setting up Vite for development/Replit environment');
+      await setupVite(app, server);
+    } else {
+      console.log('Setting up static file serving for production');
+      serveStatic(app);
+    }
+  } catch (error) {
+    console.error('Error setting up frontend serving:', error);
+    // Use Replit-specific frontend fix as fallback
+    setupReplitFrontendFix(app);
   }
+  
+  // Setup enhanced error handling for Replit
+  setupReplitErrorHandling(app);
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
