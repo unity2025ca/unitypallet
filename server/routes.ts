@@ -47,6 +47,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup WebSocket server
   setupWebSocket(httpServer);
   
+  // Health check endpoints for Replit
+  app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      database: process.env.DATABASE_URL ? 'connected' : 'not configured',
+      memory: process.memoryUsage(),
+      uptime: process.uptime()
+    });
+  });
+
+  app.get('/keep-alive', (req, res) => {
+    res.status(200).json({ alive: true });
+  });
+
+  app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+  });
+  
   // Use routers
   app.use(visitorStatsRouter);
   app.use(notificationsRouter);

@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { createBackup, getBackupStatus } from '../backup';
+import { isReplitEnvironment } from '../replit-fixes';
 
 let isBackupRunning = false;
 
@@ -45,7 +46,7 @@ export function startBackupScheduler() {
   });
 
   // Skip initial backup check in development or Replit environments
-  if (process.env.NODE_ENV === 'production' && process.env.NEW_DATABASE_URL) {
+  if (process.env.NEW_DATABASE_URL && !isReplitEnvironment()) {
     // نسخة احتياطية فورية عند بدء تشغيل الخادم (اختيارية)
     setTimeout(async () => {
       console.log('فحص إمكانية إجراء نسخ احتياطي أولي...');

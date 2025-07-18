@@ -5,7 +5,9 @@ export function isReplitEnvironment(): boolean {
   return process.env.REPLIT_DEPLOYMENT === 'true' || 
          process.env.REPLIT_DEPLOYMENT === '1' ||
          process.env.REPLIT_DOMAIN?.includes('replit.app') ||
-         process.env.REPLIT_DOMAIN?.includes('replit.dev');
+         process.env.REPLIT_DOMAIN?.includes('replit.dev') ||
+         process.env.REPLIT_DB_URL !== undefined ||
+         process.env.REPLIT_SLUG !== undefined;
 }
 
 // Override backup functions for Replit

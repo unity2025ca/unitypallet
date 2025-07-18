@@ -6,6 +6,7 @@ import { startBackupScheduler } from "./jobs/backup-scheduler";
 import { securityHeaders, corsHeaders } from "./middleware/security";
 import { usernameBruteForceProtection, ipBruteForceProtection } from "./middleware/bruteForce";
 import { isReplitEnvironment, getReplitSafeConfig, safeLog } from "./replit-fixes";
+import { setupHealthCheck, monitorMemory } from "./health-check";
 
 const app = express();
 app.use(express.json());
@@ -99,6 +100,11 @@ app.use((req, res, next) => {
     const envInfo = isReplitEnvironment() ? ' (Replit Environment)' : '';
     log(`serving on port ${port}${envInfo}`);
     
+    // Start memory monitoring in Replit
+    if (isReplitEnvironment()) {
+      monitorMemory();
+    }
+    
     // Schedule the order cleanup job to run every 15 minutes
     scheduleOrderCleanupJob(15);
     
@@ -106,12 +112,15 @@ app.use((req, res, next) => {
     // Only run backup scheduler in production environments with backup URL configured
     const replitConfig = getReplitSafeConfig();
     
-    if (!replitConfig.disableBackup && process.env.NODE_ENV === 'production' && process.env.NEW_DATABASE_URL) {
+    // Only start backup scheduler if not in Replit and backup URL is configured
+    if (!replitConfig.disableBackup && process.env.NEW_DATABASE_URL && !isReplitEnvironment()) {
       startBackupScheduler();
     } else {
       const reason = replitConfig.disableBackup 
         ? 'Backup disabled in Replit environment'
-        : 'missing NEW_DATABASE_URL or not in production';
+        : isReplitEnvironment() 
+          ? 'Backup disabled in Replit environment'
+          : 'missing NEW_DATABASE_URL';
       safeLog('Backup scheduler disabled -', reason);
     }
   });
