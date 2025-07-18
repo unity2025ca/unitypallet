@@ -8,6 +8,7 @@ import { usernameBruteForceProtection, ipBruteForceProtection } from "./middlewa
 import { isReplitEnvironment, getReplitSafeConfig, safeLog } from "./replit-fixes";
 import { setupHealthCheck, monitorMemory } from "./health-check";
 import { setupReplitFrontendFix, setupReplitErrorHandling, checkDeploymentEnvironment } from "./replit-deployment-fix";
+import { setupReplitProductionFix } from "./replit-production-fix";
 
 const app = express();
 app.use(express.json());
@@ -57,7 +58,7 @@ app.use((req, res, next) => {
   
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     
     // Always show detailed error messages in Replit for debugging
@@ -67,21 +68,49 @@ app.use((req, res, next) => {
       : "Internal Server Error";
     
     // Log the full error in server logs but don't expose in response
+    console.error("[ERROR] Request:", req.method, req.url);
     console.error("[ERROR] Full error details:", err);
     console.error("[ERROR] Stack trace:", err.stack);
     
-    // Send appropriate response based on environment
-    const response: { message: string, stack?: string, details?: any } = { message };
-    
-    // Include stack trace and details in development or Replit
-    if (isDevelopment) {
-      response.stack = err.stack;
-      if (err.details) {
-        response.details = err.details;
+    // For API requests, send JSON
+    if (req.path.startsWith('/api/')) {
+      const response: { message: string, stack?: string, details?: any } = { message };
+      
+      // Include stack trace and details in development or Replit
+      if (isDevelopment) {
+        response.stack = err.stack;
+        if (err.details) {
+          response.details = err.details;
+        }
       }
+      
+      return res.status(status).json(response);
     }
-
-    res.status(status).json(response);
+    
+    // For non-API requests, send HTML error page
+    res.status(status).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Error - Jaberco</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f8fafc; }
+          .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; }
+          h1 { color: #dc2626; margin-bottom: 20px; }
+          p { color: #666; margin-bottom: 20px; }
+          .btn { display: inline-block; padding: 12px 24px; background: #dc2626; color: white; text-decoration: none; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Server Error</h1>
+          <p>We encountered an error: ${message}</p>
+          <p>Please try refreshing the page or contact support.</p>
+          <a href="/" class="btn">Go to Homepage</a>
+        </div>
+      </body>
+      </html>
+    `);
   });
 
   // importantly only setup vite in development and after
@@ -89,19 +118,20 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   const isDevelopment = process.env.NODE_ENV === 'development';
   
-  // For Replit, always use development mode even in production deployment
-  try {
-    if (isDevelopment || isReplitEnvironment()) {
-      console.log('Setting up Vite for development/Replit environment');
+  // For Replit, use the production fix immediately
+  if (isReplitEnvironment()) {
+    console.log('🔧 Using Replit Production Fix');
+    setupReplitProductionFix(app);
+  } else {
+    // Always use development mode for Replit to ensure proper frontend serving
+    try {
+      console.log('Setting up Vite for Replit environment');
       await setupVite(app, server);
-    } else {
-      console.log('Setting up static file serving for production');
-      serveStatic(app);
+    } catch (error) {
+      console.error('Error setting up Vite:', error);
+      // Use comprehensive Replit production fix as fallback
+      setupReplitProductionFix(app);
     }
-  } catch (error) {
-    console.error('Error setting up frontend serving:', error);
-    // Use Replit-specific frontend fix as fallback
-    setupReplitFrontendFix(app);
   }
   
   // Setup enhanced error handling for Replit
@@ -111,6 +141,25 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000');
+  
+  // Handle port conflicts gracefully
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use. Trying alternative port...`);
+      const altPort = port + 1;
+      server.listen({
+        port: altPort,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, () => {
+        const envInfo = isReplitEnvironment() ? ' (Replit Environment)' : '';
+        log(`serving on port ${altPort}${envInfo} (alternative port)`);
+      });
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+  
   server.listen({
     port,
     host: "0.0.0.0",

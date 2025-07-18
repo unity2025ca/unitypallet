@@ -5,10 +5,17 @@ import fs from 'fs';
 
 // Force deployment to serve the frontend correctly
 export function setupReplitFrontendFix(app: any) {
-  // Add a catch-all route that serves the frontend
+  // Add a catch-all route that serves the frontend (but not for API routes)
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/') || req.path.startsWith('/health') || req.path.startsWith('/keep-alive') || req.path.startsWith('/ping')) {
+    // Skip API routes and other server endpoints
+    if (req.path.startsWith('/api/') || 
+        req.path.startsWith('/health') || 
+        req.path.startsWith('/keep-alive') || 
+        req.path.startsWith('/ping') ||
+        req.path.startsWith('/src/') ||
+        req.path.startsWith('/node_modules/') ||
+        req.path.startsWith('/@') ||
+        req.path.includes('.')) {
       return next();
     }
     
@@ -151,5 +158,10 @@ export function checkDeploymentEnvironment() {
   if (process.env.REPLIT_ENVIRONMENT === 'production' || process.env.REPLIT_DOMAINS) {
     console.log('🔧 FORCING DEVELOPMENT MODE FOR REPLIT DEPLOYMENT');
     process.env.NODE_ENV = 'development';
+    
+    // Also ensure PORT is set correctly
+    if (!process.env.PORT) {
+      process.env.PORT = '5000';
+    }
   }
 }
