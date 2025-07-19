@@ -1,6 +1,5 @@
 import cron from 'node-cron';
 import { createBackup, getBackupStatus } from '../backup';
-import { isReplitEnvironment } from '../replit-fixes';
 
 let isBackupRunning = false;
 
@@ -45,35 +44,30 @@ export function startBackupScheduler() {
     timezone: "America/Toronto" // توقيت كندا
   });
 
-  // Skip initial backup check in development or Replit environments
-  if (process.env.NEW_DATABASE_URL && !isReplitEnvironment()) {
-    // نسخة احتياطية فورية عند بدء تشغيل الخادم (اختيارية)
-    setTimeout(async () => {
-      console.log('فحص إمكانية إجراء نسخ احتياطي أولي...');
+  // نسخة احتياطية فورية عند بدء تشغيل الخادم (اختيارية)
+  setTimeout(async () => {
+    console.log('فحص إمكانية إجراء نسخ احتياطي أولي...');
+    
+    try {
+      const status = await getBackupStatus();
       
-      try {
-        const status = await getBackupStatus();
+      if (status.available && !status.lastBackup) {
+        console.log('لم يتم العثور على نسخ احتياطية سابقة، بدء النسخ الأولي...');
         
-        if (status.available && !status.lastBackup) {
-          console.log('لم يتم العثور على نسخ احتياطية سابقة، بدء النسخ الأولي...');
-          
-          isBackupRunning = true;
-          const result = await createBackup();
-          
-          if (result.success) {
-            console.log('✅ تم إكمال النسخ الاحتياطي الأولي بنجاح');
-          }
-          
-          isBackupRunning = false;
+        isBackupRunning = true;
+        const result = await createBackup();
+        
+        if (result.success) {
+          console.log('✅ تم إكمال النسخ الاحتياطي الأولي بنجاح');
         }
-      } catch (error) {
-        console.log('تخطي النسخ الاحتياطي الأولي:', error instanceof Error ? error.message : 'خطأ غير معروف');
+        
         isBackupRunning = false;
       }
-    }, 10000); // انتظار 10 ثوان بعد بدء تشغيل الخادم
-  } else {
-    console.log('تم تخطي النسخ الاحتياطي الأولي - البيئة الحالية لا تدعم النسخ الاحتياطي');
-  }
+    } catch (error) {
+      console.log('تخطي النسخ الاحتياطي الأولي:', error instanceof Error ? error.message : 'خطأ غير معروف');
+      isBackupRunning = false;
+    }
+  }, 10000); // انتظار 10 ثوان بعد بدء تشغيل الخادم
 
   console.log('تم تكوين النسخ الاحتياطي التلقائي ليعمل يومياً في الساعة 2:00 صباحاً (توقيت كندا)');
 }
