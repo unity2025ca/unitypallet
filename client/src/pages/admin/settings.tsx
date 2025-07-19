@@ -58,10 +58,7 @@ export default function AdminSettingsPage() {
   // Update setting mutation
   const updateSettingMutation = useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) => {
-      return apiRequest('/api/settings', {
-        method: 'PUT',
-        body: JSON.stringify({ key, value })
-      });
+      return apiRequest('PUT', '/api/settings', { key, value });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
