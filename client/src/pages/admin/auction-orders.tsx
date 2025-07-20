@@ -24,9 +24,13 @@ interface AuctionOrder {
   auctionId: number;
   userId: number;
   winningBid: number;
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentStatus: 'deposit_pending' | 'deposit_paid' | 'fully_paid' | 'failed';
   invoiceStatus: 'pending' | 'generated' | 'sent';
-  shippingStatus: 'pending' | 'processing' | 'shipped' | 'delivered';
+  shippingStatus: 'pending' | 'processing' | 'ready_for_pickup' | 'delivered';
+  securityDepositAmount: number;
+  remainingAmount: number;
+  securityDepositStatus: 'pending' | 'paid' | 'failed';
+  cashPaymentStatus: 'pending' | 'paid';
   invoiceUrl?: string;
   trackingNumber?: string;
   createdAt: string;
@@ -48,11 +52,23 @@ export default function AdminAuctionOrders() {
     queryKey: ['/api/admin/auction-orders'],
   });
 
-  const updatePaymentMutation = useMutation({
+  const updateSecurityDepositMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      return apiRequest(`/api/admin/auction-orders/${orderId}/payment`, {
+      return apiRequest(`/api/admin/auction-orders/${orderId}/security-deposit`, {
         method: 'PATCH',
-        body: { paymentStatus: status }
+        body: { status }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+    }
+  });
+
+  const updateCashPaymentMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
+      return apiRequest(`/api/admin/auction-orders/${orderId}/cash-payment`, {
+        method: 'PATCH',
+        body: { status }
       });
     },
     onSuccess: () => {
@@ -87,18 +103,32 @@ export default function AdminAuctionOrders() {
     }
   });
 
-  const getStatusColor = (status: string, type: 'payment' | 'shipping' | 'invoice') => {
+  const getStatusColor = (status: string, type: 'payment' | 'shipping' | 'invoice' | 'deposit' | 'cash') => {
     if (type === 'payment') {
+      switch (status) {
+        case 'fully_paid': return 'bg-green-500';
+        case 'deposit_paid': return 'bg-blue-500';
+        case 'failed': return 'bg-red-500';
+        default: return 'bg-yellow-500';
+      }
+    }
+    if (type === 'deposit') {
       switch (status) {
         case 'paid': return 'bg-green-500';
         case 'failed': return 'bg-red-500';
         default: return 'bg-yellow-500';
       }
     }
+    if (type === 'cash') {
+      switch (status) {
+        case 'paid': return 'bg-green-500';
+        default: return 'bg-orange-500';
+      }
+    }
     if (type === 'shipping') {
       switch (status) {
         case 'delivered': return 'bg-green-500';
-        case 'shipped': return 'bg-blue-500';
+        case 'ready_for_pickup': return 'bg-blue-500';
         case 'processing': return 'bg-orange-500';
         default: return 'bg-gray-500';
       }
@@ -115,20 +145,19 @@ export default function AdminAuctionOrders() {
 
   const filteredOrders = auctionOrders.filter((order: AuctionOrder) => {
     if (selectedStatus === 'all') return true;
-    if (selectedStatus === 'pending-payment') return order.paymentStatus === 'pending';
-    if (selectedStatus === 'paid') return order.paymentStatus === 'paid';
-    if (selectedStatus === 'pending-shipping') return order.shippingStatus === 'pending' || order.shippingStatus === 'processing';
-    if (selectedStatus === 'shipped') return order.shippingStatus === 'shipped' || order.shippingStatus === 'delivered';
+    if (selectedStatus === 'pending-deposit') return order.securityDepositStatus === 'pending';
+    if (selectedStatus === 'deposit-paid') return order.securityDepositStatus === 'paid' && order.cashPaymentStatus === 'pending';
+    if (selectedStatus === 'fully-paid') return order.cashPaymentStatus === 'paid';
+    if (selectedStatus === 'ready-pickup') return order.shippingStatus === 'ready_for_pickup';
     return true;
   });
 
   const stats = {
     total: auctionOrders.length,
-    pendingPayment: auctionOrders.filter((o: AuctionOrder) => o.paymentStatus === 'pending').length,
-    paid: auctionOrders.filter((o: AuctionOrder) => o.paymentStatus === 'paid').length,
-    pendingShipping: auctionOrders.filter((o: AuctionOrder) => 
-      o.shippingStatus === 'pending' || o.shippingStatus === 'processing'
-    ).length,
+    pendingDeposit: auctionOrders.filter((o: AuctionOrder) => o.securityDepositStatus === 'pending').length,
+    depositPaid: auctionOrders.filter((o: AuctionOrder) => o.securityDepositStatus === 'paid' && o.cashPaymentStatus === 'pending').length,
+    fullyPaid: auctionOrders.filter((o: AuctionOrder) => o.cashPaymentStatus === 'paid').length,
+    readyForPickup: auctionOrders.filter((o: AuctionOrder) => o.shippingStatus === 'ready_for_pickup').length,
   };
 
   if (isLoading) {
@@ -175,8 +204,8 @@ export default function AdminAuctionOrders() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending Payment</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.pendingPayment}</p>
+                <p className="text-sm text-gray-600">Pending Deposit (15%)</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.pendingDeposit}</p>
               </div>
               <Clock className="h-8 w-8 text-orange-500" />
             </div>
@@ -187,10 +216,10 @@ export default function AdminAuctionOrders() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Paid Orders</p>
-                <p className="text-2xl font-bold text-green-600">{stats.paid}</p>
+                <p className="text-sm text-gray-600">Deposit Paid</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.depositPaid}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <DollarSign className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
@@ -199,10 +228,10 @@ export default function AdminAuctionOrders() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending Shipping</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.pendingShipping}</p>
+                <p className="text-sm text-gray-600">Ready for Pickup</p>
+                <p className="text-2xl font-bold text-green-600">{stats.readyForPickup}</p>
               </div>
-              <Truck className="h-8 w-8 text-blue-500" />
+              <Package className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -212,10 +241,10 @@ export default function AdminAuctionOrders() {
       <Tabs value={selectedStatus} onValueChange={setSelectedStatus}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all">All Orders</TabsTrigger>
-          <TabsTrigger value="pending-payment">Pending Payment</TabsTrigger>
-          <TabsTrigger value="paid">Paid</TabsTrigger>
-          <TabsTrigger value="pending-shipping">Pending Shipping</TabsTrigger>
-          <TabsTrigger value="shipped">Shipped</TabsTrigger>
+          <TabsTrigger value="pending-deposit">Pending Deposit</TabsTrigger>
+          <TabsTrigger value="deposit-paid">Deposit Paid</TabsTrigger>
+          <TabsTrigger value="fully-paid">Fully Paid</TabsTrigger>
+          <TabsTrigger value="ready-pickup">Ready Pickup</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedStatus} className="mt-6">
@@ -245,9 +274,11 @@ export default function AdminAuctionOrders() {
                         <p className="text-2xl font-bold text-green-600">
                           {formatCurrency(order.winningBid)}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </p>
+                        <div className="text-sm text-gray-500 space-y-1">
+                          <p>Deposit (15%): <span className="font-semibold">{formatCurrency(order.securityDepositAmount || Math.round(order.winningBid * 0.15))}</span></p>
+                          <p>Cash at Pickup: <span className="font-semibold">{formatCurrency(order.remainingAmount || (order.winningBid - Math.round(order.winningBid * 0.15)))}</span></p>
+                          <p>{new Date(order.createdAt).toLocaleDateString()}</p>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
@@ -255,9 +286,13 @@ export default function AdminAuctionOrders() {
                   <CardContent className="space-y-4">
                     {/* Status Badges */}
                     <div className="flex flex-wrap gap-2">
-                      <Badge className={getStatusColor(order.paymentStatus, 'payment')}>
+                      <Badge className={getStatusColor(order.securityDepositStatus || 'pending', 'deposit')}>
                         <DollarSign className="h-3 w-3 mr-1" />
-                        Payment: {order.paymentStatus}
+                        Deposit: {order.securityDepositStatus || 'pending'}
+                      </Badge>
+                      <Badge className={getStatusColor(order.cashPaymentStatus || 'pending', 'cash')}>
+                        <DollarSign className="h-3 w-3 mr-1" />
+                        Cash: {order.cashPaymentStatus || 'pending'}
                       </Badge>
                       <Badge className={getStatusColor(order.invoiceStatus, 'invoice')}>
                         <FileText className="h-3 w-3 mr-1" />
@@ -265,23 +300,39 @@ export default function AdminAuctionOrders() {
                       </Badge>
                       <Badge className={getStatusColor(order.shippingStatus, 'shipping')}>
                         <Package className="h-3 w-3 mr-1" />
-                        Shipping: {order.shippingStatus}
+                        Status: {order.shippingStatus}
                       </Badge>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-2">
-                      {order.paymentStatus === 'pending' && (
+                      {(order.securityDepositStatus === 'pending' || !order.securityDepositStatus) && (
                         <Button
                           size="sm"
-                          onClick={() => updatePaymentMutation.mutate({ 
+                          style={{ backgroundColor: '#dc2626', color: 'white' }}
+                          onClick={() => updateSecurityDepositMutation.mutate({ 
                             orderId: order.id, 
                             status: 'paid' 
                           })}
-                          disabled={updatePaymentMutation.isPending}
+                          disabled={updateSecurityDepositMutation.isPending}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Mark as Paid
+                          Mark Deposit Paid
+                        </Button>
+                      )}
+
+                      {order.securityDepositStatus === 'paid' && order.cashPaymentStatus === 'pending' && (
+                        <Button
+                          size="sm"
+                          style={{ backgroundColor: '#dc2626', color: 'white' }}
+                          onClick={() => updateCashPaymentMutation.mutate({ 
+                            orderId: order.id, 
+                            status: 'paid' 
+                          })}
+                          disabled={updateCashPaymentMutation.isPending}
+                        >
+                          <DollarSign className="h-4 w-4 mr-1" />
+                          Cash Received
                         </Button>
                       )}
 
@@ -305,22 +356,6 @@ export default function AdminAuctionOrders() {
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Download Invoice
-                        </Button>
-                      )}
-
-                      {order.paymentStatus === 'paid' && 
-                       (order.shippingStatus === 'pending' || order.shippingStatus === 'processing') && (
-                        <Button
-                          size="sm"
-                          onClick={() => updateShippingMutation.mutate({ 
-                            orderId: order.id, 
-                            status: 'shipped',
-                            trackingNumber: `TRK${order.id}${Date.now().toString().slice(-4)}`
-                          })}
-                          disabled={updateShippingMutation.isPending}
-                        >
-                          <Truck className="h-4 w-4 mr-1" />
-                          Mark as Shipped
                         </Button>
                       )}
                     </div>

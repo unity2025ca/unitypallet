@@ -116,6 +116,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Security deposit payment endpoints
+  app.patch('/api/admin/auction-orders/:orderId/security-deposit', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const { status } = req.body;
+      
+      const order = await storage.updateSecurityDepositPayment(orderId, status);
+      res.json(order);
+    } catch (error) {
+      console.error('Error updating security deposit payment:', error);
+      res.status(500).json({ error: 'Failed to update security deposit payment' });
+    }
+  });
+
+  // Cash payment at pickup endpoints
+  app.patch('/api/admin/auction-orders/:orderId/cash-payment', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const { status } = req.body;
+      
+      const order = await storage.updateCashPayment(orderId, status);
+      res.json(order);
+    } catch (error) {
+      console.error('Error updating cash payment:', error);
+      res.status(500).json({ error: 'Failed to update cash payment' });
+    }
+  });
+
   app.post('/api/admin/auction-orders/:orderId/generate-invoice', requireAdmin, async (req, res) => {
     try {
       const orderId = parseInt(req.params.orderId);

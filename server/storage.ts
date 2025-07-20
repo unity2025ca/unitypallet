@@ -2285,13 +2285,19 @@ export class DatabaseStorage implements IStorage {
   // Auction completion and winner management methods
   async createAuctionOrder(orderData: any): Promise<any> {
     try {
+      // Calculate 15% security deposit and 85% remaining amount
+      const securityDepositAmount = Math.round(orderData.winningBid * 0.15);
+      const remainingAmount = orderData.winningBid - securityDepositAmount;
+
       const result = await db.execute(sql`
         INSERT INTO auction_orders (
           auction_id, user_id, winning_bid, payment_status, 
-          invoice_status, shipping_status
+          invoice_status, shipping_status, security_deposit_amount, 
+          remaining_amount, security_deposit_status, cash_payment_status
         ) VALUES (
           ${orderData.auctionId}, ${orderData.userId}, ${orderData.winningBid},
-          ${orderData.paymentStatus}, ${orderData.invoiceStatus}, ${orderData.shippingStatus}
+          'deposit_pending', 'pending', 'pending', ${securityDepositAmount},
+          ${remainingAmount}, 'pending', 'pending'
         ) RETURNING *
       `);
       
@@ -2323,6 +2329,10 @@ export class DatabaseStorage implements IStorage {
         shippingStatus: row.shipping_status,
         invoiceUrl: row.invoice_url,
         trackingNumber: row.tracking_number,
+        securityDepositAmount: row.security_deposit_amount || Math.round(row.winning_bid * 0.15),
+        remainingAmount: row.remaining_amount || (row.winning_bid - Math.round(row.winning_bid * 0.15)),
+        securityDepositStatus: row.security_deposit_status || 'pending',
+        cashPaymentStatus: row.cash_payment_status || 'pending',
         createdAt: row.created_at,
         auction: {
           title: row.auction_title,
@@ -2352,6 +2362,52 @@ export class DatabaseStorage implements IStorage {
       return result.rows[0];
     } catch (error) {
       console.error('Error updating auction order payment:', error);
+      throw error;
+    }
+  }
+
+  async updateSecurityDepositPayment(orderId: number, status: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET security_deposit_status = ${status}, 
+            payment_status = CASE 
+              WHEN ${status} = 'paid' THEN 'deposit_paid'
+              ELSE payment_status 
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating security deposit payment:', error);
+      throw error;
+    }
+  }
+
+  async updateCashPayment(orderId: number, status: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET cash_payment_status = ${status},
+            payment_status = CASE 
+              WHEN ${status} = 'paid' THEN 'fully_paid'
+              ELSE payment_status 
+            END,
+            shipping_status = CASE 
+              WHEN ${status} = 'paid' THEN 'ready_for_pickup'
+              ELSE shipping_status 
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating cash payment:', error);
       throw error;
     }
   }
