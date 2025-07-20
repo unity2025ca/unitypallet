@@ -67,6 +67,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const adminNotificationsRouter = (await import('./routes/admin-notifications')).default;
   app.use('/api/admin/notifications', requireAdmin, adminNotificationsRouter);
   
+  // Auction management routes
+  const auctionManagementRouter = (await import('./routes/auction-management')).default;
+  app.use('/api/admin', requireAdmin, auctionManagementRouter);
+  
+  // Auto-bidding routes
+  const autoBiddingRouter = (await import('./routes/auto-bidding')).default;
+  app.use('/api/admin', requireAdmin, autoBiddingRouter);
+  
   // Direct watchlist endpoint - MUST be before other auction routes  
   app.get('/api/auctions/watchlist', async (req, res) => {
     console.log('✓ Direct watchlist endpoint called');

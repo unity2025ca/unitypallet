@@ -198,6 +198,41 @@ export interface IStorage {
   getAllOrders(): Promise<Order[]>;
   getAllNotifications(): Promise<Notification[]>;
   
+  // Auction Management methods
+  getAuctionStatistics(): Promise<{
+    totalAuctions: number;
+    activeAuctions: number;
+    totalBids: number;
+    totalRevenue: number;
+    avgBidsPerAuction: number;
+    conversionRate: number;
+  }>;
+  getRecentAuctions(limit: number): Promise<any[]>;
+  getAuctionInvoices(): Promise<any[]>;
+  getAuctionSettings(): Promise<any[]>;
+  updateAuctionSetting(key: string, value: string): Promise<any>;
+  createAuctionInvoice(invoiceData: any): Promise<any>;
+  updateAuctionInvoicePayment(invoiceId: number, paymentData: any): Promise<any>;
+  getAuctionBids(auctionId: number): Promise<any[]>;
+  getAuctionWatchers(auctionId: number): Promise<any[]>;
+  getAuctionRevenueReport(startDate: string, endDate: string): Promise<any>;
+  endAuction(auctionId: number): Promise<any>;
+  cancelAuction(auctionId: number, reason: string): Promise<any>;
+  
+  // Auto-bidding methods
+  getAutoBiddingStats(): Promise<{
+    totalAutoBids: number;
+    activeAutoBids: number;
+    totalUsers: number;
+    successfulBids: number;
+  }>;
+  getAllAutoBids(): Promise<any[]>;
+  createAutoBid(autoBidData: any): Promise<any>;
+  updateAutoBidStatus(autoBidId: number, isActive: boolean): Promise<any>;
+  deleteAutoBid(autoBidId: number): Promise<boolean>;
+  getAutoBidById(autoBidId: number): Promise<any>;
+  updateAutoBidMaxAmount(autoBidId: number, maxBidAmount: number): Promise<any>;
+  
   // Session store
   sessionStore: any; // Simplify type for session store
 }
@@ -1726,6 +1761,519 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: advertisements.id });
     
     return result.length > 0;
+  }
+
+  // Auction Management methods
+  async getAuctionStatistics(): Promise<{
+    totalAuctions: number;
+    activeAuctions: number;
+    totalBids: number;
+    totalRevenue: number;
+    avgBidsPerAuction: number;
+    conversionRate: number;
+  }> {
+    try {
+      // Get total auctions count
+      const totalAuctionsResult = await db.execute(sql`SELECT COUNT(*) as count FROM auctions`);
+      const totalAuctions = parseInt(totalAuctionsResult.rows[0]?.count as string) || 0;
+
+      // Get active auctions count
+      const activeAuctionsResult = await db.execute(sql`SELECT COUNT(*) as count FROM auctions WHERE status = 'active'`);
+      const activeAuctions = parseInt(activeAuctionsResult.rows[0]?.count as string) || 0;
+
+      // Get total bids count
+      const totalBidsResult = await db.execute(sql`SELECT COUNT(*) as count FROM bids`);
+      const totalBids = parseInt(totalBidsResult.rows[0]?.count as string) || 0;
+
+      // Get total revenue from completed auctions
+      const revenueResult = await db.execute(sql`SELECT COALESCE(SUM(current_bid), 0) as revenue FROM auctions WHERE status = 'ended' AND winner_id IS NOT NULL`);
+      const totalRevenue = parseInt(revenueResult.rows[0]?.revenue as string) || 0;
+
+      // Calculate average bids per auction
+      const avgBidsPerAuction = totalAuctions > 0 ? totalBids / totalAuctions : 0;
+
+      // Calculate conversion rate (auctions with bids / total auctions)
+      const auctionsWithBidsResult = await db.execute(sql`SELECT COUNT(DISTINCT auction_id) as count FROM bids`);
+      const auctionsWithBids = parseInt(auctionsWithBidsResult.rows[0]?.count as string) || 0;
+      const conversionRate = totalAuctions > 0 ? (auctionsWithBids / totalAuctions) * 100 : 0;
+
+      return {
+        totalAuctions,
+        activeAuctions,
+        totalBids,
+        totalRevenue,
+        avgBidsPerAuction,
+        conversionRate
+      };
+    } catch (error) {
+      console.error('Error getting auction statistics:', error);
+      return {
+        totalAuctions: 0,
+        activeAuctions: 0,
+        totalBids: 0,
+        totalRevenue: 0,
+        avgBidsPerAuction: 0,
+        conversionRate: 0
+      };
+    }
+  }
+
+  async getRecentAuctions(limit: number): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          a.id,
+          a.title,
+          a.status,
+          a.starting_price,
+          a.current_bid,
+          a.total_bids,
+          a.end_time,
+          a.winner_id,
+          u.username as winner_name
+        FROM auctions a
+        LEFT JOIN users u ON a.winner_id = u.id
+        ORDER BY a.created_at DESC
+        LIMIT ${limit}
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status,
+        startingPrice: parseInt(row.starting_price) || 0,
+        currentBid: parseInt(row.current_bid) || 0,
+        totalBids: parseInt(row.total_bids) || 0,
+        endTime: row.end_time,
+        winnerId: row.winner_id,
+        winnerName: row.winner_name
+      }));
+    } catch (error) {
+      console.error('Error getting recent auctions:', error);
+      return [];
+    }
+  }
+
+  async getAuctionInvoices(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          ai.id,
+          ai.invoice_number,
+          ai.winning_bid_amount,
+          ai.total_amount,
+          ai.payment_status,
+          ai.created_at,
+          a.title as auction_title,
+          u.username as winner_name
+        FROM auction_invoices ai
+        JOIN auctions a ON ai.auction_id = a.id
+        JOIN users u ON ai.winner_id = u.id
+        ORDER BY ai.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        invoiceNumber: row.invoice_number,
+        auctionTitle: row.auction_title,
+        winnerName: row.winner_name,
+        winningBidAmount: parseInt(row.winning_bid_amount) || 0,
+        totalAmount: parseInt(row.total_amount) || 0,
+        paymentStatus: row.payment_status,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Error getting auction invoices:', error);
+      return [];
+    }
+  }
+
+  async getAuctionSettings(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`SELECT * FROM auction_settings ORDER BY category, key`);
+      return result.rows.map((row: any) => ({
+        key: row.key,
+        value: row.value,
+        label: row.label,
+        description: row.description,
+        type: row.type
+      }));
+    } catch (error) {
+      console.error('Error getting auction settings:', error);
+      return [];
+    }
+  }
+
+  async updateAuctionSetting(key: string, value: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_settings 
+        SET value = ${value}, updated_at = NOW() 
+        WHERE key = ${key}
+        RETURNING *
+      `);
+      
+      if (result.rows.length > 0) {
+        const row = result.rows[0];
+        return {
+          key: row.key,
+          value: row.value,
+          label: row.label,
+          description: row.description,
+          type: row.type
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error updating auction setting:', error);
+      return null;
+    }
+  }
+
+  async createAuctionInvoice(invoiceData: any): Promise<any> {
+    try {
+      // Generate invoice number
+      const invoiceNumber = `INV-${Date.now()}`;
+      
+      const result = await db.execute(sql`
+        INSERT INTO auction_invoices (
+          auction_id, winner_id, invoice_number, winning_bid_amount, 
+          buyer_premium_amount, tax_amount, shipping_cost, total_amount,
+          payment_status, due_date
+        ) VALUES (
+          ${invoiceData.auctionId}, ${invoiceData.winnerId}, ${invoiceNumber}, 
+          ${invoiceData.winningBidAmount}, ${invoiceData.buyerPremiumAmount || 0}, 
+          ${invoiceData.taxAmount || 0}, ${invoiceData.shippingCost || 0}, 
+          ${invoiceData.totalAmount}, 'pending', 
+          ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}
+        ) RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating auction invoice:', error);
+      throw error;
+    }
+  }
+
+  async updateAuctionInvoicePayment(invoiceId: number, paymentData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_invoices 
+        SET 
+          payment_status = ${paymentData.paymentStatus},
+          payment_method = ${paymentData.paymentMethod || null},
+          stripe_payment_intent_id = ${paymentData.stripePaymentIntentId || null},
+          paid_at = ${paymentData.paidAt?.toISOString() || null},
+          updated_at = NOW()
+        WHERE id = ${invoiceId}
+        RETURNING *
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error updating auction invoice payment:', error);
+      throw error;
+    }
+  }
+
+  async getAuctionBids(auctionId: number): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          b.id,
+          b.bid_amount,
+          b.bid_time,
+          b.is_winning,
+          u.username
+        FROM bids b
+        JOIN users u ON b.user_id = u.id
+        WHERE b.auction_id = ${auctionId}
+        ORDER BY b.bid_time DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        bidAmount: parseInt(row.bid_amount) || 0,
+        bidTime: row.bid_time,
+        isWinning: row.is_winning,
+        username: row.username
+      }));
+    } catch (error) {
+      console.error('Error getting auction bids:', error);
+      return [];
+    }
+  }
+
+  async getAuctionWatchers(auctionId: number): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          aw.id,
+          aw.notify_on_bid,
+          aw.notify_on_end,
+          aw.created_at,
+          u.username
+        FROM auction_watchers aw
+        JOIN users u ON aw.user_id = u.id
+        WHERE aw.auction_id = ${auctionId}
+        ORDER BY aw.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        username: row.username,
+        notifyOnBid: row.notify_on_bid,
+        notifyOnEnd: row.notify_on_end,
+        createdAt: row.created_at
+      }));
+    } catch (error) {
+      console.error('Error getting auction watchers:', error);
+      return [];
+    }
+  }
+
+  async getAuctionRevenueReport(startDate: string, endDate: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          COUNT(*) as total_auctions,
+          SUM(CASE WHEN status = 'ended' AND winner_id IS NOT NULL THEN current_bid ELSE 0 END) as total_revenue,
+          AVG(CASE WHEN status = 'ended' AND winner_id IS NOT NULL THEN current_bid ELSE NULL END) as avg_winning_bid
+        FROM auctions
+        WHERE created_at BETWEEN ${startDate} AND ${endDate}
+      `);
+      
+      const row = result.rows[0];
+      return {
+        totalAuctions: parseInt(row?.total_auctions as string) || 0,
+        totalRevenue: parseInt(row?.total_revenue as string) || 0,
+        avgWinningBid: parseInt(row?.avg_winning_bid as string) || 0
+      };
+    } catch (error) {
+      console.error('Error getting auction revenue report:', error);
+      return { totalAuctions: 0, totalRevenue: 0, avgWinningBid: 0 };
+    }
+  }
+
+  async endAuction(auctionId: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auctions 
+        SET status = 'ended', updated_at = NOW() 
+        WHERE id = ${auctionId} AND status = 'active'
+        RETURNING *
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error ending auction:', error);
+      throw error;
+    }
+  }
+
+  async cancelAuction(auctionId: number, reason: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auctions 
+        SET status = 'cancelled', updated_at = NOW() 
+        WHERE id = ${auctionId}
+        RETURNING *
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error cancelling auction:', error);
+      throw error;
+    }
+  }
+
+  // Auto-bidding methods
+  async getAutoBiddingStats(): Promise<{
+    totalAutoBids: number;
+    activeAutoBids: number;
+    totalUsers: number;
+    successfulBids: number;
+  }> {
+    try {
+      // Get total auto bids count
+      const totalAutoBidsResult = await db.execute(sql`SELECT COUNT(*) as count FROM auto_bids`);
+      const totalAutoBids = parseInt(totalAutoBidsResult.rows[0]?.count as string) || 0;
+
+      // Get active auto bids count
+      const activeAutoBidsResult = await db.execute(sql`SELECT COUNT(*) as count FROM auto_bids WHERE is_active = true`);
+      const activeAutoBids = parseInt(activeAutoBidsResult.rows[0]?.count as string) || 0;
+
+      // Get total users using auto-bidding
+      const totalUsersResult = await db.execute(sql`SELECT COUNT(DISTINCT user_id) as count FROM auto_bids`);
+      const totalUsers = parseInt(totalUsersResult.rows[0]?.count as string) || 0;
+
+      // Get successful bids (auto bids that resulted in winning bids)
+      const successfulBidsResult = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM auto_bids ab 
+        JOIN bids b ON ab.user_id = b.user_id AND ab.auction_id = b.auction_id 
+        WHERE b.is_winning = true
+      `);
+      const successfulBids = parseInt(successfulBidsResult.rows[0]?.count as string) || 0;
+
+      return {
+        totalAutoBids,
+        activeAutoBids,
+        totalUsers,
+        successfulBids
+      };
+    } catch (error) {
+      console.error('Error getting auto-bidding statistics:', error);
+      return {
+        totalAutoBids: 0,
+        activeAutoBids: 0,
+        totalUsers: 0,
+        successfulBids: 0
+      };
+    }
+  }
+
+  async getAllAutoBids(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          ab.id,
+          ab.auction_id,
+          ab.user_id,
+          ab.max_bid_amount,
+          ab.current_bid_amount,
+          ab.is_active,
+          ab.created_at,
+          ab.updated_at,
+          a.title as auction_title,
+          u.username
+        FROM auto_bids ab
+        JOIN auctions a ON ab.auction_id = a.id
+        JOIN users u ON ab.user_id = u.id
+        ORDER BY ab.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        auctionId: row.auction_id,
+        auctionTitle: row.auction_title,
+        userId: row.user_id,
+        username: row.username,
+        maxBidAmount: parseInt(row.max_bid_amount) || 0,
+        currentBidAmount: parseInt(row.current_bid_amount) || 0,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+    } catch (error) {
+      console.error('Error getting all auto bids:', error);
+      return [];
+    }
+  }
+
+  async createAutoBid(autoBidData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        INSERT INTO auto_bids (auction_id, user_id, max_bid_amount, current_bid_amount, is_active)
+        VALUES (${autoBidData.auctionId}, ${autoBidData.userId}, ${autoBidData.maxBidAmount}, 
+                ${autoBidData.currentBidAmount}, ${autoBidData.isActive})
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating auto bid:', error);
+      throw error;
+    }
+  }
+
+  async updateAutoBidStatus(autoBidId: number, isActive: boolean): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auto_bids 
+        SET is_active = ${isActive}, updated_at = NOW() 
+        WHERE id = ${autoBidId}
+        RETURNING *
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error updating auto bid status:', error);
+      throw error;
+    }
+  }
+
+  async deleteAutoBid(autoBidId: number): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        DELETE FROM auto_bids WHERE id = ${autoBidId} RETURNING id
+      `);
+      
+      return result.rows.length > 0;
+    } catch (error) {
+      console.error('Error deleting auto bid:', error);
+      throw error;
+    }
+  }
+
+  async getAutoBidById(autoBidId: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          ab.id,
+          ab.auction_id,
+          ab.user_id,
+          ab.max_bid_amount,
+          ab.current_bid_amount,
+          ab.is_active,
+          ab.created_at,
+          ab.updated_at,
+          a.title as auction_title,
+          u.username
+        FROM auto_bids ab
+        JOIN auctions a ON ab.auction_id = a.id
+        JOIN users u ON ab.user_id = u.id
+        WHERE ab.id = ${autoBidId}
+      `);
+      
+      if (result.rows.length > 0) {
+        const row = result.rows[0];
+        return {
+          id: row.id,
+          auctionId: row.auction_id,
+          auctionTitle: row.auction_title,
+          userId: row.user_id,
+          username: row.username,
+          maxBidAmount: parseInt(row.max_bid_amount) || 0,
+          currentBidAmount: parseInt(row.current_bid_amount) || 0,
+          isActive: row.is_active,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting auto bid by ID:', error);
+      throw error;
+    }
+  }
+
+  async updateAutoBidMaxAmount(autoBidId: number, maxBidAmount: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auto_bids 
+        SET max_bid_amount = ${maxBidAmount}, updated_at = NOW() 
+        WHERE id = ${autoBidId}
+        RETURNING *
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error updating auto bid max amount:', error);
+      throw error;
+    }
   }
 }
 

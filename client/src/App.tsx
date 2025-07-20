@@ -45,6 +45,9 @@ import AdminAllowedCities from "@/pages/admin/allowed-cities";
 import AdminContacts from "@/pages/admin/contacts";
 import AdminAuctions from "@/pages/admin/auctions";
 import AdminAuctionProducts from "@/pages/admin/auction-products";
+import AdminAuctionManagement from "@/pages/admin/auction-management";
+import AdminAuctionInvoices from "@/pages/admin/auction-invoices";
+import AdminAutoBidding from "@/pages/admin/auto-bidding";
 import AdminAdvertisements from "@/pages/admin/advertisements";
 import AuctionsPage from "@/pages/auctions";
 import AuctionDetailsPage from "@/pages/auction-details";
@@ -127,6 +130,9 @@ function AppContent() {
         <AdminProtectedRoute path="/admin/homepage" component={AdminHomepage} />
         <AdminProtectedRoute path="/admin/categories" component={AdminCategories} />
         <AdminProtectedRoute path="/admin/auctions" component={AdminAuctions} />
+        <AdminProtectedRoute path="/admin/auction-management" component={AdminAuctionManagement} />
+        <AdminProtectedRoute path="/admin/auction-invoices" component={AdminAuctionInvoices} />
+        <AdminProtectedRoute path="/admin/auto-bidding" component={AdminAutoBidding} />
         <AdminProtectedRoute path="/admin/advertisements" component={AdminAdvertisements} />
         <AdminProtectedRoute path="/admin/test-notifications" component={TestNotificationsPage} />
         <AdminProtectedRoute path="/admin/test-orders" component={TestOrdersPage} />

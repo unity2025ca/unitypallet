@@ -93,6 +93,24 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
         { 
+          name: "Auction Management", 
+          href: "/admin/auction-management", 
+          icon: "fas fa-chart-line",
+          roles: ["admin"] // Only admin can access
+        },
+        { 
+          name: "Auction Invoices", 
+          href: "/admin/auction-invoices", 
+          icon: "fas fa-file-invoice",
+          roles: ["admin"] // Only admin can access
+        },
+        { 
+          name: "Auto-Bidding", 
+          href: "/admin/auto-bidding", 
+          icon: "fas fa-robot",
+          roles: ["admin"] // Only admin can access
+        },
+        { 
           name: "FAQs", 
           href: "/admin/faqs", 
           icon: "fas fa-question-circle",
