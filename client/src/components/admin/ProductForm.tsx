@@ -66,6 +66,7 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
       status: "available",
       price: 0,
       imageUrl: "",
+      productType: "retail", // Default to retail products
       displayOrder: 0,
     },
   });
@@ -441,6 +442,35 @@ const ProductForm = ({ defaultValues, onSubmit, isSubmitting }: ProductFormProps
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Product Type */}
+          <FormField
+            control={form.control}
+            name="productType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Type</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value || 'retail'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select product type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="retail">Retail Product</SelectItem>
+                    <SelectItem value="auction">Auction Product</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Retail products are available for immediate purchase, auction products require bidding
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

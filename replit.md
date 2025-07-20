@@ -24,6 +24,15 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - **Deployment:** PM2 process manager, environment variable loading
 
 ## Recent Changes (July 20, 2025)
+✓ **Complete Product Separation System:** Implemented comprehensive separation between retail and auction products
+- Created dedicated `/retail-products` page for immediate purchase items
+- Created dedicated `/auction-products` page for bidding items  
+- Added `product_type` field to products table ('retail' or 'auction')
+- Enhanced order tracking system with `order_type` field for retail vs auction orders
+- Updated navigation header to separate "Retail Products", "Auction Products", and "Live Auctions"
+- Created comprehensive order tracking page showing both retail purchases and auction wins
+- Added order tracking link to customer dropdown menu for easy access
+
 ✓ **Complete WooCommerce-style Auction System:** Implemented comprehensive auction management platform
 - Added Auction Management dashboard with real-time statistics and controls
 - Created professional Invoice system for auction winners with payment tracking

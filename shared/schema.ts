@@ -81,6 +81,12 @@ export const statusEnum = pgEnum("status", [
   "soldout",
 ]);
 
+// Product type enum for separating retail and auction products
+export const productTypeEnum = pgEnum("product_type", [
+  "retail",
+  "auction"
+]);
+
 // Products schema
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
@@ -92,6 +98,7 @@ export const products = pgTable("products", {
   status: statusEnum("status").default("available"),
   price: integer("price").notNull(), // Price in Canadian dollars
   imageUrl: text("image_url").notNull(), // Main product image (for backward compatibility)
+  productType: productTypeEnum("product_type").default("retail"), // retail or auction
   displayOrder: integer("display_order").default(0), // Display order for sorting products
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -320,10 +327,18 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
 ]);
 
+// Order type enum for retail vs auction orders
+export const orderTypeEnum = pgEnum("order_type", [
+  "retail",
+  "auction"
+]);
+
 // Orders schema
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  orderType: orderTypeEnum("order_type").default("retail"), // retail or auction
+  auctionId: integer("auction_id").references(() => auctions.id), // Only for auction orders
   status: orderStatusEnum("status").default("pending"),
   paymentStatus: paymentStatusEnum("payment_status").default("pending"),
   paymentIntentId: text("payment_intent_id"),

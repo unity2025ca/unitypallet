@@ -11,7 +11,8 @@ import {
   ShoppingBag, 
   LogOut,
   LogIn,
-  Heart
+  Heart,
+  Truck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,17 +36,18 @@ const Header = () => {
 
   const baseNavItems = [
     { name: "Home", href: "/" },
-    { name: "Products", href: "/products" },
-    { name: "Auctions", href: "/auctions" },
+    { name: "Retail Products", href: "/retail-products" },
+    { name: "Auction Products", href: "/auction-products" },
+    { name: "Live Auctions", href: "/auctions" },
     { name: "About", href: "/about" },
     { name: "How It Works", href: "/how-it-works" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
   ];
 
-  // Filter out auctions if disabled
+  // Filter out auction-related items if disabled
   const navItems = baseNavItems.filter(item => {
-    if (item.name === "Auctions") {
+    if (item.name === "Live Auctions" || item.name === "Auction Products") {
       return auctionsStatus?.enabled !== false;
     }
     return true;

@@ -53,6 +53,9 @@ import AuctionsPage from "@/pages/auctions";
 import AuctionDetailsPage from "@/pages/auction-details";
 import TestNotificationsPage from "@/pages/admin/test-notifications";
 import TestOrdersPage from "@/pages/admin/test-orders";
+import RetailProductsPage from "@/pages/retail-products";
+import AuctionProductsPage from "@/pages/auction-products";
+import OrderTrackingPage from "@/pages/order-tracking";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
@@ -82,6 +85,9 @@ function AppContent() {
         {/* Public Routes */}
         <Route path="/" component={HomePage} />
         <Route path="/products" component={ProductsPage} />
+        <Route path="/retail-products" component={RetailProductsPage} />
+        <Route path="/auction-products" component={AuctionProductsPage} />
+        <Route path="/order-tracking" component={OrderTrackingPage} />
         <Route path="/products/:id" component={ProductDetailsPage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/how-it-works" component={HowItWorksPage} />

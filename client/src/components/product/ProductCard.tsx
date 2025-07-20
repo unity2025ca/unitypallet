@@ -8,9 +8,11 @@ import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
+  viewMode?: "grid" | "list";
+  isAuction?: boolean;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, viewMode = "grid", isAuction = false }: ProductCardProps) => {
   const { isMaintenanceMode } = useSettings();
   
   // Map status to UI components
