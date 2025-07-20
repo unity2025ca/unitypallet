@@ -2302,6 +2302,134 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllAuctionOrders(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT ao.*, a.title as auction_title, a.end_date,
+               u.full_name, u.email, u.phone
+        FROM auction_orders ao
+        LEFT JOIN auctions a ON ao.auction_id = a.id
+        LEFT JOIN users u ON ao.user_id = u.id
+        ORDER BY ao.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        auctionId: row.auction_id,
+        userId: row.user_id,
+        winningBid: row.winning_bid,
+        paymentStatus: row.payment_status,
+        invoiceStatus: row.invoice_status,
+        shippingStatus: row.shipping_status,
+        invoiceUrl: row.invoice_url,
+        trackingNumber: row.tracking_number,
+        createdAt: row.created_at,
+        auction: {
+          title: row.auction_title,
+          endDate: row.end_date
+        },
+        user: {
+          fullName: row.full_name,
+          email: row.email,
+          phone: row.phone
+        }
+      }));
+    } catch (error) {
+      console.error('Error getting all auction orders:', error);
+      return [];
+    }
+  }
+
+  async updateAuctionOrderPayment(orderId: number, paymentStatus: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET payment_status = ${paymentStatus}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating auction order payment:', error);
+      throw error;
+    }
+  }
+
+  async updateAuctionOrderShipping(orderId: number, shippingStatus: string, trackingNumber?: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET shipping_status = ${shippingStatus}, 
+            tracking_number = ${trackingNumber}, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating auction order shipping:', error);
+      throw error;
+    }
+  }
+
+  async generateAuctionOrderInvoice(orderId: number, invoiceUrl: string): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET invoice_status = 'generated', 
+            invoice_url = ${invoiceUrl}, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error generating auction order invoice:', error);
+      throw error;
+    }
+  }
+
+  async getCustomerAuctionWins(userId: number): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT ao.*, a.title as auction_title, a.end_date,
+               ap.title as product_title, ap.description, ap.images
+        FROM auction_orders ao
+        LEFT JOIN auctions a ON ao.auction_id = a.id
+        LEFT JOIN auction_products ap ON a.auction_product_id = ap.id
+        WHERE ao.user_id = ${userId}
+        ORDER BY ao.created_at DESC
+      `);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        auctionId: row.auction_id,
+        winningBid: row.winning_bid,
+        paymentStatus: row.payment_status,
+        invoiceStatus: row.invoice_status,
+        shippingStatus: row.shipping_status,
+        invoiceUrl: row.invoice_url,
+        trackingNumber: row.tracking_number,
+        createdAt: row.created_at,
+        auction: {
+          title: row.auction_title,
+          endDate: row.end_date
+        },
+        product: {
+          title: row.product_title,
+          description: row.description,
+          images: row.images || []
+        }
+      }));
+    } catch (error) {
+      console.error('Error getting customer auction wins:', error);
+      return [];
+    }
+  }
+
   async getAuctionOrderByAuctionId(auctionId: number): Promise<any> {
     try {
       const result = await db.execute(sql`

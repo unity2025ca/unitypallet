@@ -133,6 +133,10 @@ const Header = () => {
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     <span>My Orders</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/auction-winner-process")}>
+                    <Trophy className="h-4 w-4 mr-2" />
+                    <span>Auction Wins</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => {
@@ -179,6 +183,10 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => setLocation("/orders")}>
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     <span>My Orders</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation("/auction-winner-process")}>
+                    <Trophy className="h-4 w-4 mr-2" />
+                    <span>Auction Wins</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 

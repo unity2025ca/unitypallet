@@ -79,6 +79,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', auctionCompletionRouter);
   app.use('/api/admin', requireAdmin, autoBiddingRouter);
   
+  // Admin Auction Orders Routes
+  app.get('/api/admin/auction-orders', requireAdmin, async (req, res) => {
+    try {
+      const orders = await storage.getAllAuctionOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error('Error fetching auction orders:', error);
+      res.status(500).json({ error: 'Failed to fetch auction orders' });
+    }
+  });
+
+  app.patch('/api/admin/auction-orders/:orderId/payment', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const { paymentStatus } = req.body;
+      
+      const order = await storage.updateAuctionOrderPayment(orderId, paymentStatus);
+      res.json(order);
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ error: 'Failed to update payment status' });
+    }
+  });
+
+  app.patch('/api/admin/auction-orders/:orderId/shipping', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const { shippingStatus, trackingNumber } = req.body;
+      
+      const order = await storage.updateAuctionOrderShipping(orderId, shippingStatus, trackingNumber);
+      res.json(order);
+    } catch (error) {
+      console.error('Error updating shipping status:', error);
+      res.status(500).json({ error: 'Failed to update shipping status' });
+    }
+  });
+
+  app.post('/api/admin/auction-orders/:orderId/generate-invoice', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const invoiceUrl = `/api/admin/auction-orders/${orderId}/invoice`;
+      
+      const order = await storage.generateAuctionOrderInvoice(orderId, invoiceUrl);
+      res.json(order);
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      res.status(500).json({ error: 'Failed to generate invoice' });
+    }
+  });
+  
   // Direct watchlist endpoint - MUST be before other auction routes  
   app.get('/api/auctions/watchlist', async (req, res) => {
     console.log('✓ Direct watchlist endpoint called');
