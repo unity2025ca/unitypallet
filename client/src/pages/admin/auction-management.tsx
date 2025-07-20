@@ -1,352 +1,449 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Calendar, 
-  Clock, 
-  DollarSign, 
-  Eye, 
-  FileText, 
-  Gavel, 
-  Settings, 
-  TrendingUp,
-  Users,
-  CreditCard,
-  BarChart3,
-  Download,
-  Bell,
-  MessageSquare
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
-import { apiRequest } from "@/lib/queryClient";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Plus, Edit, Trash2, Eye, Download, Truck, DollarSign, Package,
+  Timer, Users, TrendingUp, CheckCircle, AlertCircle, Clock,
+  FileText, CreditCard, MapPin, Camera, Upload, Settings
+} from "lucide-react";
 
-interface AuctionStats {
-  totalAuctions: number;
-  activeAuctions: number;
-  totalBids: number;
-  totalRevenue: number;
-  avgBidsPerAuction: number;
-  conversionRate: number;
-}
-
+// Types
 interface Auction {
   id: number;
   title: string;
-  status: 'draft' | 'active' | 'ended' | 'cancelled';
-  startingPrice: number;
-  currentBid: number;
-  totalBids: number;
-  endTime: string;
-  winnerId?: number;
-  winnerName?: string;
-}
-
-interface Invoice {
-  id: number;
-  invoiceNumber: string;
-  auctionTitle: string;
-  winnerName: string;
-  winningBidAmount: number;
-  totalAmount: number;
-  paymentStatus: string;
-  createdAt: string;
-}
-
-interface AuctionSetting {
-  key: string;
-  value: string;
-  label: string;
   description: string;
-  type: string;
+  startingBid: number;
+  currentBid: number;
+  reservePrice?: number;
+  startTime: string;
+  endTime: string;
+  status: 'draft' | 'active' | 'ended' | 'cancelled';
+  totalBids: number;
+  watchers: number;
+  images: string[];
+  category: string;
+  condition: string;
+  auctionProductId?: number;
 }
 
-export default function AuctionManagementPage() {
+interface AuctionProduct {
+  id: number;
+  title: string;
+  titleAr: string;
+  description?: string;
+  descriptionAr?: string;
+  category: string;
+  categoryAr: string;
+  condition: "new" | "like_new" | "good" | "fair" | "poor";
+  estimatedValue?: number;
+  weight?: number;
+  dimensions?: string;
+  location?: string;
+  mainImage?: string;
+  images: Array<{
+    id: number;
+    imageUrl: string;
+    isMain: boolean;
+    altText?: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AuctionOrder {
+  id: number;
+  auctionId: number;
+  userId: number;
+  winningBid: number;
+  paymentStatus: 'deposit_pending' | 'deposit_paid' | 'fully_paid' | 'failed';
+  invoiceStatus: 'pending' | 'generated' | 'sent';
+  shippingStatus: 'pending' | 'processing' | 'ready_for_pickup' | 'delivered';
+  securityDepositAmount: number;
+  remainingAmount: number;
+  securityDepositStatus: 'pending' | 'paid' | 'failed';
+  cashPaymentStatus: 'pending' | 'paid';
+  invoiceUrl?: string;
+  trackingNumber?: string;
+  createdAt: string;
+  auction?: {
+    title: string;
+    endTime: string;
+  };
+  user?: {
+    fullName: string;
+    email: string;
+    phone: string;
+  };
+}
+
+const formatCurrency = (amount?: number) => {
+  if (!amount) return "$0.00";
+  return `$${(amount / 100).toFixed(2)}`;
+};
+
+const conditionOptions = [
+  { value: "new", label: "New" },
+  { value: "like_new", label: "Like New" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "poor", label: "Poor" },
+];
+
+export default function AuctionManagement() {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedAuction, setSelectedAuction] = useState<Auction | undefined>();
+  const [selectedProduct, setSelectedProduct] = useState<AuctionProduct | null>(null);
+  const [isAuctionDialogOpen, setIsAuctionDialogOpen] = useState(false);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch auction statistics
-  const { data: stats, isLoading: statsLoading } = useQuery<AuctionStats>({
+  // Fetch data for all sections
+  const { data: auctions = [], isLoading: auctionsLoading } = useQuery<Auction[]>({
+    queryKey: ["/api/auctions", { status: "all" }],
+  });
+
+  const { data: auctionProducts = [], isLoading: productsLoading } = useQuery<AuctionProduct[]>({
+    queryKey: ["/api/auction-products"],
+  });
+
+  const { data: auctionOrders = [], isLoading: ordersLoading } = useQuery<AuctionOrder[]>({
+    queryKey: ['/api/admin/auction-orders'],
+  });
+
+  const { data: auctionStats } = useQuery({
     queryKey: ['/api/admin/auction-stats'],
   });
 
-  // Fetch recent auctions
-  const { data: recentAuctions, isLoading: auctionsLoading } = useQuery<Auction[]>({
-    queryKey: ['/api/admin/auctions/recent'],
-  });
-
-  // Fetch auction invoices
-  const { data: invoices, isLoading: invoicesLoading } = useQuery<Invoice[]>({
-    queryKey: ['/api/admin/auction-invoices'],
-  });
-
-  // Fetch auction settings
-  const { data: auctionSettings, isLoading: settingsLoading } = useQuery<AuctionSetting[]>({
-    queryKey: ['/api/admin/auction-settings'],
-  });
-
-  // Update auction setting mutation
-  const updateSettingMutation = useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string }) => {
-      return apiRequest('PUT', '/api/admin/auction-settings', { key, value });
+  // Mutations for auction orders
+  const updateSecurityDepositMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/security-deposit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update security deposit');
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-settings'] });
-      toast({
-        title: "Setting Updated",
-        description: "Auction setting updated successfully",
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+      toast({ title: "Success", description: "Security deposit status updated" });
+    }
+  });
+
+  const updateCashPaymentMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/cash-payment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to update cash payment');
+      return response.json();
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to update setting",
-        variant: "destructive",
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+      toast({ title: "Success", description: "Cash payment status updated" });
+    }
+  });
+
+  const markDeliveredMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/mark-delivered`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to mark as delivered');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+      toast({ title: "Success", description: "Order marked as delivered with notifications sent" });
+    }
+  });
+
+  const generateInvoiceMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/generate-invoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to generate invoice');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+      toast({ title: "Success", description: "Invoice generated successfully" });
+    }
+  });
+
+  // Delete mutations
+  const deleteAuctionMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/auctions/${id}`, "DELETE"),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Auction deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
     },
   });
 
-  const handleSettingUpdate = (key: string, value: string) => {
-    updateSettingMutation.mutate({ key, value });
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/auction-products/${id}`, {}),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Auction product deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
+    },
+  });
+
+  // Status badge helpers
+  const getStatusColor = (status: string, type: 'payment' | 'shipping' | 'invoice' | 'deposit' | 'cash') => {
+    if (type === 'payment') {
+      switch (status) {
+        case 'fully_paid': return 'bg-green-500';
+        case 'deposit_paid': return 'bg-blue-500';
+        case 'deposit_pending': return 'bg-yellow-500';
+        case 'failed': return 'bg-red-500';
+        default: return 'bg-gray-500';
+      }
+    }
+    if (type === 'shipping') {
+      switch (status) {
+        case 'delivered': return 'bg-green-500';
+        case 'ready_for_pickup': return 'bg-blue-500';
+        case 'processing': return 'bg-yellow-500';
+        case 'pending': return 'bg-gray-500';
+        default: return 'bg-gray-500';
+      }
+    }
+    if (type === 'deposit' || type === 'cash') {
+      switch (status) {
+        case 'paid': return 'bg-green-500';
+        case 'pending': return 'bg-yellow-500';
+        case 'failed': return 'bg-red-500';
+        default: return 'bg-gray-500';
+      }
+    }
+    return 'bg-gray-500';
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { variant: "secondary" as const, label: "Draft" },
-      active: { variant: "default" as const, label: "Active" },
-      ended: { variant: "outline" as const, label: "Ended" },
-      cancelled: { variant: "destructive" as const, label: "Cancelled" },
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+  const getAuctionStatusBadge = (status: string) => {
+    const variants = {
+      draft: "secondary",
+      active: "default", 
+      ended: "outline",
+      cancelled: "destructive",
+    } as const;
 
-  if (statsLoading || auctionsLoading || invoicesLoading || settingsLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Gavel className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Auction Management</h1>
+      <Badge variant={variants[status as keyof typeof variants]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const getConditionBadgeVariant = (condition: string) => {
+    switch (condition) {
+      case "new": return "default";
+      case "like_new": return "secondary";
+      case "good": return "outline";
+      case "fair": return "destructive";
+      case "poor": return "destructive";
+      default: return "outline";
+    }
+  };
+
+  if (auctionsLoading || productsLoading || ordersLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Auction Management</h1>
         </div>
-        <div className="text-center py-8">Loading...</div>
+        <div className="animate-pulse space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-16 bg-muted rounded"></div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Gavel className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Auction Management</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Auction Management</h1>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => {
+              setSelectedAuction(undefined);
+              setIsAuctionDialogOpen(true);
+            }}
+            style={{ backgroundColor: '#dc2626', color: 'white' }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Auction
+          </Button>
+          <Button 
+            onClick={() => {
+              setSelectedProduct(null);
+              setIsProductDialogOpen(true);
+            }}
+            variant="outline"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            New Product
+          </Button>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
-            <BarChart3 className="h-3 w-3" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="auctions" className="flex items-center gap-2 text-xs">
-            <Gavel className="h-3 w-3" />
-            Auctions
-          </TabsTrigger>
-          <TabsTrigger value="invoices" className="flex items-center gap-2 text-xs">
-            <FileText className="h-3 w-3" />
-            Invoices
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 text-xs">
-            <Settings className="h-3 w-3" />
-            Settings
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2 text-xs">
-            <TrendingUp className="h-3 w-3" />
-            Reports
-          </TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="auctions">Auctions</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Auctions</CardTitle>
-                <Gavel className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats?.totalAuctions || 0}</div>
-                <p className="text-xs text-muted-foreground">All time auctions</p>
+                <div className="text-2xl font-bold">{(auctionStats as any)?.totalAuctions || auctions.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {(auctionStats as any)?.activeAuctions || auctions.filter(a => a.status === 'active').length} active
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Auctions</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Auction Products</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats?.activeAuctions || 0}</div>
-                <p className="text-xs text-muted-foreground">Currently running</p>
+                <div className="text-2xl font-bold">{auctionProducts.length}</div>
+                <p className="text-xs text-muted-foreground">Available for auctions</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <Truck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{auctionOrders.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {auctionOrders.filter(o => o.shippingStatus === 'delivered').length} delivered
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Revenue</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
-                <p className="text-xs text-muted-foreground">From completed auctions</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Bids</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.totalBids || 0}</div>
-                <p className="text-xs text-muted-foreground">All bids placed</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Bids/Auction</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.avgBidsPerAuction?.toFixed(1) || '0.0'}</div>
-                <p className="text-xs text-muted-foreground">Average engagement</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.conversionRate?.toFixed(1) || '0.0'}%</div>
-                <p className="text-xs text-muted-foreground">Auctions with bids</p>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(auctionOrders.reduce((sum, order) => sum + order.winningBid, 0))}
+                </div>
+                <p className="text-xs text-muted-foreground">Total auction revenue</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Recent Auctions */}
+          {/* Recent Activity */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Recent Auctions
-              </CardTitle>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Latest auction orders and activities</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Auction</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Current Bid</TableHead>
-                    <TableHead>Bids</TableHead>
-                    <TableHead>End Time</TableHead>
-                    <TableHead>Winner</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentAuctions?.map((auction) => (
-                    <TableRow key={auction.id}>
-                      <TableCell className="font-medium">{auction.title}</TableCell>
-                      <TableCell>{getStatusBadge(auction.status)}</TableCell>
-                      <TableCell>{formatCurrency(auction.currentBid)}</TableCell>
-                      <TableCell>{auction.totalBids}</TableCell>
-                      <TableCell>{new Date(auction.endTime).toLocaleDateString()}</TableCell>
-                      <TableCell>{auction.winnerName || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-4">
+                {auctionOrders.slice(0, 5).map((order) => (
+                  <div key={order.id} className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        Order #{order.id} - {order.auction?.title}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatCurrency(order.winningBid)} by {order.user?.fullName}
+                      </p>
+                    </div>
+                    <Badge className={`${getStatusColor(order.paymentStatus, 'payment')} text-white`}>
+                      {order.paymentStatus.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Auctions Tab */}
-        <TabsContent value="auctions">
+        <TabsContent value="auctions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Auction Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">Detailed auction management coming soon</p>
-                <Button>
-                  <Gavel className="h-4 w-4 mr-2" />
-                  Create New Auction
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Invoices Tab */}
-        <TabsContent value="invoices">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Auction Invoices
-              </CardTitle>
+              <CardTitle>Manage Auctions</CardTitle>
+              <CardDescription>Create, edit, and manage auction listings</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Auction</TableHead>
-                    <TableHead>Winner</TableHead>
-                    <TableHead>Winning Bid</TableHead>
-                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Current Bid</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>End Time</TableHead>
+                    <TableHead>Bids</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {invoices?.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                      <TableCell>{invoice.auctionTitle}</TableCell>
-                      <TableCell>{invoice.winnerName}</TableCell>
-                      <TableCell>{formatCurrency(invoice.winningBidAmount)}</TableCell>
-                      <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
+                  {auctions.map((auction) => (
+                    <TableRow key={auction.id}>
+                      <TableCell className="font-medium">{auction.title}</TableCell>
+                      <TableCell>{formatCurrency(auction.currentBid)}</TableCell>
+                      <TableCell>{getAuctionStatusBadge(auction.status)}</TableCell>
+                      <TableCell>{new Date(auction.endTime).toLocaleDateString()}</TableCell>
+                      <TableCell>{auction.totalBids}</TableCell>
                       <TableCell>
-                        <Badge variant={invoice.paymentStatus === 'paid' ? 'default' : 'secondary'}>
-                          {invoice.paymentStatus}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{new Date(invoice.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => deleteAuctionMutation.mutate(auction.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -356,66 +453,214 @@ export default function AuctionManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
+        {/* Products Tab */}
+        <TabsContent value="products" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Auction Settings</CardTitle>
+              <CardTitle>Auction Products</CardTitle>
+              <CardDescription>Manage products available for auction</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {auctionSettings?.map((setting) => (
-                <div key={setting.key} className="space-y-2">
-                  <Label htmlFor={setting.key}>{setting.label}</Label>
-                  {setting.description && (
-                    <p className="text-sm text-muted-foreground">{setting.description}</p>
-                  )}
-                  {setting.type === 'boolean' ? (
-                    <Switch
-                      id={setting.key}
-                      checked={setting.value === 'true'}
-                      onCheckedChange={(checked) => 
-                        handleSettingUpdate(setting.key, checked.toString())
-                      }
-                    />
-                  ) : setting.type === 'textarea' ? (
-                    <Textarea
-                      id={setting.key}
-                      value={setting.value}
-                      onChange={(e) => handleSettingUpdate(setting.key, e.target.value)}
-                    />
-                  ) : (
-                    <Input
-                      id={setting.key}
-                      type={setting.type === 'number' ? 'number' : 'text'}
-                      value={setting.value}
-                      onChange={(e) => handleSettingUpdate(setting.key, e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Condition</TableHead>
+                    <TableHead>Estimated Value</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auctionProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.title}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>
+                        <Badge variant={getConditionBadgeVariant(product.condition)}>
+                          {product.condition.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatCurrency(product.estimatedValue)}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => deleteProductMutation.mutate(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Reports Tab */}
-        <TabsContent value="reports">
+        {/* Orders Tab */}
+        <TabsContent value="orders" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Auction Reports & Analytics
-              </CardTitle>
+              <CardTitle>Auction Orders Management</CardTitle>
+              <CardDescription>Manage auction winner payments, invoices, and deliveries</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">Advanced reporting features coming soon</p>
-                <Button>
-                  <Download className="h-4 w-4 mr-2" />
-                  Generate Report
-                </Button>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Auction</TableHead>
+                    <TableHead>Winning Bid</TableHead>
+                    <TableHead>Security Deposit</TableHead>
+                    <TableHead>Cash Payment</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auctionOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">#{order.id}</TableCell>
+                      <TableCell>{order.user?.fullName}</TableCell>
+                      <TableCell>{order.auction?.title}</TableCell>
+                      <TableCell>{formatCurrency(order.winningBid)}</TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(order.securityDepositStatus, 'deposit')} text-white`}>
+                          {order.securityDepositStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(order.cashPaymentStatus, 'cash')} text-white`}>
+                          {order.cashPaymentStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(order.shippingStatus, 'shipping')} text-white`}>
+                          {order.shippingStatus.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {order.securityDepositStatus === 'pending' && (
+                            <Button
+                              size="sm"
+                              style={{ backgroundColor: '#dc2626', color: 'white' }}
+                              onClick={() => updateSecurityDepositMutation.mutate({ orderId: order.id, status: 'paid' })}
+                            >
+                              Mark Deposit Paid
+                            </Button>
+                          )}
+                          
+                          {order.securityDepositStatus === 'paid' && order.cashPaymentStatus === 'pending' && (
+                            <Button
+                              size="sm"
+                              style={{ backgroundColor: '#dc2626', color: 'white' }}
+                              onClick={() => updateCashPaymentMutation.mutate({ orderId: order.id, status: 'paid' })}
+                            >
+                              Cash Received
+                            </Button>
+                          )}
+                          
+                          {!order.invoiceUrl && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => generateInvoiceMutation.mutate(order.id)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Generate Invoice
+                            </Button>
+                          )}
+                          
+                          {order.invoiceUrl && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(order.invoiceUrl, '_blank')}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download Invoice
+                            </Button>
+                          )}
+                          
+                          {order.cashPaymentStatus === 'paid' && order.shippingStatus === 'ready_for_pickup' && (
+                            <Button
+                              size="sm"
+                              style={{ backgroundColor: '#dc2626', color: 'white' }}
+                              onClick={() => markDeliveredMutation.mutate(order.id)}
+                              disabled={markDeliveredMutation.isPending}
+                            >
+                              <Truck className="h-4 w-4 mr-1" />
+                              {markDeliveredMutation.isPending ? 'Processing...' : 'Mark Delivered'}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {['deposit_pending', 'deposit_paid', 'fully_paid', 'failed'].map((status) => {
+                    const count = auctionOrders.filter(o => o.paymentStatus === status).length;
+                    const percentage = auctionOrders.length ? Math.round((count / auctionOrders.length) * 100) : 0;
+                    return (
+                      <div key={status} className="flex justify-between items-center">
+                        <span className="text-sm">{status.replace('_', ' ')}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{count}</span>
+                          <span className="text-xs text-muted-foreground">({percentage}%)</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {['pending', 'processing', 'ready_for_pickup', 'delivered'].map((status) => {
+                    const count = auctionOrders.filter(o => o.shippingStatus === status).length;
+                    const percentage = auctionOrders.length ? Math.round((count / auctionOrders.length) * 100) : 0;
+                    return (
+                      <div key={status} className="flex justify-between items-center">
+                        <span className="text-sm">{status.replace('_', ' ')}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{count}</span>
+                          <span className="text-xs text-muted-foreground">({percentage}%)</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

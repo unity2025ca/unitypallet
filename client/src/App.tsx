@@ -43,12 +43,7 @@ import AdminHomepage from "@/pages/admin/homepage";
 import AdminCategories from "@/pages/admin/categories";
 import AdminAllowedCities from "@/pages/admin/allowed-cities";
 import AdminContacts from "@/pages/admin/contacts";
-import AdminAuctions from "@/pages/admin/auctions";
-import AdminAuctionProducts from "@/pages/admin/auction-products";
 import AdminAuctionManagement from "@/pages/admin/auction-management";
-import AdminAuctionInvoices from "@/pages/admin/auction-invoices";
-import AdminAuctionOrders from "@/pages/admin/auction-orders";
-import AdminAutoBidding from "@/pages/admin/auto-bidding";
 import AdminAdvertisements from "@/pages/admin/advertisements";
 import AuctionsPage from "@/pages/auctions";
 import AuctionDetailsPage from "@/pages/auction-details";
@@ -126,7 +121,6 @@ function AppContent() {
         <AdminProtectedRoute path="/admin" component={AdminIndex} />
         <AdminProtectedRoute path="/admin/dashboard" component={AdminDashboard} />
         <PublisherProtectedRoute path="/admin/products" component={AdminProducts} />
-        <PublisherProtectedRoute path="/admin/auction-products" component={AdminAuctionProducts} />
         <PublisherProtectedRoute path="/admin/orders" component={AdminOrders} />
         <PublisherProtectedRoute path="/admin/contacts" component={AdminContacts} />
         <AdminProtectedRoute path="/admin/newsletter" component={AdminNewsletter} />
@@ -140,11 +134,7 @@ function AppContent() {
         <AdminProtectedRoute path="/admin/allowed-cities" component={AdminAllowedCities} />
         <AdminProtectedRoute path="/admin/homepage" component={AdminHomepage} />
         <AdminProtectedRoute path="/admin/categories" component={AdminCategories} />
-        <AdminProtectedRoute path="/admin/auctions" component={AdminAuctions} />
         <AdminProtectedRoute path="/admin/auction-management" component={AdminAuctionManagement} />
-        <AdminProtectedRoute path="/admin/auction-invoices" component={AdminAuctionInvoices} />
-        <AdminProtectedRoute path="/admin/auction-orders" component={AdminAuctionOrders} />
-        <AdminProtectedRoute path="/admin/auto-bidding" component={AdminAutoBidding} />
         <AdminProtectedRoute path="/admin/advertisements" component={AdminAdvertisements} />
         <AdminProtectedRoute path="/admin/test-notifications" component={TestNotificationsPage} />
         <AdminProtectedRoute path="/admin/test-orders" component={TestOrdersPage} />

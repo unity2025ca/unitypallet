@@ -87,27 +87,9 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
         { 
-          name: "Auctions", 
-          href: "/admin/auctions", 
-          icon: "fas fa-gavel",
-          roles: ["admin", "publisher"] // Admin and publisher can access
-        },
-        { 
           name: "Auction Management", 
           href: "/admin/auction-management", 
-          icon: "fas fa-chart-line",
-          roles: ["admin"] // Only admin can access
-        },
-        { 
-          name: "Auction Invoices", 
-          href: "/admin/auction-invoices", 
-          icon: "fas fa-file-invoice",
-          roles: ["admin"] // Only admin can access
-        },
-        { 
-          name: "Auto-Bidding", 
-          href: "/admin/auto-bidding", 
-          icon: "fas fa-robot",
+          icon: "fas fa-gavel",
           roles: ["admin"] // Only admin can access
         },
         { 
@@ -127,12 +109,7 @@ const Sidebar = ({ isMobileOpen, toggleMobile }: SidebarProps) => {
           icon: "fas fa-shopping-cart",
           roles: ["admin", "publisher"] // Admin and publisher can access
         },
-        { 
-          name: "Auction Orders", 
-          href: "/admin/auction-orders", 
-          icon: "fas fa-trophy",
-          roles: ["admin"] // Only admin can access
-        },
+
         { 
           name: "Messages", 
           href: "/admin/contacts", 
