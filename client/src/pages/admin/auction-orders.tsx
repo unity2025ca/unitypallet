@@ -48,16 +48,22 @@ interface AuctionOrder {
 export default function AdminAuctionOrders() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const { data: auctionOrders = [], isLoading } = useQuery({
+  const { data: auctionOrders = [], isLoading } = useQuery<AuctionOrder[]>({
     queryKey: ['/api/admin/auction-orders'],
   });
 
   const updateSecurityDepositMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      return apiRequest(`/api/admin/auction-orders/${orderId}/security-deposit`, {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/security-deposit`, {
         method: 'PATCH',
-        body: { status }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to update security deposit');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
@@ -66,10 +72,16 @@ export default function AdminAuctionOrders() {
 
   const updateCashPaymentMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      return apiRequest(`/api/admin/auction-orders/${orderId}/cash-payment`, {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/cash-payment`, {
         method: 'PATCH',
-        body: { status }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to update cash payment');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
@@ -82,10 +94,16 @@ export default function AdminAuctionOrders() {
       status: string; 
       trackingNumber?: string;
     }) => {
-      return apiRequest(`/api/admin/auction-orders/${orderId}/shipping`, {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/shipping`, {
         method: 'PATCH',
-        body: { shippingStatus: status, trackingNumber }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ shippingStatus: status, trackingNumber }),
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to update shipping status');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
@@ -94,9 +112,15 @@ export default function AdminAuctionOrders() {
 
   const generateInvoiceMutation = useMutation({
     mutationFn: async (orderId: number) => {
-      return apiRequest(`/api/admin/auction-orders/${orderId}/generate-invoice`, {
-        method: 'POST'
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/generate-invoice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to generate invoice');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
