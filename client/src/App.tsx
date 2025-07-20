@@ -56,6 +56,7 @@ import TestOrdersPage from "@/pages/admin/test-orders";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
+import DevelopmentNotice from "@/components/layout/DevelopmentNotice";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
 import { CustomerProtectedRoute } from "@/lib/customer-protected-route";
 import { AdminProtectedRoute, PublisherProtectedRoute } from "@/lib/admin-protected-route";
@@ -143,6 +144,7 @@ function AppContent() {
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <AppointmentBubble />}
       {!isAdminRoute && <CartBubble />}
+      {!isAdminRoute && <DevelopmentNotice />}
     </>
   );
 }

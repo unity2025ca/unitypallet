@@ -106,7 +106,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <Tabs defaultValue="auctions" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="auctions" className="flex items-center gap-2 text-xs">
             <Eye className="h-3 w-3" />
             Auctions
@@ -114,6 +114,10 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="system" className="flex items-center gap-2 text-xs">
             <Wrench className="h-3 w-3" />
             System
+          </TabsTrigger>
+          <TabsTrigger value="development" className="flex items-center gap-2 text-xs">
+            <Database className="h-3 w-3" />
+            Dev Notice
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2 text-xs">
             <Palette className="h-3 w-3" />
@@ -185,6 +189,89 @@ export default function AdminSettingsPage() {
                       {toggleAuctionsMutation.isPending ? "Updating..." : 
                        auctionsStatus?.enabled ? "Hide Auctions" : "Show Auctions"}
                     </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="development" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Development Notice Popup
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">
+                      Enable Development Notice
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Show a popup to visitors indicating the site is under development
+                    </p>
+                  </div>
+                  <Switch
+                    checked={getSetting('dev_notice_enabled') === 'true'}
+                    onCheckedChange={(checked) => handleUpdateSetting('dev_notice_enabled', checked.toString())}
+                    disabled={updateSettingMutation.isPending}
+                  />
+                </div>
+
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label htmlFor="dev-notice-title">Notice Title</Label>
+                    <Input
+                      id="dev-notice-title"
+                      value={getSetting('dev_notice_title')}
+                      onChange={(e) => handleUpdateSetting('dev_notice_title', e.target.value)}
+                      placeholder="Site Under Development"
+                      disabled={updateSettingMutation.isPending}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dev-notice-message">Notice Message</Label>
+                    <Textarea
+                      id="dev-notice-message"
+                      value={getSetting('dev_notice_message')}
+                      onChange={(e) => handleUpdateSetting('dev_notice_message', e.target.value)}
+                      placeholder="This website is currently under development and testing. We will be launching soon!"
+                      rows={3}
+                      disabled={updateSettingMutation.isPending}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dev-notice-button">Button Text</Label>
+                    <Input
+                      id="dev-notice-button"
+                      value={getSetting('dev_notice_button_text')}
+                      onChange={(e) => handleUpdateSetting('dev_notice_button_text', e.target.value)}
+                      placeholder="I Understand"
+                      disabled={updateSettingMutation.isPending}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="text-sm font-medium">
+                        Notice Status: {getSetting('dev_notice_enabled') === 'true' ? 'Active' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {getSetting('dev_notice_enabled') === 'true' 
+                        ? 'Visitors will see the development notice popup when they first visit the website.'
+                        : 'Development notice is disabled. Visitors will not see any development popup.'
+                      }
+                    </p>
                   </div>
                 </div>
               </div>
