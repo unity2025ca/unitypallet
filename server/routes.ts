@@ -1811,6 +1811,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Auction management endpoints
+  app.post('/api/auctions', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const auctionData = req.body;
+      
+      // Validate required fields
+      if (!auctionData.auctionProductId || !auctionData.title || !auctionData.startingPrice) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Create the auction
+      const auction = await storage.createAuction(auctionData);
+      res.status(201).json(auction);
+    } catch (error) {
+      console.error('Error creating auction:', error);
+      res.status(500).json({ message: "Failed to create auction" });
+    }
+  });
+
+  app.put('/api/auctions/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid auction ID" });
+      }
+      
+      const auctionData = req.body;
+      
+      // Update the auction
+      const auction = await storage.updateAuction(id, auctionData);
+      if (!auction) {
+        return res.status(404).json({ message: "Auction not found" });
+      }
+      
+      res.json(auction);
+    } catch (error) {
+      console.error('Error updating auction:', error);
+      res.status(500).json({ message: "Failed to update auction" });
+    }
+  });
+
+  app.delete('/api/auctions/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid auction ID" });
+      }
+      
+      const success = await storage.deleteAuction(id);
+      if (!success) {
+        return res.status(404).json({ message: "Auction not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting auction:', error);
+      res.status(500).json({ message: "Failed to delete auction" });
+    }
+  });
+
   // Import the hashPassword function directly from auth.ts
   // Remove redundant functions to avoid conflicts
   

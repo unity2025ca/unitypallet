@@ -211,6 +211,9 @@ export interface IStorage {
   getAuctionInvoices(): Promise<any[]>;
   getAuctionSettings(): Promise<any[]>;
   updateAuctionSetting(key: string, value: string): Promise<any>;
+  createAuction(auctionData: any): Promise<any>;
+  updateAuction(auctionId: number, auctionData: any): Promise<any>;
+  deleteAuction(auctionId: number): Promise<boolean>;
   createAuctionInvoice(invoiceData: any): Promise<any>;
   updateAuctionInvoicePayment(invoiceId: number, paymentData: any): Promise<any>;
   getAuctionBids(auctionId: number): Promise<any[]>;
@@ -1933,6 +1936,72 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error updating auction setting:', error);
       return null;
+    }
+  }
+
+  async createAuction(auctionData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        INSERT INTO auctions (
+          auction_product_id, title, title_ar, description, description_ar,
+          starting_price, reserve_price, bid_increment, start_time, end_time,
+          status, is_auto_extend, auto_extend_minutes
+        ) VALUES (
+          ${auctionData.auctionProductId}, ${auctionData.title}, ${auctionData.titleAr || ''},
+          ${auctionData.description || ''}, ${auctionData.descriptionAr || ''},
+          ${auctionData.startingPrice}, ${auctionData.reservePrice || null}, 
+          ${auctionData.bidIncrement}, ${auctionData.startTime}, ${auctionData.endTime},
+          ${auctionData.status || 'draft'}, ${auctionData.isAutoExtend || true}, 
+          ${auctionData.autoExtendMinutes || 5}
+        ) RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating auction:', error);
+      throw error;
+    }
+  }
+
+  async updateAuction(auctionId: number, auctionData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auctions SET
+          auction_product_id = ${auctionData.auctionProductId},
+          title = ${auctionData.title},
+          title_ar = ${auctionData.titleAr || ''},
+          description = ${auctionData.description || ''},
+          description_ar = ${auctionData.descriptionAr || ''},
+          starting_price = ${auctionData.startingPrice},
+          reserve_price = ${auctionData.reservePrice || null},
+          bid_increment = ${auctionData.bidIncrement},
+          start_time = ${auctionData.startTime},
+          end_time = ${auctionData.endTime},
+          status = ${auctionData.status || 'draft'},
+          is_auto_extend = ${auctionData.isAutoExtend || true},
+          auto_extend_minutes = ${auctionData.autoExtendMinutes || 5},
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${auctionId}
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error updating auction:', error);
+      throw error;
+    }
+  }
+
+  async deleteAuction(auctionId: number): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        DELETE FROM auctions WHERE id = ${auctionId}
+      `);
+      
+      return result.rowsAffected > 0;
+    } catch (error) {
+      console.error('Error deleting auction:', error);
+      throw error;
     }
   }
 
