@@ -2470,7 +2470,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db.execute(sql`
         SELECT ao.*, 
                u.username, u.full_name, u.email, u.phone,
-               a.title as auction_title, a.end_date
+               a.title as auction_title, a.end_time
         FROM auction_orders ao
         LEFT JOIN users u ON ao.user_id = u.id
         LEFT JOIN auctions a ON ao.auction_id = a.id
@@ -2505,7 +2505,7 @@ export class DatabaseStorage implements IStorage {
         },
         auction: {
           title: row.auction_title,
-          endDate: row.end_date
+          endTime: row.end_time
         }
       };
     } catch (error) {
@@ -2517,7 +2517,7 @@ export class DatabaseStorage implements IStorage {
   async getCustomerAuctionWins(userId: number): Promise<any[]> {
     try {
       const result = await db.execute(sql`
-        SELECT ao.*, a.title as auction_title, a.end_date,
+        SELECT ao.*, a.title as auction_title, a.end_time,
                ap.title as product_title, ap.description, ap.images
         FROM auction_orders ao
         LEFT JOIN auctions a ON ao.auction_id = a.id
@@ -2538,7 +2538,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: row.created_at,
         auction: {
           title: row.auction_title,
-          endDate: row.end_date
+          endTime: row.end_time
         },
         product: {
           title: row.product_title,
