@@ -237,8 +237,12 @@ export default function AuctionManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
       setIsAuctionDialogOpen(false);
+      setSelectedAuction(undefined);
       resetAuctionForm();
       toast({ title: "Success", description: "Auction created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to create auction", variant: "destructive" });
     },
   });
 
@@ -329,6 +333,19 @@ export default function AuctionManagement() {
 
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevent multiple submissions
+    if (createProductMutation.isPending || updateProductMutation.isPending) {
+      return;
+    }
+
+    // Validate required fields
+    if (!productFormData.title || !productFormData.category) {
+      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
     const data = {
       ...productFormData,
       estimatedValue: productFormData.estimatedValue ? parseFloat(productFormData.estimatedValue) * 100 : 0,
@@ -356,13 +373,30 @@ export default function AuctionManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
       setIsAuctionDialogOpen(false);
+      setSelectedAuction(undefined);
       resetAuctionForm();
       toast({ title: "Success", description: "Auction updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to update auction", variant: "destructive" });
     },
   });
 
   const handleAuctionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevent multiple submissions
+    if (createAuctionMutation.isPending || updateAuctionMutation.isPending) {
+      return;
+    }
+
+    // Validate required fields
+    if (!auctionFormData.title || !auctionFormData.description || !auctionFormData.startingBid || !auctionFormData.startTime || !auctionFormData.endTime) {
+      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
     const data = {
       ...auctionFormData,
       startingBid: parseFloat(auctionFormData.startingBid) * 100,
@@ -975,8 +1009,15 @@ export default function AuctionManagement() {
               <Button type="button" variant="outline" onClick={() => setIsAuctionDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" style={{ backgroundColor: '#dc2626', color: 'white' }}>
-                {selectedAuction ? "Update Auction" : "Create Auction"}
+              <Button 
+                type="submit" 
+                style={{ backgroundColor: '#dc2626', color: 'white' }}
+                disabled={createAuctionMutation.isPending || updateAuctionMutation.isPending}
+              >
+                {createAuctionMutation.isPending || updateAuctionMutation.isPending 
+                  ? "Processing..." 
+                  : selectedAuction ? "Update Auction" : "Create Auction"
+                }
               </Button>
             </div>
           </form>
@@ -1130,8 +1171,15 @@ export default function AuctionManagement() {
               <Button type="button" variant="outline" onClick={() => setIsProductDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" style={{ backgroundColor: '#dc2626', color: 'white' }}>
-                {selectedProduct ? "Update Product" : "Create Product"}
+              <Button 
+                type="submit" 
+                style={{ backgroundColor: '#dc2626', color: 'white' }}
+                disabled={createProductMutation.isPending || updateProductMutation.isPending}
+              >
+                {createProductMutation.isPending || updateProductMutation.isPending 
+                  ? "Processing..." 
+                  : selectedProduct ? "Update Product" : "Create Product"
+                }
               </Button>
             </div>
           </form>
