@@ -342,6 +342,25 @@ export default function AuctionManagement() {
     }
   };
 
+  const updateAuctionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/auctions/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update auction');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
+      setIsAuctionDialogOpen(false);
+      resetAuctionForm();
+      toast({ title: "Success", description: "Auction updated successfully" });
+    },
+  });
+
   const handleAuctionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
@@ -351,7 +370,11 @@ export default function AuctionManagement() {
       auctionProductId: auctionFormData.auctionProductId ? parseInt(auctionFormData.auctionProductId) : null,
     };
     
-    createAuctionMutation.mutate(data);
+    if (selectedAuction) {
+      updateAuctionMutation.mutate({ ...data, id: selectedAuction.id });
+    } else {
+      createAuctionMutation.mutate(data);
+    }
   };
 
   const openProductDialog = (product?: AuctionProduct) => {
@@ -376,6 +399,25 @@ export default function AuctionManagement() {
       resetProductForm();
     }
     setIsProductDialogOpen(true);
+  };
+
+  const openAuctionDialog = (auction?: Auction) => {
+    if (auction) {
+      setSelectedAuction(auction);
+      setAuctionFormData({
+        title: auction.title,
+        description: auction.description,
+        startingBid: (auction.startingBid / 100).toString(),
+        reservePrice: auction.reservePrice ? (auction.reservePrice / 100).toString() : "",
+        startTime: new Date(auction.startTime).toISOString().slice(0, 16),
+        endTime: new Date(auction.endTime).toISOString().slice(0, 16),
+        auctionProductId: auction.auctionProductId?.toString() || "",
+      });
+    } else {
+      setSelectedAuction(undefined);
+      resetAuctionForm();
+    }
+    setIsAuctionDialogOpen(true);
   };
 
   // Status badge helpers
@@ -456,10 +498,7 @@ export default function AuctionManagement() {
         <h1 className="text-3xl font-bold">Auction Management</h1>
         <div className="flex gap-2">
           <Button 
-            onClick={() => {
-              setSelectedAuction(undefined);
-              setIsAuctionDialogOpen(true);
-            }}
+            onClick={() => openAuctionDialog()}
             style={{ backgroundColor: '#dc2626', color: 'white' }}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -595,7 +634,11 @@ export default function AuctionManagement() {
                       <TableCell>{auction.totalBids}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => openAuctionDialog(auction)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -834,8 +877,10 @@ export default function AuctionManagement() {
       <Dialog open={isAuctionDialogOpen} onOpenChange={setIsAuctionDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Auction</DialogTitle>
-            <DialogDescription>Add a new auction to the platform</DialogDescription>
+            <DialogTitle>{selectedAuction ? "Edit Auction" : "Create New Auction"}</DialogTitle>
+            <DialogDescription>
+              {selectedAuction ? "Update the auction details" : "Add a new auction to the platform"}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAuctionSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -931,7 +976,7 @@ export default function AuctionManagement() {
                 Cancel
               </Button>
               <Button type="submit" style={{ backgroundColor: '#dc2626', color: 'white' }}>
-                Create Auction
+                {selectedAuction ? "Update Auction" : "Create Auction"}
               </Button>
             </div>
           </form>
