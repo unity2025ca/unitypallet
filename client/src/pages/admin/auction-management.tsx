@@ -109,6 +109,32 @@ export default function AuctionManagement() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Form states
+  const [auctionFormData, setAuctionFormData] = useState({
+    title: "",
+    description: "",
+    startingBid: "",
+    reservePrice: "",
+    startTime: "",
+    endTime: "",
+    auctionProductId: "",
+  });
+  
+  const [productFormData, setProductFormData] = useState({
+    title: "",
+    titleAr: "",
+    description: "",
+    descriptionAr: "",
+    category: "",
+    categoryAr: "",
+    condition: "good",
+    estimatedValue: "",
+    weight: "",
+    dimensions: "",
+    location: "",
+    imageUrl: "",
+  });
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -196,6 +222,64 @@ export default function AuctionManagement() {
     }
   });
 
+  // Create mutations
+  const createAuctionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/auctions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create auction');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auctions"] });
+      setIsAuctionDialogOpen(false);
+      resetAuctionForm();
+      toast({ title: "Success", description: "Auction created successfully" });
+    },
+  });
+
+  const createProductMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/auction-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create auction product');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
+      setIsProductDialogOpen(false);
+      resetProductForm();
+      toast({ title: "Success", description: "Auction product created successfully" });
+    },
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/auction-products/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update auction product');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
+      setIsProductDialogOpen(false);
+      resetProductForm();
+      toast({ title: "Success", description: "Auction product updated successfully" });
+    },
+  });
+
   // Delete mutations
   const deleteAuctionMutation = useMutation({
     mutationFn: (id: number) => apiRequest(`/api/auctions/${id}`, "DELETE"),
@@ -212,6 +296,87 @@ export default function AuctionManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/auction-products"] });
     },
   });
+
+  // Form handlers
+  const resetAuctionForm = () => {
+    setAuctionFormData({
+      title: "",
+      description: "",
+      startingBid: "",
+      reservePrice: "",
+      startTime: "",
+      endTime: "",
+      auctionProductId: "",
+    });
+  };
+
+  const resetProductForm = () => {
+    setProductFormData({
+      title: "",
+      titleAr: "",
+      description: "",
+      descriptionAr: "",
+      category: "",
+      categoryAr: "",
+      condition: "good",
+      estimatedValue: "",
+      weight: "",
+      dimensions: "",
+      location: "",
+      imageUrl: "",
+    });
+  };
+
+  const handleProductSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = {
+      ...productFormData,
+      estimatedValue: productFormData.estimatedValue ? parseFloat(productFormData.estimatedValue) * 100 : 0,
+      weight: productFormData.weight ? parseFloat(productFormData.weight) : 0,
+    };
+    
+    if (selectedProduct) {
+      updateProductMutation.mutate({ ...data, id: selectedProduct.id });
+    } else {
+      createProductMutation.mutate(data);
+    }
+  };
+
+  const handleAuctionSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = {
+      ...auctionFormData,
+      startingBid: parseFloat(auctionFormData.startingBid) * 100,
+      reservePrice: auctionFormData.reservePrice ? parseFloat(auctionFormData.reservePrice) * 100 : null,
+      auctionProductId: auctionFormData.auctionProductId ? parseInt(auctionFormData.auctionProductId) : null,
+    };
+    
+    createAuctionMutation.mutate(data);
+  };
+
+  const openProductDialog = (product?: AuctionProduct) => {
+    if (product) {
+      setSelectedProduct(product);
+      setProductFormData({
+        title: product.title,
+        titleAr: product.titleAr,
+        description: product.description || "",
+        descriptionAr: product.descriptionAr || "",
+        category: product.category,
+        categoryAr: product.categoryAr,
+        condition: product.condition,
+        estimatedValue: product.estimatedValue ? (product.estimatedValue / 100).toString() : "",
+        weight: product.weight ? product.weight.toString() : "",
+        dimensions: product.dimensions || "",
+        location: product.location || "",
+        imageUrl: product.mainImage || "",
+      });
+    } else {
+      setSelectedProduct(null);
+      resetProductForm();
+    }
+    setIsProductDialogOpen(true);
+  };
 
   // Status badge helpers
   const getStatusColor = (status: string, type: 'payment' | 'shipping' | 'invoice' | 'deposit' | 'cash') => {
@@ -301,10 +466,7 @@ export default function AuctionManagement() {
             New Auction
           </Button>
           <Button 
-            onClick={() => {
-              setSelectedProduct(null);
-              setIsProductDialogOpen(true);
-            }}
+            onClick={() => openProductDialog()}
             variant="outline"
           >
             <Package className="h-4 w-4 mr-2" />
@@ -484,7 +646,11 @@ export default function AuctionManagement() {
                       <TableCell>{formatCurrency(product.estimatedValue)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => openProductDialog(product)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -663,6 +829,269 @@ export default function AuctionManagement() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Auction Dialog */}
+      <Dialog open={isAuctionDialogOpen} onOpenChange={setIsAuctionDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Auction</DialogTitle>
+            <DialogDescription>Add a new auction to the platform</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAuctionSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={auctionFormData.title}
+                  onChange={(e) => setAuctionFormData({...auctionFormData, title: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="auctionProductId">Product</Label>
+                <Select
+                  value={auctionFormData.auctionProductId}
+                  onValueChange={(value) => setAuctionFormData({...auctionFormData, auctionProductId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {auctionProducts.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={auctionFormData.description}
+                onChange={(e) => setAuctionFormData({...auctionFormData, description: e.target.value})}
+                rows={3}
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startingBid">Starting Bid ($)</Label>
+                <Input
+                  id="startingBid"
+                  type="number"
+                  step="0.01"
+                  value={auctionFormData.startingBid}
+                  onChange={(e) => setAuctionFormData({...auctionFormData, startingBid: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reservePrice">Reserve Price ($)</Label>
+                <Input
+                  id="reservePrice"
+                  type="number"
+                  step="0.01"
+                  value={auctionFormData.reservePrice}
+                  onChange={(e) => setAuctionFormData({...auctionFormData, reservePrice: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startTime">Start Time</Label>
+                <Input
+                  id="startTime"
+                  type="datetime-local"
+                  value={auctionFormData.startTime}
+                  onChange={(e) => setAuctionFormData({...auctionFormData, startTime: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">End Time</Label>
+                <Input
+                  id="endTime"
+                  type="datetime-local"
+                  value={auctionFormData.endTime}
+                  onChange={(e) => setAuctionFormData({...auctionFormData, endTime: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsAuctionDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" style={{ backgroundColor: '#dc2626', color: 'white' }}>
+                Create Auction
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Dialog */}
+      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedProduct ? "Edit Auction Product" : "Create New Auction Product"}</DialogTitle>
+            <DialogDescription>
+              {selectedProduct ? "Update the auction product details" : "Add a new product for auctions"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleProductSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="productTitle">Title (English)</Label>
+                <Input
+                  id="productTitle"
+                  value={productFormData.title}
+                  onChange={(e) => setProductFormData({...productFormData, title: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="productTitleAr">Title (Arabic)</Label>
+                <Input
+                  id="productTitleAr"
+                  value={productFormData.titleAr}
+                  onChange={(e) => setProductFormData({...productFormData, titleAr: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="productDescription">Description (English)</Label>
+                <Textarea
+                  id="productDescription"
+                  value={productFormData.description}
+                  onChange={(e) => setProductFormData({...productFormData, description: e.target.value})}
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="productDescriptionAr">Description (Arabic)</Label>
+                <Textarea
+                  id="productDescriptionAr"
+                  value={productFormData.descriptionAr}
+                  onChange={(e) => setProductFormData({...productFormData, descriptionAr: e.target.value})}
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="productCategory">Category (English)</Label>
+                <Input
+                  id="productCategory"
+                  value={productFormData.category}
+                  onChange={(e) => setProductFormData({...productFormData, category: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="productCategoryAr">Category (Arabic)</Label>
+                <Input
+                  id="productCategoryAr"
+                  value={productFormData.categoryAr}
+                  onChange={(e) => setProductFormData({...productFormData, categoryAr: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="condition">Condition</Label>
+                <Select
+                  value={productFormData.condition}
+                  onValueChange={(value) => setProductFormData({...productFormData, condition: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {conditionOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="estimatedValue">Estimated Value ($)</Label>
+                <Input
+                  id="estimatedValue"
+                  type="number"
+                  step="0.01"
+                  value={productFormData.estimatedValue}
+                  onChange={(e) => setProductFormData({...productFormData, estimatedValue: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="weight">Weight (kg)</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  value={productFormData.weight}
+                  onChange={(e) => setProductFormData({...productFormData, weight: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dimensions">Dimensions</Label>
+                <Input
+                  id="dimensions"
+                  value={productFormData.dimensions}
+                  onChange={(e) => setProductFormData({...productFormData, dimensions: e.target.value})}
+                  placeholder="L x W x H"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={productFormData.location}
+                  onChange={(e) => setProductFormData({...productFormData, location: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">Image URL</Label>
+              <Input
+                id="imageUrl"
+                type="url"
+                value={productFormData.imageUrl}
+                onChange={(e) => setProductFormData({...productFormData, imageUrl: e.target.value})}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsProductDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" style={{ backgroundColor: '#dc2626', color: 'white' }}>
+                {selectedProduct ? "Update Product" : "Create Product"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
