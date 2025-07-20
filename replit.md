@@ -13,6 +13,7 @@ Advanced Arabic e-commerce platform specializing in Amazon return pallets and li
 - SMS: Twilio for customer notifications
 - Images: Cloudinary for storage and optimization
 - Email: SendGrid for transactional emails
+- Admin Interface: Manual save functionality preferred over auto-save to reduce performance issues when typing
 
 ## Project Architecture
 - **Frontend:** React with TypeScript, Shadcn UI components, Wouter routing

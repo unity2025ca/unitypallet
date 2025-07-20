@@ -15,6 +15,8 @@ export default function AdminSettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('auctions');
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Fetch auctions enabled status
   const { data: auctionsStatus, isLoading } = useQuery({
@@ -77,8 +79,24 @@ export default function AdminSettingsPage() {
     },
   });
 
+  const handleInputChange = (key: string, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+    setHasChanges(true);
+  };
+
+  const handleSaveSettings = () => {
+    const promises = Object.entries(formData).map(([key, value]) => 
+      updateSettingMutation.mutateAsync({ key, value })
+    );
+    
+    Promise.all(promises).then(() => {
+      setFormData({});
+      setHasChanges(false);
+    });
+  };
+
   const handleUpdateSetting = (key: string, value: string) => {
-    // Immediate update for better UX
+    // For switches and immediate actions, still use direct update
     updateSettingMutation.mutate({ key, value });
   };
 
@@ -95,7 +113,8 @@ export default function AdminSettingsPage() {
   }
 
   const getSetting = (key: string) => {
-    return allSettings?.find(s => s.key === key)?.value || '';
+    // Check form data first, then fallback to saved settings
+    return formData[key] ?? (allSettings?.find(s => s.key === key)?.value || '');
   };
 
   return (
@@ -259,7 +278,7 @@ export default function AdminSettingsPage() {
                       <Textarea
                         id="store-address"
                         value={getSetting('store_pickup_address')}
-                        onChange={(e) => handleUpdateSetting('store_pickup_address', e.target.value)}
+                        onChange={(e) => handleInputChange('store_pickup_address', e.target.value)}
                         placeholder="Enter your store address for customer pickup"
                         rows={3}
                         disabled={updateSettingMutation.isPending}
@@ -272,7 +291,7 @@ export default function AdminSettingsPage() {
                         <Input
                           id="pickup-hours"
                           value={getSetting('store_pickup_hours')}
-                          onChange={(e) => handleUpdateSetting('store_pickup_hours', e.target.value)}
+                          onChange={(e) => handleInputChange('store_pickup_hours', e.target.value)}
                           placeholder="Mon-Fri: 9AM-6PM, Sat: 10AM-4PM"
                           disabled={updateSettingMutation.isPending}
                         />
@@ -283,7 +302,7 @@ export default function AdminSettingsPage() {
                         <Input
                           id="pickup-phone"
                           value={getSetting('store_pickup_phone')}
-                          onChange={(e) => handleUpdateSetting('store_pickup_phone', e.target.value)}
+                          onChange={(e) => handleInputChange('store_pickup_phone', e.target.value)}
                           placeholder="Phone number for pickup coordination"
                           disabled={updateSettingMutation.isPending}
                         />
@@ -295,12 +314,34 @@ export default function AdminSettingsPage() {
                       <Textarea
                         id="pickup-instructions"
                         value={getSetting('store_pickup_instructions')}
-                        onChange={(e) => handleUpdateSetting('store_pickup_instructions', e.target.value)}
+                        onChange={(e) => handleInputChange('store_pickup_instructions', e.target.value)}
                         placeholder="Special instructions for customers when picking up orders"
                         rows={2}
                         disabled={updateSettingMutation.isPending}
                       />
                     </div>
+
+                    {hasChanges && (
+                      <div className="flex justify-end pt-4 border-t">
+                        <Button 
+                          onClick={handleSaveSettings}
+                          disabled={updateSettingMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          {updateSettingMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-2" />
+                              Save Changes
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -340,7 +381,7 @@ export default function AdminSettingsPage() {
                     <Input
                       id="dev-notice-title"
                       value={getSetting('dev_notice_title')}
-                      onChange={(e) => handleUpdateSetting('dev_notice_title', e.target.value)}
+                      onChange={(e) => handleInputChange('dev_notice_title', e.target.value)}
                       placeholder="Site Under Development"
                       disabled={updateSettingMutation.isPending}
                     />
@@ -351,7 +392,7 @@ export default function AdminSettingsPage() {
                     <Textarea
                       id="dev-notice-message"
                       value={getSetting('dev_notice_message')}
-                      onChange={(e) => handleUpdateSetting('dev_notice_message', e.target.value)}
+                      onChange={(e) => handleInputChange('dev_notice_message', e.target.value)}
                       placeholder="This website is currently under development and testing. We will be launching soon!"
                       rows={3}
                       disabled={updateSettingMutation.isPending}
@@ -363,7 +404,7 @@ export default function AdminSettingsPage() {
                     <Input
                       id="dev-notice-button"
                       value={getSetting('dev_notice_button_text')}
-                      onChange={(e) => handleUpdateSetting('dev_notice_button_text', e.target.value)}
+                      onChange={(e) => handleInputChange('dev_notice_button_text', e.target.value)}
                       placeholder="I Understand"
                       disabled={updateSettingMutation.isPending}
                     />
@@ -386,6 +427,28 @@ export default function AdminSettingsPage() {
                     </p>
                   </div>
                 </div>
+
+                {hasChanges && (
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button 
+                      onClick={handleSaveSettings}
+                      disabled={updateSettingMutation.isPending}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {updateSettingMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
