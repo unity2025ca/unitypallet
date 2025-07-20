@@ -511,7 +511,8 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={getSetting('maintenance_mode') === 'true'}
-                    disabled
+                    onCheckedChange={(checked) => handleUpdateSetting('maintenance_mode', checked.toString())}
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -541,7 +542,8 @@ export default function AdminSettingsPage() {
                   </div>
                   <Switch
                     checked={getSetting('show_appointments_bubble') === 'true'}
-                    disabled
+                    onCheckedChange={(checked) => handleUpdateSetting('show_appointments_bubble', checked.toString())}
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -550,16 +552,18 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Available Days</Label>
                     <Input
                       value={getSetting('appointments_available_days')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleInputChange('appointments_available_days', e.target.value)}
+                      placeholder="Monday,Tuesday,Wednesday,Thursday,Friday"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Interval (minutes)</Label>
                     <Input
                       value={getSetting('appointments_interval')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleInputChange('appointments_interval', e.target.value)}
+                      placeholder="30"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                 </div>
@@ -569,19 +573,43 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Start Time</Label>
                     <Input
                       value={getSetting('appointments_start_time')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleInputChange('appointments_start_time', e.target.value)}
+                      placeholder="09:00"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">End Time</Label>
                     <Input
                       value={getSetting('appointments_end_time')}
-                      disabled
-                      className="bg-gray-50"
+                      onChange={(e) => handleInputChange('appointments_end_time', e.target.value)}
+                      placeholder="17:00"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                 </div>
+
+                {hasChanges && (
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button 
+                      onClick={handleSaveSettings}
+                      disabled={updateSettingMutation.isPending}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {updateSettingMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -596,8 +624,9 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Page Title</Label>
                   <Input
                     value={getSetting('about_title')}
-                    onChange={(e) => handleUpdateSetting('about_title', e.target.value)}
+                    onChange={(e) => handleInputChange('about_title', e.target.value)}
                     placeholder="Enter about page title"
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -605,8 +634,9 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Page Subtitle</Label>
                   <Input
                     value={getSetting('about_subtitle')}
-                    onChange={(e) => handleUpdateSetting('about_subtitle', e.target.value)}
+                    onChange={(e) => handleInputChange('about_subtitle', e.target.value)}
                     placeholder="Enter about page subtitle"
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -614,9 +644,10 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">About Description</Label>
                   <Textarea
                     value={getSetting('about_description')}
-                    onChange={(e) => handleUpdateSetting('about_description', e.target.value)}
+                    onChange={(e) => handleInputChange('about_description', e.target.value)}
                     placeholder="Enter about description"
                     rows={4}
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -625,18 +656,20 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Our Mission</Label>
                     <Textarea
                       value={getSetting('about_mission')}
-                      onChange={(e) => handleUpdateSetting('about_mission', e.target.value)}
+                      onChange={(e) => handleInputChange('about_mission', e.target.value)}
                       placeholder="Enter our mission"
                       rows={3}
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Our Vision</Label>
                     <Textarea
                       value={getSetting('about_vision')}
-                      onChange={(e) => handleUpdateSetting('about_vision', e.target.value)}
+                      onChange={(e) => handleInputChange('about_vision', e.target.value)}
                       placeholder="Enter our vision"
                       rows={3}
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                 </div>
@@ -645,9 +678,10 @@ export default function AdminSettingsPage() {
                   <Label className="text-sm font-medium">Our History</Label>
                   <Textarea
                     value={getSetting('about_history')}
-                    disabled
-                    className="bg-gray-50"
+                    onChange={(e) => handleInputChange('about_history', e.target.value)}
+                    placeholder="Enter our company history"
                     rows={3}
+                    disabled={updateSettingMutation.isPending}
                   />
                 </div>
 
@@ -656,16 +690,18 @@ export default function AdminSettingsPage() {
                     <Label className="text-sm font-medium">Customers Count</Label>
                     <Input
                       value={getSetting('about_customers_count')}
-                      onChange={(e) => handleUpdateSetting('about_customers_count', e.target.value)}
+                      onChange={(e) => handleInputChange('about_customers_count', e.target.value)}
                       placeholder="Enter customers count"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Pallets Count</Label>
                     <Input
                       value={getSetting('about_pallets_count')}
-                      onChange={(e) => handleUpdateSetting('about_pallets_count', e.target.value)}
+                      onChange={(e) => handleInputChange('about_pallets_count', e.target.value)}
                       placeholder="Enter pallets count"
+                      disabled={updateSettingMutation.isPending}
                     />
                   </div>
                 </div>
@@ -684,6 +720,28 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
                 </div>
+
+                {hasChanges && (
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button 
+                      onClick={handleSaveSettings}
+                      disabled={updateSettingMutation.isPending}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {updateSettingMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
