@@ -12,7 +12,8 @@ import {
   LogOut,
   LogIn,
   Heart,
-  Truck
+  Truck,
+  Trophy
 } from "lucide-react";
 import {
   DropdownMenu,

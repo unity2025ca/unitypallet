@@ -73,6 +73,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auto-bidding routes
   const autoBiddingRouter = (await import('./routes/auto-bidding')).default;
+  
+  // Auction completion routes
+  const auctionCompletionRouter = (await import('./routes/auction-completion')).default;
+  app.use('/api', auctionCompletionRouter);
   app.use('/api/admin', requireAdmin, autoBiddingRouter);
   
   // Direct watchlist endpoint - MUST be before other auction routes  

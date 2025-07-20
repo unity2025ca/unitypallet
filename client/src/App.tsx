@@ -56,6 +56,7 @@ import TestOrdersPage from "@/pages/admin/test-orders";
 import RetailProductsPage from "@/pages/retail-products";
 import AuctionProductsPage from "@/pages/auction-products";
 import OrderTrackingPage from "@/pages/order-tracking";
+import AuctionWinnerProcessPage from "@/pages/auction-winner-process";
 import { useLocation } from "wouter";
 import AppointmentBubble from "@/components/shared/AppointmentBubble";
 import CartBubble from "@/components/shared/CartBubble";
@@ -115,6 +116,7 @@ function AppContent() {
         <CustomerProtectedRoute path="/watchlist" component={WatchlistPage} />
         <CustomerProtectedRoute path="/orders" component={OrdersPage} />
         <CustomerProtectedRoute path="/orders/:id" component={OrderDetailsPage} />
+        <CustomerProtectedRoute path="/auction-winner-process" component={AuctionWinnerProcessPage} />
         <CustomerProtectedRoute path="/checkout" component={CheckoutPage} />
         
         {/* Admin Routes - Login is public, all others are protected */}

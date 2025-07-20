@@ -233,6 +233,12 @@ export interface IStorage {
   getAutoBidById(autoBidId: number): Promise<any>;
   updateAutoBidMaxAmount(autoBidId: number, maxBidAmount: number): Promise<any>;
   
+  // Auction completion and winner management
+  createAuctionOrder(orderData: any): Promise<any>;
+  getAuctionOrderByAuctionId(auctionId: number): Promise<any>;
+  getAuctionWinsByUserId(userId: number): Promise<any[]>;
+  updateAuctionOrder(orderId: number, updateData: any): Promise<any>;
+  
   // Session store
   sessionStore: any; // Simplify type for session store
 }
@@ -2272,6 +2278,115 @@ export class DatabaseStorage implements IStorage {
       return result.rows[0] || null;
     } catch (error) {
       console.error('Error updating auto bid max amount:', error);
+      throw error;
+    }
+  }
+
+  // Auction completion and winner management methods
+  async createAuctionOrder(orderData: any): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        INSERT INTO auction_orders (
+          auction_id, user_id, winning_bid, payment_status, 
+          invoice_status, shipping_status
+        ) VALUES (
+          ${orderData.auctionId}, ${orderData.userId}, ${orderData.winningBid},
+          ${orderData.paymentStatus}, ${orderData.invoiceStatus}, ${orderData.shippingStatus}
+        ) RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error creating auction order:', error);
+      throw error;
+    }
+  }
+
+  async getAuctionOrderByAuctionId(auctionId: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        SELECT * FROM auction_orders 
+        WHERE auction_id = ${auctionId}
+        LIMIT 1
+      `);
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error getting auction order:', error);
+      return null;
+    }
+  }
+
+  async getAuctionWinsByUserId(userId: number): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          ao.id as order_id,
+          ao.auction_id,
+          ao.winning_bid,
+          ao.payment_status,
+          ao.invoice_status,
+          ao.shipping_status,
+          ao.invoice_url,
+          ao.tracking_number,
+          ao.created_at as win_date,
+          a.title as auction_title,
+          a.end_time,
+          u.email as winner_email,
+          p.title as product_title,
+          p.description as product_description,
+          p.category as product_category,
+          (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = true LIMIT 1) as product_image_url
+        FROM auction_orders ao
+        JOIN auctions a ON ao.auction_id = a.id
+        JOIN users u ON ao.user_id = u.id
+        JOIN products p ON a.product_id = p.id
+        WHERE ao.user_id = ${userId}
+        ORDER BY ao.created_at DESC
+      `);
+      
+      return result.rows.map(row => ({
+        auctionId: row.auction_id,
+        auctionTitle: row.auction_title,
+        winningBid: parseInt(row.winning_bid) || 0,
+        paymentStatus: row.payment_status,
+        invoiceStatus: row.invoice_status,
+        shippingStatus: row.shipping_status,
+        winnerEmail: row.winner_email,
+        winDate: row.win_date,
+        invoiceUrl: row.invoice_url,
+        trackingNumber: row.tracking_number,
+        productDetails: {
+          title: row.product_title,
+          description: row.product_description,
+          category: row.product_category,
+          imageUrl: row.product_image_url || '/placeholder.jpg'
+        }
+      }));
+    } catch (error) {
+      console.error('Error getting auction wins by user ID:', error);
+      return [];
+    }
+  }
+
+  async updateAuctionOrder(orderId: number, updateData: any): Promise<any> {
+    try {
+      const setClause = Object.keys(updateData)
+        .map(key => `${key} = $${Object.keys(updateData).indexOf(key) + 2}`)
+        .join(', ');
+      
+      const values = [orderId, ...Object.values(updateData)];
+      
+      const result = await db.execute(sql.raw(`
+        UPDATE auction_orders 
+        SET ${setClause}, updated_at = NOW() 
+        WHERE id = $1
+        RETURNING *
+      `, values));
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error updating auction order:', error);
       throw error;
     }
   }
