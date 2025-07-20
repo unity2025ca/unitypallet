@@ -128,6 +128,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to generate invoice' });
     }
   });
+
+  // Initialize shipping settings
+  app.post('/api/admin/init-shipping-settings', requireAdmin, async (req, res) => {
+    try {
+      const shippingSettings = [
+        { key: 'shipping_enabled', value: 'false', category: 'shipping', label: 'Enable Shipping', type: 'boolean' },
+        { key: 'store_pickup_address', value: 'Jaberco Store, Main Street, Toronto, ON', category: 'shipping', label: 'Store Pickup Address', type: 'textarea' },
+        { key: 'store_pickup_hours', value: 'Mon-Fri: 9AM-6PM, Sat: 10AM-4PM', category: 'shipping', label: 'Store Pickup Hours', type: 'text' },
+        { key: 'store_pickup_phone', value: '+1-416-555-0123', category: 'shipping', label: 'Store Pickup Phone', type: 'text' },
+        { key: 'store_pickup_instructions', value: 'Please bring your order confirmation and valid ID for pickup. Call upon arrival.', category: 'shipping', label: 'Store Pickup Instructions', type: 'textarea' }
+      ];
+
+      for (const setting of shippingSettings) {
+        await storage.createOrUpdateSetting(setting.key, setting.value, setting.category, setting.label, setting.type);
+      }
+
+      res.json({ success: true, message: 'Shipping settings initialized successfully' });
+    } catch (error) {
+      console.error('Error initializing shipping settings:', error);
+      res.status(500).json({ error: 'Failed to initialize shipping settings' });
+    }
+  });
   
   // Direct watchlist endpoint - MUST be before other auction routes  
   app.get('/api/auctions/watchlist', async (req, res) => {

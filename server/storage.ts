@@ -2305,7 +2305,7 @@ export class DatabaseStorage implements IStorage {
   async getAllAuctionOrders(): Promise<any[]> {
     try {
       const result = await db.execute(sql`
-        SELECT ao.*, a.title as auction_title, a.end_date,
+        SELECT ao.*, a.title as auction_title, a.end_time,
                u.full_name, u.email, u.phone
         FROM auction_orders ao
         LEFT JOIN auctions a ON ao.auction_id = a.id
@@ -2326,7 +2326,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: row.created_at,
         auction: {
           title: row.auction_title,
-          endDate: row.end_date
+          endDate: row.end_time
         },
         user: {
           fullName: row.full_name,

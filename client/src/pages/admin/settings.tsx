@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Settings, Eye, EyeOff, Database, Wrench, Calendar, Palette, Upload, Save, Loader2 } from "lucide-react";
+import { Settings, Eye, EyeOff, Database, Wrench, Calendar, Palette, Upload, Save, Loader2, Package, Truck, Store } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { toast } = useToast();
@@ -106,10 +106,14 @@ export default function AdminSettingsPage() {
       </div>
 
       <Tabs defaultValue="auctions" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="auctions" className="flex items-center gap-2 text-xs">
             <Eye className="h-3 w-3" />
             Auctions
+          </TabsTrigger>
+          <TabsTrigger value="shipping" className="flex items-center gap-2 text-xs">
+            <Package className="h-3 w-3" />
+            Shipping
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center gap-2 text-xs">
             <Wrench className="h-3 w-3" />
@@ -189,6 +193,114 @@ export default function AdminSettingsPage() {
                       {toggleAuctionsMutation.isPending ? "Updating..." : 
                        auctionsStatus?.enabled ? "Hide Auctions" : "Show Auctions"}
                     </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="shipping" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Shipping & Delivery Control
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium">
+                      Enable Shipping Services
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Allow customers to choose shipping delivery for their orders
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={getSetting('shipping_enabled') === 'true'}
+                      onCheckedChange={(checked) => handleUpdateSetting('shipping_enabled', checked.toString())}
+                      disabled={updateSettingMutation.isPending}
+                    />
+                    {getSetting('shipping_enabled') === 'true' ? (
+                      <Truck className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Store className="h-4 w-4 text-orange-600" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium">
+                        Current Delivery Method: {getSetting('shipping_enabled') === 'true' ? 'Shipping Available' : 'In-Store Pickup Only'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {getSetting('shipping_enabled') === 'true' 
+                        ? 'Customers can choose between shipping delivery and in-store pickup during checkout.'
+                        : 'Shipping is temporarily disabled. Customers can only select in-store pickup for their orders.'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Store Pickup Information</Label>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="store-address">Store Address</Label>
+                      <Textarea
+                        id="store-address"
+                        value={getSetting('store_pickup_address')}
+                        onChange={(e) => handleUpdateSetting('store_pickup_address', e.target.value)}
+                        placeholder="Enter your store address for customer pickup"
+                        rows={3}
+                        disabled={updateSettingMutation.isPending}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="pickup-hours">Pickup Hours</Label>
+                        <Input
+                          id="pickup-hours"
+                          value={getSetting('store_pickup_hours')}
+                          onChange={(e) => handleUpdateSetting('store_pickup_hours', e.target.value)}
+                          placeholder="Mon-Fri: 9AM-6PM, Sat: 10AM-4PM"
+                          disabled={updateSettingMutation.isPending}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="pickup-phone">Pickup Contact Phone</Label>
+                        <Input
+                          id="pickup-phone"
+                          value={getSetting('store_pickup_phone')}
+                          onChange={(e) => handleUpdateSetting('store_pickup_phone', e.target.value)}
+                          placeholder="Phone number for pickup coordination"
+                          disabled={updateSettingMutation.isPending}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pickup-instructions">Pickup Instructions</Label>
+                      <Textarea
+                        id="pickup-instructions"
+                        value={getSetting('store_pickup_instructions')}
+                        onChange={(e) => handleUpdateSetting('store_pickup_instructions', e.target.value)}
+                        placeholder="Special instructions for customers when picking up orders"
+                        rows={2}
+                        disabled={updateSettingMutation.isPending}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
