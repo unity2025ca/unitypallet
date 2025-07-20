@@ -2448,6 +2448,72 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async markAuctionOrderDelivered(orderId: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        UPDATE auction_orders 
+        SET shipping_status = 'delivered', 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${orderId} 
+        RETURNING *
+      `);
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error marking auction order as delivered:', error);
+      throw error;
+    }
+  }
+
+  async getAuctionOrderWithDetails(orderId: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        SELECT ao.*, 
+               u.username, u.full_name, u.email, u.phone,
+               a.title as auction_title, a.end_date
+        FROM auction_orders ao
+        LEFT JOIN users u ON ao.user_id = u.id
+        LEFT JOIN auctions a ON ao.auction_id = a.id
+        WHERE ao.id = ${orderId}
+      `);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+      
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        auctionId: row.auction_id,
+        userId: row.user_id,
+        winningBid: row.winning_bid,
+        paymentStatus: row.payment_status,
+        invoiceStatus: row.invoice_status,
+        shippingStatus: row.shipping_status,
+        securityDepositAmount: row.security_deposit_amount,
+        remainingAmount: row.remaining_amount,
+        securityDepositStatus: row.security_deposit_status,
+        cashPaymentStatus: row.cash_payment_status,
+        invoiceUrl: row.invoice_url,
+        trackingNumber: row.tracking_number,
+        createdAt: row.created_at,
+        user: {
+          username: row.username,
+          fullName: row.full_name,
+          email: row.email,
+          phone: row.phone
+        },
+        auction: {
+          title: row.auction_title,
+          endDate: row.end_date
+        }
+      };
+    } catch (error) {
+      console.error('Error getting auction order with details:', error);
+      throw error;
+    }
+  }
+
   async getCustomerAuctionWins(userId: number): Promise<any[]> {
     try {
       const result = await db.execute(sql`

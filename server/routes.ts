@@ -144,6 +144,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/admin/auction-orders/:orderId/mark-delivered', requireAdmin, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      
+      // Update order status to delivered
+      const order = await storage.markAuctionOrderDelivered(orderId);
+      
+      // Get order details with customer info for notifications
+      const orderDetails = await storage.getAuctionOrderWithDetails(orderId);
+      
+      if (orderDetails && orderDetails.user) {
+        const { user, auction } = orderDetails;
+        
+        // Send email notification
+        try {
+          await sendBulkEmails([{
+            to: user.email,
+            subject: 'Order Delivered - Jaberco',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #dc2626;">Order Successfully Delivered</h2>
+                <p>Dear ${user.fullName || user.username},</p>
+                <p>Your auction order has been successfully delivered!</p>
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3>Order Details:</h3>
+                  <p><strong>Order ID:</strong> #${orderId}</p>
+                  <p><strong>Item:</strong> ${auction?.title || 'Auction Item'}</p>
+                  <p><strong>Winning Bid:</strong> $${((orderDetails.winningBid || 0) / 100).toFixed(2)}</p>
+                  <p><strong>Delivery Date:</strong> ${new Date().toLocaleDateString()}</p>
+                </div>
+                <p>Thank you for choosing Jaberco! We hope you enjoy your purchase.</p>
+                <p>Best regards,<br>The Jaberco Team</p>
+              </div>
+            `
+          }]);
+        } catch (emailError) {
+          console.error('Error sending delivery email:', emailError);
+        }
+        
+        // Send SMS notification
+        try {
+          if (user.phone) {
+            await sendSMS(
+              user.phone,
+              `Jaberco: Your auction order #${orderId} (${auction?.title || 'Auction Item'}) has been successfully delivered! Thank you for shopping with us.`
+            );
+          }
+        } catch (smsError) {
+          console.error('Error sending delivery SMS:', smsError);
+        }
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error('Error marking order as delivered:', error);
+      res.status(500).json({ error: 'Failed to mark order as delivered' });
+    }
+  });
+
   app.post('/api/admin/auction-orders/:orderId/generate-invoice', requireAdmin, async (req, res) => {
     try {
       const orderId = parseInt(req.params.orderId);

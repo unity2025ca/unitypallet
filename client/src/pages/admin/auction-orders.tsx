@@ -127,6 +127,23 @@ export default function AdminAuctionOrders() {
     }
   });
 
+  const markDeliveredMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await fetch(`/api/admin/auction-orders/${orderId}/mark-delivered`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to mark as delivered');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auction-orders'] });
+    }
+  });
+
   const getStatusColor = (status: string, type: 'payment' | 'shipping' | 'invoice' | 'deposit' | 'cash') => {
     if (type === 'payment') {
       switch (status) {
@@ -380,6 +397,18 @@ export default function AdminAuctionOrders() {
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Download Invoice
+                        </Button>
+                      )}
+
+                      {order.cashPaymentStatus === 'paid' && order.shippingStatus === 'ready_for_pickup' && (
+                        <Button
+                          size="sm"
+                          style={{ backgroundColor: '#dc2626', color: 'white' }}
+                          onClick={() => markDeliveredMutation.mutate(order.id)}
+                          disabled={markDeliveredMutation.isPending}
+                        >
+                          <Truck className="h-4 w-4 mr-1" />
+                          {markDeliveredMutation.isPending ? 'Processing...' : 'Mark Delivered'}
                         </Button>
                       )}
                     </div>
